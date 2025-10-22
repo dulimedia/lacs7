@@ -7,8 +7,13 @@ import { PerfFlags } from '../perf/PerfFlags';
 
 export function GodRays() {
   const sunRef = useRef<THREE.Mesh>(null);
-  const { scene, camera } = useThree();
+  const { scene, camera, gl } = useThree();
   const isDesktop = PerfFlags.tier === "desktopHigh";
+
+  // Don't render effects if renderer isn't ready
+  if (!gl || !gl.capabilities) {
+    return null;
+  }
 
   return (
     <>

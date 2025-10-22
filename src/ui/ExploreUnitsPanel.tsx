@@ -64,6 +64,8 @@ interface BuildingNodeProps {
   onToggleExpanded: () => void;
   onBuildingClick: () => void;
   onUnitSelect?: (unitData: any) => void;
+  expandedFloors: Record<string, boolean>;
+  onToggleFloor: (floor: string) => void;
 }
 
 interface FloorNodeProps {
@@ -297,10 +299,11 @@ const BuildingNode: React.FC<BuildingNodeProps> = ({
   isExpanded,
   onToggleExpanded,
   onBuildingClick,
-  onUnitSelect
+  onUnitSelect,
+  expandedFloors,
+  onToggleFloor
 }) => {
   const { getFloorList, getUnitsByFloor, getUnitData } = useExploreState();
-  const [expandedFloors, setExpandedFloors] = useState<Record<string, boolean>>({});
   
   // Get filter state from parent component context
   const filters = useExploreState(state => ({
@@ -350,18 +353,6 @@ const BuildingNode: React.FC<BuildingNodeProps> = ({
     return { filteredCount: filtered, totalCount: total };
   }, [building, floors, getUnitsByFloor, getUnitData, filters]);
 
-  const toggleFloorExpanded = (floor: string) => {
-    setExpandedFloors(prev => {
-      const isCurrentlyExpanded = prev[floor];
-      
-      if (isCurrentlyExpanded) {
-        return { ...prev, [floor]: false };
-      } else {
-        return { [floor]: true };
-      }
-    });
-  };
-
   const handleFloorClick = (floor: string) => {
     const { selectFloor } = useGLBState.getState();
     selectFloor(building, floor);
@@ -406,7 +397,7 @@ const BuildingNode: React.FC<BuildingNodeProps> = ({
               building={building}
               floor={floor}
               isExpanded={!!expandedFloors[floor]}
-              onToggleExpanded={() => toggleFloorExpanded(floor)}
+              onToggleExpanded={() => onToggleFloor(floor)}
               onFloorClick={() => handleFloorClick(floor)}
               onUnitSelect={onUnitSelect}
             />
@@ -444,8 +435,10 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
   
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedBuildings, setExpandedBuildings] = useState<Record<string, boolean>>({});
+  const [expandedFloors, setExpandedFloors] = useState<Record<string, boolean>>({});
   const [tree, setTree] = useState<TreeNode | null>(null);
   const [expandedPaths, setExpandedPaths] = useState<Record<string, boolean>>({});
+  const [collapsingPaths, setCollapsingPaths] = useState<Record<string, boolean>>({});
   
   // Set fixed min/max range for better user experience  
   const { actualMinSqft, actualMaxSqft } = useMemo(() => {
@@ -732,20 +725,68 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
   
   const buildings = getBuildingList();
   
-  // Toggle tree path expansion - simple toggle behavior
+  // Toggle tree path expansion - accordion behavior with staggered animations
   const toggleExpand = (path: string) => {
     setExpandedPaths(prev => {
       const isCurrentlyExpanded = prev[path];
       
-      if (!isCurrentlyExpanded) {
-        // Opening a folder - just set it to expanded
-        return { ...prev, [path]: true };
-      } else {
-        // Closing the folder - clear selections and toggle it off
+      if (isCurrentlyExpanded) {
+        // Closing the folder
+        console.log(`🔽 Collapsing path: ${path}`);
         const { clearSelection } = useGLBState.getState();
         clearSelection();
-        
         return { ...prev, [path]: false };
+      } else {
+        // Opening a folder - mark siblings as collapsing first
+        console.log(`🔼 Expanding path: ${path}, collapsing siblings`);
+        
+        const pathParts = path.split('/');
+        const isBuilding = pathParts.length === 2;
+        const isFloor = pathParts.length === 3;
+        
+        const pathsToCollapse: string[] = [];
+        
+        if (isBuilding) {
+          Object.keys(prev).forEach(key => {
+            const keyParts = key.split('/');
+            if ((keyParts.length === 2 && key !== path) || keyParts.length === 3) {
+              if (prev[key]) pathsToCollapse.push(key);
+            }
+          });
+        } else if (isFloor) {
+          const buildingPath = pathParts.slice(0, 2).join('/');
+          Object.keys(prev).forEach(key => {
+            const keyParts = key.split('/');
+            if (keyParts.length === 3 && key !== path) {
+              const keyBuilding = keyParts.slice(0, 2).join('/');
+              if (keyBuilding === buildingPath && prev[key]) {
+                pathsToCollapse.push(key);
+              }
+            }
+          });
+        }
+        
+        if (pathsToCollapse.length > 0) {
+          // Mark paths as collapsing
+          const collapsingState: Record<string, boolean> = {};
+          pathsToCollapse.forEach(p => collapsingState[p] = true);
+          setCollapsingPaths(collapsingState);
+          
+          // Close collapsing paths immediately
+          const newState = { ...prev };
+          pathsToCollapse.forEach(p => newState[p] = false);
+          
+          // After collapse animation (150ms), expand the new path
+          setTimeout(() => {
+            setCollapsingPaths({});
+            setExpandedPaths(current => ({ ...current, [path]: true }));
+          }, 150);
+          
+          return newState;
+        } else {
+          // No siblings to collapse, expand immediately
+          return { ...prev, [path]: true };
+        }
       }
     });
   };
@@ -768,16 +809,28 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
     setExpandedBuildings(prev => {
       const isCurrentlyExpanded = prev[building];
       if (isCurrentlyExpanded) {
+        console.log(`🔽 Collapsing building: ${building}`);
         return { ...prev, [building]: false };
       } else {
+        console.log(`🔼 Expanding building: ${building}, collapsing all others`);
         const newState = Object.keys(prev).reduce((acc, key) => ({...acc, [key]: false}), {} as Record<string, boolean>);
+        setExpandedFloors({});
         return { ...newState, [building]: true };
       }
     });
-    
-    if (!expandedBuildings[building]) {
-      setExpandedFloors({});
-    }
+  };
+
+  const toggleFloorExpanded = (floor: string) => {
+    setExpandedFloors(prev => {
+      const isCurrentlyExpanded = prev[floor];
+      if (isCurrentlyExpanded) {
+        console.log(`🔽 Collapsing floor: ${floor}`);
+        return {};
+      } else {
+        console.log(`🔼 Expanding floor: ${floor}, collapsing all others`);
+        return { [floor]: true };
+      }
+    });
   };
 
   const handleBuildingClick = (building: string) => {
@@ -1101,8 +1154,16 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
               </div>
             </div>
             
-            {expanded && node.children && (
-              <div className="bg-gray-50 max-h-64 overflow-y-auto">
+            <div 
+              className="bg-gray-50 overflow-hidden transition-all ease-in-out"
+              style={{
+                maxHeight: expanded ? '400px' : '0px',
+                opacity: expanded ? 1 : 0,
+                transitionDuration: collapsingPaths[nodePath] ? '150ms' : '200ms'
+              }}
+            >
+              {node.children && (
+              <div className="max-h-64 overflow-y-auto">
                 {node.children
                   .sort((a, b) => {
                     // Special sorting for Tower Building units
@@ -1152,7 +1213,8 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
                   )
                 )}
               </div>
-            )}
+              )}
+            </div>
           </div>
         );
       } else {
@@ -1206,8 +1268,20 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
               </div>
             </div>
             
-            {expanded && node.children && (
-              <div className="bg-gray-100 px-2 py-1">
+            <div 
+              className="bg-gray-100 overflow-hidden transition-all ease-in-out"
+              style={{
+                maxHeight: expanded ? '300px' : '0px',
+                opacity: expanded ? 1 : 0,
+                paddingLeft: expanded ? '0.5rem' : '0',
+                paddingRight: expanded ? '0.5rem' : '0',
+                paddingTop: expanded ? '0.25rem' : '0',
+                paddingBottom: expanded ? '0.25rem' : '0',
+                transitionDuration: collapsingPaths[nodePath] ? '150ms' : '200ms'
+              }}
+            >
+              {node.children && (
+              <div>
                 <div className={`gap-1 text-xs ${
                   parentPath[0] === "Stages" && node.name === "Production" 
                     ? "flex flex-col" 
@@ -1242,7 +1316,8 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
                   )}
                 </div>
               </div>
-            )}
+              )}
+            </div>
           </div>
         );
       }

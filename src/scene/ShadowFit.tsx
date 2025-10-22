@@ -69,14 +69,14 @@ export function useFitDirectionalLightShadow(
     const nc = camPos.clone().addScaledVector(camDir, near);
     const fc = camPos.clone().addScaledVector(camDir, far);
 
-    const ntl = nc.clone().addScaledVector(camUp, nh).subScaledVector(camRight, nw);
+    const ntl = nc.clone().addScaledVector(camUp, nh).addScaledVector(camRight, -nw);
     const ntr = nc.clone().addScaledVector(camUp, nh).addScaledVector(camRight, nw);
-    const nbl = nc.clone().subScaledVector(camUp, nh).subScaledVector(camRight, nw);
-    const nbr = nc.clone().subScaledVector(camUp, nh).addScaledVector(camRight, nw);
-    const ftl = fc.clone().addScaledVector(camUp, fh).subScaledVector(camRight, fw);
+    const nbl = nc.clone().addScaledVector(camUp, -nh).addScaledVector(camRight, -nw);
+    const nbr = nc.clone().addScaledVector(camUp, -nh).addScaledVector(camRight, nw);
+    const ftl = fc.clone().addScaledVector(camUp, fh).addScaledVector(camRight, -fw);
     const ftr = fc.clone().addScaledVector(camUp, fh).addScaledVector(camRight, fw);
-    const fbl = fc.clone().subScaledVector(camUp, fh).subScaledVector(camRight, fw);
-    const fbr = fc.clone().subScaledVector(camUp, fh).addScaledVector(camRight, fw);
+    const fbl = fc.clone().addScaledVector(camUp, -fh).addScaledVector(camRight, -fw);
+    const fbr = fc.clone().addScaledVector(camUp, -fh).addScaledVector(camRight, fw);
 
     tmp.frustumCornersWS[0].copy(ntl); tmp.frustumCornersWS[1].copy(ntr);
     tmp.frustumCornersWS[2].copy(nbl); tmp.frustumCornersWS[3].copy(nbr);
