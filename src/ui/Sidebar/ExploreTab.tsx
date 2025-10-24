@@ -18,12 +18,6 @@ const KITCHEN_OPTIONS = [
   { value: 'with', label: 'With Kitchen' },
 ];
 
-const STATUS_OPTIONS = [
-  { value: 'any', label: 'Any' },
-  { value: 'plug-and-play', label: 'Plug and Play' },
-  { value: 'build-to-suit', label: 'Build to Suit' },
-];
-
 export function ExploreTab() {
   const { 
     unitsByBuilding, 
@@ -40,7 +34,6 @@ export function ExploreTab() {
 
   const [sizeFilter, setSizeFilter] = useState<string>('any');
   const [kitchenFilter, setKitchenFilter] = useState<string>('any');
-  const [statusFilter, setStatusFilter] = useState<string>('any');
   const [filtersVisible, setFiltersVisible] = useState<boolean>(true);
   const [expandedBuildings, setExpandedBuildings] = useState<Set<string>>(new Set());
   const [expandedFloors, setExpandedFloors] = useState<Set<string>>(new Set());
@@ -119,15 +112,6 @@ export function ExploreTab() {
             }
           }
 
-          if (statusFilter !== 'any') {
-            const unitType = unit.unit_type?.toLowerCase() || '';
-            if (statusFilter === 'plug-and-play' && !unitType.includes('plug') && !unitType.includes('play')) {
-              passes = false;
-            } else if (statusFilter === 'build-to-suit' && !unitType.includes('build') && !unitType.includes('suit')) {
-              passes = false;
-            }
-          }
-
           if (passes) {
             totalSuiteCount++;
             floorUnits.push({ unitKey, unit });
@@ -145,7 +129,7 @@ export function ExploreTab() {
         floorGroups
       };
     }).filter(b => b.suiteCount > 0);
-  }, [unitsByBuilding, unitsData, showAvailableOnly, sizeFilter, kitchenFilter, statusFilter]);
+  }, [unitsByBuilding, unitsData, showAvailableOnly, sizeFilter, kitchenFilter]);
 
   return (
     <div className={isMobile ? "space-y-2" : "space-y-4"}>
@@ -253,29 +237,6 @@ export function ExploreTab() {
         </div>
       </div>
 
-      <div>
-        <div className="flex items-center space-x-2 mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-black/60">Status</span>
-        </div>
-        <div className="flex space-x-2">
-          {STATUS_OPTIONS.map((option) => {
-            const isActive = statusFilter === option.value;
-            return (
-              <button
-                key={option.value}
-                onClick={() => setStatusFilter(option.value)}
-                className={`flex-1 text-xs px-3 py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
             </div>
           )}
         </>
