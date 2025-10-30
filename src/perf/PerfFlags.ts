@@ -12,23 +12,26 @@ export const PerfFlags = (() => {
   const isMobile = isMobileUA || (isTouchDevice && isNarrowViewport) || hasLowMemory || isSimulatorSize;
   const tier: Tier = isMobile ? "mobileLow" : "desktopHigh";
 
-  console.log(`📱 Device: ${tier} (mobile: ${isMobile}, iOS: ${isIOS}, viewport: ${window.innerWidth}x${window.innerHeight})`);
 
   return {
     tier,
     isMobile,
+    isMobileUA,
     isIOS,
-    // Global gates - mobile optimizations
-    dynamicShadows: tier === "desktopHigh",
-    ssr: false,  // Disabled entirely (was causing issues)
-    ssgi: tier === "desktopHigh",  // Desktop only
-    ao: tier === "desktopHigh",    // Desktop only
-    bloom: tier === "desktopHigh", // Desktop only  
-    anisotropy: tier === "desktopHigh" ? 8 : 2,  // Mobile: 2 (was 4)
-    maxTextureSize: tier === "desktopHigh" ? 4096 : 1024,  // Mobile: 1024 (was 2048)
+    isTouch: isTouchDevice,
     
-    // New debugging flags
-    useLogDepth: false,    // Keep false to avoid black-on-zoom
-    originRebase: false,   // Enable for very large world coordinates
+    dynamicShadows: false,
+    ssr: false,
+    ssgi: false,
+    ao: false,
+    bloom: false,
+    antialiasing: false,
+    anisotropy: 2,
+    maxTextureSize: 1024,
+    pixelRatio: 1.0,
+    powerPreference: 'low-power' as const,
+    
+    useLogDepth: false,
+    originRebase: false,
   };
 })();

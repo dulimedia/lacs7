@@ -38,33 +38,72 @@ async function smokeTestWebGPU(renderer: any): Promise<boolean> {
 function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.WebGLRenderer {
   const isMobile = tier.startsWith('mobile');
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isMobileLow = tier === 'mobile-low';
   
-  const renderer = new THREE.WebGLRenderer({ 
-    canvas, 
-    antialias: !isMobile,
+  const config: any = {
+    canvas,
+    alpha: false,
+    antialias: false,
     powerPreference: isMobile ? 'low-power' : 'high-performance',
-    logarithmicDepthBuffer: !isMobile,
-    preserveDrawingBuffer: !(isIOS && isMobile),
-    failIfMajorPerformanceCaveat: isIOS && isMobile
-  });
+    logarithmicDepthBuffer: false,
+    preserveDrawingBuffer: false,
+    failIfMajorPerformanceCaveat: false,
+    stencil: false,
+    depth: true
+  };
+  
+  if (isIOS && isMobileLow) {
+    console.log('🍎 iOS mobile-low: attempting WebGL1 fallback');
+    const gl1Context = canvas.getContext('webgl', { 
+      alpha: false,
+      antialias: false,
+      powerPreference: 'low-power',
+      preserveDrawingBuffer: false,
+      stencil: false,
+      failIfMajorPerformanceCaveat: false
+    });
+    
+    if (gl1Context) {
+      config.context = gl1Context;
+    }
+  }
+  
+  const renderer = new THREE.WebGLRenderer(config);
   
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.useLegacyLights = false;
   renderer.setClearColor(0x000000, 0);
   
-  renderer.shadowMap.enabled = !isMobile;
+  renderer.shadowMap.enabled = false;
   renderer.shadowMap.type = THREE.PCFShadowMap;
-  renderer.shadowMap.autoUpdate = true;
+  renderer.shadowMap.autoUpdate = false;
   
   const context = renderer.getContext();
   if (context.getExtension) {
     context.getExtension('EXT_color_buffer_float');
   }
   
-  renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  let DPR = 1.0;
+  if (tier === 'mobile-high') {
+    DPR = Math.min(1.25, window.devicePixelRatio);
+  } else if (tier === 'mobile-low') {
+    DPR = 1.0;
+  } else {
+    DPR = Math.min(2.0, window.devicePixelRatio);
+  }
+  
+  console.log(`📱 Renderer DPR: ${DPR} (tier: ${tier}, device: ${window.devicePixelRatio})`);
+  renderer.setPixelRatio(DPR);
+  
+  function resize() {
+    const w = Math.floor(window.innerWidth);
+    const h = Math.floor(window.innerHeight);
+    renderer.setSize(w, h, false);
+  }
+  window.addEventListener('resize', () => requestAnimationFrame(resize), { passive: true });
+  resize();
   
   canvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
@@ -94,6 +133,12 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
     localStorage.removeItem('webglContextLost');
     location.reload();
   }, false);
+  
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      renderer.setAnimationLoop(null);
+    }
+  }, { passive: true });
   
   return renderer;
 }

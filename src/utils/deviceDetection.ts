@@ -50,7 +50,9 @@ export const detectDevice = (): DeviceCapabilities => {
     console.warn('WebGL detection failed:', e);
   }
 
-  console.log(`📱 Device Memory: ${deviceMemoryGB}GB, Ultra-Low: ${isUltraLowMemory}, Mobile: ${isMobile}`);
+  if (!isMobile) {
+    console.log(`📱 Device Memory: ${deviceMemoryGB}GB, Ultra-Low: ${isUltraLowMemory}, Mobile: ${isMobile}`);
+  }
 
   cachedCapabilities = {
     isMobile,

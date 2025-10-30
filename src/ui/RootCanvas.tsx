@@ -81,7 +81,7 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
       {...canvasProps}
       gl={createRenderer}
       dpr={[1, tier.startsWith('mobile') ? 1.0 : 2]}
-      shadows={canvasProps.shadows ?? !tier.startsWith('mobile')}
+      shadows={canvasProps.shadows ?? (tier !== 'mobile-low')}
     >
       <AdaptivePerf tier={tier} />
       <RendererInfo />

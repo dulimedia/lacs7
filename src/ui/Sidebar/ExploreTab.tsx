@@ -68,60 +68,117 @@ export function ExploreTab() {
 
       const buildingSeenUnits = new Set<string>();
       
-      const floorOrder = ['Ground Floor', 'First Floor', 'Second Floor', 'Third Floor'];
-      const sortedFloorEntries = Object.entries(floors).sort(([a], [b]) => {
-        const aIndex = floorOrder.findIndex(f => a.toLowerCase().includes(f.toLowerCase()));
-        const bIndex = floorOrder.findIndex(f => b.toLowerCase().includes(f.toLowerCase()));
-        if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-        if (aIndex === -1) return 1;
-        if (bIndex === -1) return -1;
-        return aIndex - bIndex;
-      });
+      const isTowerBuilding = building === 'Tower Building';
       
-      sortedFloorEntries.forEach(([floorName, unitKeys]) => {
-        const floorUnits: Array<{unitKey: string, unit: any}> = [];
+      if (isTowerBuilding) {
+        const allTowerUnits: Array<{unitKey: string, unit: any}> = [];
         
-        const uniqueFloorKeys = Array.from(new Set(unitKeys));
-        
-        uniqueFloorKeys.forEach(unitKey => {
-          if (buildingSeenUnits.has(unitKey)) return;
-          buildingSeenUnits.add(unitKey);
+        Object.values(floors).forEach(unitKeys => {
+          const uniqueKeys = Array.from(new Set(unitKeys));
           
-          const unit = unitsData.get(unitKey);
-          if (!unit) return;
+          uniqueKeys.forEach(unitKey => {
+            if (buildingSeenUnits.has(unitKey)) return;
+            buildingSeenUnits.add(unitKey);
+            
+            const unit = unitsData.get(unitKey);
+            if (!unit) return;
 
-          let passes = true;
+            let passes = true;
 
-          if (showAvailableOnly && !unit.status) {
-            passes = false;
-          }
+            if (showAvailableOnly && !unit.status) {
+              passes = false;
+            }
 
-          if (sizeFilter !== 'any' && unit.area_sqft) {
-            const option = SIZE_OPTIONS.find(o => o.value === sizeFilter);
-            if (option && option.min !== -1 && option.max !== -1) {
-              if (unit.area_sqft < option.min || unit.area_sqft > option.max) {
+            if (sizeFilter !== 'any' && unit.area_sqft) {
+              const option = SIZE_OPTIONS.find(o => o.value === sizeFilter);
+              if (option && option.min !== -1 && option.max !== -1) {
+                if (unit.area_sqft < option.min || unit.area_sqft > option.max) {
+                  passes = false;
+                }
+              }
+            }
+
+            if (kitchenFilter === 'with') {
+              const hasKitchen = unit.kitchen_size && unit.kitchen_size.toLowerCase() !== 'none';
+              if (!hasKitchen) {
                 passes = false;
               }
             }
-          }
 
-          if (kitchenFilter === 'with') {
-            const hasKitchen = unit.kitchen_size && unit.kitchen_size.toLowerCase() !== 'none';
-            if (!hasKitchen) {
+            if (passes) {
+              totalSuiteCount++;
+              allTowerUnits.push({ unitKey, unit });
+            }
+          });
+        });
+        
+        allTowerUnits.sort((a, b) => {
+          const getNumber = (unitName: string) => {
+            const match = unitName.match(/T-?(\d+)/i);
+            return match ? parseInt(match[1], 10) : 0;
+          };
+          return getNumber(a.unit.unit_name) - getNumber(b.unit.unit_name);
+        });
+        
+        if (allTowerUnits.length > 0) {
+          floorGroups.push({ floorName: 'All Suites', units: allTowerUnits });
+        }
+      } else {
+        const floorOrder = ['Ground Floor', 'First Floor', 'Second Floor', 'Third Floor'];
+        const sortedFloorEntries = Object.entries(floors).sort(([a], [b]) => {
+          const aIndex = floorOrder.findIndex(f => a.toLowerCase().includes(f.toLowerCase()));
+          const bIndex = floorOrder.findIndex(f => b.toLowerCase().includes(f.toLowerCase()));
+          if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+        });
+        
+        sortedFloorEntries.forEach(([floorName, unitKeys]) => {
+          const floorUnits: Array<{unitKey: string, unit: any}> = [];
+          
+          const uniqueFloorKeys = Array.from(new Set(unitKeys));
+          
+          uniqueFloorKeys.forEach(unitKey => {
+            if (buildingSeenUnits.has(unitKey)) return;
+            buildingSeenUnits.add(unitKey);
+            
+            const unit = unitsData.get(unitKey);
+            if (!unit) return;
+
+            let passes = true;
+
+            if (showAvailableOnly && !unit.status) {
               passes = false;
             }
-          }
 
-          if (passes) {
-            totalSuiteCount++;
-            floorUnits.push({ unitKey, unit });
+            if (sizeFilter !== 'any' && unit.area_sqft) {
+              const option = SIZE_OPTIONS.find(o => o.value === sizeFilter);
+              if (option && option.min !== -1 && option.max !== -1) {
+                if (unit.area_sqft < option.min || unit.area_sqft > option.max) {
+                  passes = false;
+                }
+              }
+            }
+
+            if (kitchenFilter === 'with') {
+              const hasKitchen = unit.kitchen_size && unit.kitchen_size.toLowerCase() !== 'none';
+              if (!hasKitchen) {
+                passes = false;
+              }
+            }
+
+            if (passes) {
+              totalSuiteCount++;
+              floorUnits.push({ unitKey, unit });
+            }
+          });
+
+          if (floorUnits.length > 0) {
+            floorGroups.push({ floorName, units: floorUnits });
           }
         });
-
-        if (floorUnits.length > 0) {
-          floorGroups.push({ floorName, units: floorUnits });
-        }
-      });
+      }
 
       return {
         name: building,

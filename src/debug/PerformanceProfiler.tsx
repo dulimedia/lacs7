@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'react';
-import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 interface PerformanceStats {
@@ -25,7 +24,17 @@ interface FeatureToggles {
 }
 
 export function PerformanceProfiler() {
-  const { gl, scene } = useThree();
+  const [gl, setGl] = useState<THREE.WebGLRenderer | null>(null);
+  const [scene, setScene] = useState<THREE.Scene | null>(null);
+
+  useEffect(() => {
+    const canvas = document.querySelector('canvas');
+    if (canvas && (canvas as any).__r3f) {
+      const store = (canvas as any).__r3f;
+      setGl(store.gl);
+      setScene(store.scene);
+    }
+  }, []);
   const [stats, setStats] = useState<PerformanceStats>({
     fps: 0,
     frameTime: 0,
@@ -52,22 +61,34 @@ export function PerformanceProfiler() {
   const frameTimesRef = useRef<number[]>([]);
   const lastTimeRef = useRef(performance.now());
   const fpsRef = useRef(0);
-
-  useFrame(() => {
-    const now = performance.now();
-    const delta = now - lastTimeRef.current;
-    lastTimeRef.current = now;
-    
-    frameTimesRef.current.push(delta);
-    if (frameTimesRef.current.length > 60) {
-      frameTimesRef.current.shift();
-    }
-    
-    const avgFrameTime = frameTimesRef.current.reduce((a, b) => a + b, 0) / frameTimesRef.current.length;
-    fpsRef.current = 1000 / avgFrameTime;
-  });
+  const rafIdRef = useRef<number>();
 
   useEffect(() => {
+    const updateFPS = () => {
+      const now = performance.now();
+      const delta = now - lastTimeRef.current;
+      lastTimeRef.current = now;
+      
+      frameTimesRef.current.push(delta);
+      if (frameTimesRef.current.length > 60) {
+        frameTimesRef.current.shift();
+      }
+      
+      const avgFrameTime = frameTimesRef.current.reduce((a, b) => a + b, 0) / frameTimesRef.current.length;
+      fpsRef.current = 1000 / avgFrameTime;
+      
+      rafIdRef.current = requestAnimationFrame(updateFPS);
+    };
+    
+    rafIdRef.current = requestAnimationFrame(updateFPS);
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!gl || !scene) return;
+    
     const interval = setInterval(() => {
       const memory = (performance as any).memory;
       const info = gl.info;

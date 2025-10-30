@@ -29,7 +29,7 @@ import { SimpleShadowDebug as ShadowDebugUI } from './components/SimpleShadowDeb
 import { SceneDebugUI, SceneDebugSettings } from './components/SceneDebugUI';
 import { UnitHoverPreview } from './components/UnitHoverPreview';
 import { SafariErrorBoundary } from './components/SafariErrorBoundary';
-import { MobilePerformanceMonitor } from './components/MobilePerformanceMonitor';
+import { MobileLoadingProgress } from './components/MobileLoadingProgress';
 import { GodRays } from './scene/GodRays';
 import { Lighting } from './scene/Lighting';
 import { ShadowHelper } from './components/ShadowHelper';
@@ -38,8 +38,6 @@ import { Effects } from './components/Effects';
 import { fitSunShadow } from './utils/fitSunShadow';
 import { lazy, Suspense } from 'react';
 const PathTracer = lazy(() => import('./components/pathtracer/PathTracer').then(m => ({ default: m.PathTracer })));
-import { DebugPanel } from './ui/DebugPanel';
-import type { DebugPanelState } from './ui/DebugPanel';
 import { useFaceDebugHotkey } from './hooks/useFaceDebugHotkey';
 import { useUnitStore } from './stores/useUnitStore';
 import { useExploreState, buildUnitsIndex, type UnitRecord } from './store/exploreState';
@@ -53,7 +51,7 @@ import { RootCanvas } from './ui/RootCanvas';
 import type { Tier } from './lib/graphics/tier';
 import { ErrorLogDisplay } from './components/ErrorLogDisplay';
 import { PerfFlags } from './perf/PerfFlags';
-import { PerformanceProfiler } from './debug/PerformanceProfiler';
+import { PerformanceGovernorComponent } from './components/PerformanceGovernorComponent';
 
 
 // Component to capture scene and gl refs + setup safety
@@ -399,20 +397,6 @@ function App() {
     };
   }, []);
 
-  // Global hotkeys for debugging and audit
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'd' || event.key === 'D') {
-        if (sceneRef.current) {
-          validateAllMaterials(sceneRef.current);
-          runDuplicateAudit(sceneRef.current);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
   
   // Debug logging for state changes
   
@@ -437,7 +421,7 @@ function App() {
     shadowMapSize: 4096
   });
   const [renderTier, setRenderTier] = useState<Tier>(PerfFlags.tier === 'mobileLow' ? 'mobile-low' : 'desktop-high');
-  const [debugState, setDebugState] = useState<DebugPanelState>({
+  const debugState = {
     tier: renderTier,
     ao: true,
     ssr: true,
@@ -452,11 +436,8 @@ function App() {
     polygonOffsetFactor: -1,
     polygonOffsetUnits: -2,
     polygonOffsetRegex: 'slat|louver|mullion|trim|glass|window|panel',
-  });
+  };
   
-  useEffect(() => {
-    setDebugState((prev) => ({ ...prev, tier: renderTier }));
-  }, [renderTier]);
   // Fixed shadow settings - optimized single light source
   const FIXED_SHADOW_SETTINGS = {
     shadowsEnabled: true,
@@ -620,8 +601,6 @@ function App() {
     const timeout = deviceCapabilities.isMobile ? 15000 : 20000; // Give mobile more time
     const fallbackTimer = setTimeout(() => {
       if (loadingPhase !== 'complete') {
-        console.error('⏱️ Loading timeout - forcing completion');
-        console.error('Loading timeout exceeded', timeout, 'ms - device:', deviceCapabilities);
         setLoadingProgress(100);
         setLoadingPhase('complete');
         setEffectsReady(true);
@@ -1118,26 +1097,43 @@ function App() {
         >
           {(tier) => (
             <>
-              {/* Environment - HDRI lighting */}
-              <Environment
-                files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
-                background={true}
-                backgroundIntensity={1.6}
-                environmentIntensity={1.2}
-                resolution={1024}
-              />
+              {/* Environment - HDRI lighting (only for mobile-high and desktop) */}
+              {tier !== 'mobile-low' && (
+                <Environment
+                  files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
+                  background={true}
+                  backgroundIntensity={tier === 'mobile-high' ? 1.2 : 1.6}
+                  environmentIntensity={tier === 'mobile-high' ? 0.8 : 1.2}
+                  resolution={tier === 'mobile-high' ? 512 : 1024}
+                />
+              )}
+              
+              {/* Simple gradient background for mobile-low */}
+              {tier === 'mobile-low' && (
+                <color attach="background" args={['#87CEEB']} />
+              )}
 
-              {/* Lighting System - crisp sun shadows */}
-              <Lighting 
-                shadowBias={debugState.shadowBias}
-                shadowNormalBias={debugState.shadowNormalBias}
-              />
+              {/* Lighting System - crisp sun shadows (desktop only) */}
+              {tier !== 'mobile-low' && (
+                <Lighting 
+                  shadowBias={debugState.shadowBias}
+                  shadowNormalBias={debugState.shadowNormalBias}
+                />
+              )}
+              
+              {/* Basic ambient light for mobile-low */}
+              {tier === 'mobile-low' && (
+                <>
+                  <ambientLight intensity={1.2} />
+                  <directionalLight position={[-34, 78, 28]} intensity={3.5} />
+                </>
+              )}
               
               {/* Shadow Debug Helper */}
               <ShadowHelper enabled={debugState.showShadowHelper} />
 
-              {/* Volumetric fog for god rays - FogExp2 for exponential density (reduced for better low-angle visibility) */}
-              <fogExp2 attach="fog" args={['#b8d0e8', 0.004]} />
+              {/* Volumetric fog for god rays - only for desktop */}
+              {tier.startsWith('desktop') && <fogExp2 attach="fog" args={['#b8d0e8', 0.004]} />}
 
               {/* Capture scene and gl for external callbacks */}
               <SceneCapture sceneRef={sceneRef} glRef={glRef} />
@@ -1163,11 +1159,10 @@ function App() {
               {/* Enhanced Camera Controls with proper object framing */}
               <CameraController selectedUnit={selectedUnit} controlsRef={orbitControlsRef} />
 
-              {/* Mobile Performance Monitor */}
-              <MobilePerformanceMonitor />
 
-              {/* Performance Profiler - press Ctrl+P to toggle */}
-              <PerformanceProfiler />
+
+              {/* Performance Governor - mobile FPS enforcement */}
+              <PerformanceGovernorComponent />
 
               {/* Post-processing Effects - disable when path tracer active */}
               {effectsReady && debugState.ao && !debugState.pathtracer && (
@@ -1204,6 +1199,8 @@ function App() {
             </>
           )}
         </RootCanvas>
+
+
           </div>  {/* Close scene-shell */}
         
         
@@ -1371,14 +1368,12 @@ function App() {
 
       {/* Sun Position Controls - Removed, values hard-coded */}
       
-      {/* Debug Panel - Press 'D' to toggle */}
-      <DebugPanel
-        state={debugState}
-        onChange={(updates) => setDebugState((prev) => ({ ...prev, ...updates }))}
-      />
       
       {/* Error Log Display - Shows persisted errors for mobile debugging */}
       <ErrorLogDisplay />
+      
+      {/* Mobile Sequential Loading Progress */}
+      <MobileLoadingProgress />
         </div>  {/* Close app-layout */}
       </div>  {/* Close app-viewport */}
     </SafariErrorBoundary>

@@ -60,7 +60,7 @@ export interface ExploreState {
 
 export const useExploreState = create<ExploreState>((set, get) => ({
   // Initial state
-  showAvailableOnly: false,
+  showAvailableOnly: true,
   hoveredUnitKey: null,
   selectedUnitKey: null,
   drawerOpen: true,
@@ -250,8 +250,6 @@ export const buildUnitsIndex = (units: Map<string, UnitRecord>): Record<string, 
   const seenUnits = new Set<string>();
   
   units.forEach((unit, unitKey) => {
-    if (unit.status === false) return;
-    
     if (seenUnits.has(unit.unit_key)) return;
     seenUnits.add(unit.unit_key);
     

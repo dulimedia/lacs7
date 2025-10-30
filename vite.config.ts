@@ -20,6 +20,7 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
+    cssTarget: 'safari14',
     outDir: 'dist',
     sourcemap: false,
     chunkSizeWarningLimit: 1500,

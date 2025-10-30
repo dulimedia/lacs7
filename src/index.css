@@ -6,7 +6,7 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light dark;
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -76,6 +76,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow: hidden;
+  color: #0f172a;
+  background: #ffffff;
 }
 
 * {
@@ -114,7 +116,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: white;
+  background: linear-gradient(to bottom, #f8fafc 0%, #e2e8f0 100%);
 }
 
 .app-layout {

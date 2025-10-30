@@ -22,7 +22,6 @@ export function sanitizeTransparency(root: THREE.Object3D, boostOpacity = false)
       log.verbose(`🔍 Material on ${o.name || 'unnamed'}: transparent=${m.transparent}, opacity=${m.opacity}, depthWrite=${m.depthWrite}, depthTest=${m.depthTest}, side=${m.side}`);
       
       if (m.transparent && m.opacity >= 0.99) {
-        console.warn(`⚠️ Disabling unnecessary transparency on ${o.name || 'unnamed'} (opacity=${m.opacity})`);
         m.transparent = false;
         m.depthWrite = true;
         m.needsUpdate = true;
@@ -30,12 +29,10 @@ export function sanitizeTransparency(root: THREE.Object3D, boostOpacity = false)
       }
       
       if (m.transparent && m.opacity < 0.01) {
-        console.error(`🚨 NEARLY INVISIBLE: ${o.name || 'unnamed'} has opacity=${m.opacity}`);
         potentialIssues++;
       }
       
       if (m.transparent && m.depthWrite === false) {
-        console.warn(`⚠️ Transparent material with depthWrite=false on: ${o.name || 'unnamed'} - enabling depthWrite to fix camera-angle sorting issues`);
         m.depthWrite = true;
         m.needsUpdate = true;
         fixed++;
@@ -65,8 +62,6 @@ export function sanitizeTransparency(root: THREE.Object3D, boostOpacity = false)
     });
   });
   
-  log.verbose(`✅ Fixed ${fixed} transparent materials`);
-  if (potentialIssues > 0) console.error(`🚨 Found ${potentialIssues} nearly invisible materials!`);
 }
 
 export function addPolyOffset(mesh: THREE.Mesh, factor = 1, units = 1) {

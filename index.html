@@ -14,10 +14,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
       /* Basic mobile styles */
-      html, body {
-        height: 100vh;
+      html, body, #root, canvas {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        overscroll-behavior: none;
+        touch-action: manipulation;
         overflow: hidden;
-        width: 100vw;
         /* Mobile performance optimizations */
         -webkit-overflow-scrolling: touch;
         -webkit-backface-visibility: hidden;
@@ -53,38 +60,6 @@
   </head>
   <body class="no-select">
     <div id="root"></div>
-    <script>
-      const crashLogs = [];
-      const logCrash = (msg) => {
-        const entry = `[${new Date().toISOString()}] ${msg}`;
-        crashLogs.push(entry);
-        console.error('CRASH LOG:', msg);
-        localStorage.setItem('crashLogs', JSON.stringify(crashLogs));
-      };
-      
-      const logMemory = () => {
-        if (performance.memory) {
-          const used = (performance.memory.usedJSHeapSize / 1048576).toFixed(1);
-          const limit = (performance.memory.jsHeapSizeLimit / 1048576).toFixed(1);
-          logCrash(`Memory: ${used}MB / ${limit}MB (${Math.round(used/limit*100)}%)`);
-        }
-      };
-      
-      window.addEventListener('error', (e) => {
-        logCrash(`Error: ${e.message} at ${e.filename}:${e.lineno}`);
-        logMemory();
-      });
-      
-      window.addEventListener('unhandledrejection', (e) => {
-        logCrash(`Unhandled Promise: ${e.reason}`);
-        logMemory();
-      });
-      
-      logCrash('App starting...');
-      logMemory();
-      
-      setInterval(logMemory, 10000);
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:auto": "node scripts/next-port.mjs",
+    "dev:logs": "node tools/log-server.mjs",
     "build": "vite build",
     "start": "serve dist -l tcp://0.0.0.0:${PORT:-8080} -s",
     "gcp-build": "npm run build",
@@ -14,7 +15,8 @@
     "agent": "node scripts/start-agent.js",
     "dev:port": "vite --port",
     "clean:dry": "node scripts/clean-project.mjs",
-    "clean:apply": "node scripts/clean-project.mjs apply"
+    "clean:apply": "node scripts/clean-project.mjs apply",
+    "mobile:preflight": "tsc --noEmit && npm run build && node -e \"const fs=require('fs'); const stat=fs.statSync('dist/assets/index*.js'); console.log('Bundle size:', (stat.size/1024).toFixed(0), 'KB');\""
   },
   "dependencies": {
     "@react-three/drei": "^9.99.7",
