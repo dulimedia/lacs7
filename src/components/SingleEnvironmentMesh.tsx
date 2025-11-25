@@ -9,6 +9,7 @@ import { simplifyGeometryForMobile, shouldSimplifyMesh, optimizeMeshForMobile } 
 import { PerfFlags } from '../perf/PerfFlags';
 import { log } from '../utils/debugFlags';
 import { applyPolygonOffset } from '../materials/applyPolygonOffset';
+import { assetUrl } from '../lib/assets';
 
 interface SingleEnvironmentMeshProps {
   tier: string;
@@ -34,16 +35,16 @@ export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
   }
   console.log('🖥️ DESKTOP PATH: Loading full environment (10 models, 11.5MB)');
   
-  const accessory = useDracoGLTF('/models/environment/accessory concrete.glb');
-  const hqSidewalk = useDracoGLTF('/models/environment/hq sidewalk 2.glb');
-  const road = useDracoGLTF('/models/environment/road.glb');
-  const transparentBuildings = useDracoGLTF('/models/environment/transparent buildings.glb');
-  const transparentSidewalk = useDracoGLTF('/models/environment/transparents sidewalk.glb');
-  const whiteWall = useDracoGLTF('/models/environment/white wall.glb');
-  const palms = useDracoGLTF('/models/environment/palms.glb');
-  const frame = useDracoGLTF('/models/environment/frame-raw-14.glb');
-  const roof = useDracoGLTF('/models/environment/roof and walls.glb');
-  const stages = useDracoGLTF('/models/environment/stages.glb');
+  const accessory = useDracoGLTF(assetUrl('models/environment/accessory concrete.glb'));
+  const hqSidewalk = useDracoGLTF(assetUrl('models/environment/hq sidewalk 2.glb'));
+  const road = useDracoGLTF(assetUrl('models/environment/road.glb'));
+  const transparentBuildings = useDracoGLTF(assetUrl('models/environment/transparent buildings.glb'));
+  const transparentSidewalk = useDracoGLTF(assetUrl('models/environment/transparents sidewalk.glb'));
+  const whiteWall = useDracoGLTF(assetUrl('models/environment/white wall.glb'));
+  const palms = useDracoGLTF(assetUrl('models/environment/palms.glb'));
+  const frame = useDracoGLTF(assetUrl('models/environment/frame-raw-14.glb'));
+  const roof = useDracoGLTF(assetUrl('models/environment/roof and walls.glb'));
+  const stages = useDracoGLTF(assetUrl('models/environment/stages.glb'));
 
 
 
@@ -645,26 +646,26 @@ function MobileEnvironment() {
   
   // Load models progressively to avoid memory spike
   // Stage 0: Essential (road + sidewalk)
-  const road = loadStage >= 0 ? useDracoGLTF('/models/environment/road.glb', DRACO_DECODER_CDN) : { scene: null };
-  const hqSidewalk = loadStage >= 0 ? useDracoGLTF('/models/environment/hq sidewalk 2.glb', DRACO_DECODER_CDN) : { scene: null };
+  const road = loadStage >= 0 ? useDracoGLTF(assetUrl('models/environment/road.glb'), DRACO_DECODER_CDN) : { scene: null };
+  const hqSidewalk = loadStage >= 0 ? useDracoGLTF(assetUrl('models/environment/hq sidewalk 2.glb'), DRACO_DECODER_CDN) : { scene: null };
   
   // Stage 1: Lightweight structures (white wall + transparent sidewalk + transparent buildings)
-  const whiteWall = loadStage >= 1 ? useDracoGLTF('/models/environment/white wall.glb', DRACO_DECODER_CDN) : { scene: null };
-  const transparentSidewalk = loadStage >= 1 ? useDracoGLTF('/models/environment/transparents sidewalk.glb', DRACO_DECODER_CDN) : { scene: null };
-  const transparentBuildings = loadStage >= 1 ? useDracoGLTF('/models/environment/transparent buildings.glb', DRACO_DECODER_CDN) : { scene: null };
+  const whiteWall = loadStage >= 1 ? useDracoGLTF(assetUrl('models/environment/white wall.glb'), DRACO_DECODER_CDN) : { scene: null };
+  const transparentSidewalk = loadStage >= 1 ? useDracoGLTF(assetUrl('models/environment/transparents sidewalk.glb'), DRACO_DECODER_CDN) : { scene: null };
+  const transparentBuildings = loadStage >= 1 ? useDracoGLTF(assetUrl('models/environment/transparent buildings.glb'), DRACO_DECODER_CDN) : { scene: null };
   
   // Stage 2: Medium (accessory + frame)
-  const accessory = loadStage >= 2 ? useDracoGLTF('/models/environment/accessory concrete.glb', DRACO_DECODER_CDN) : { scene: null };
-  const frame = loadStage >= 2 ? useDracoGLTF('/models/environment/frame-raw-14.glb', DRACO_DECODER_CDN) : { scene: null };
+  const accessory = loadStage >= 2 ? useDracoGLTF(assetUrl('models/environment/accessory concrete.glb'), DRACO_DECODER_CDN) : { scene: null };
+  const frame = loadStage >= 2 ? useDracoGLTF(assetUrl('models/environment/frame-raw-14.glb'), DRACO_DECODER_CDN) : { scene: null };
   
   // Stage 3: Heavy models one at a time (palms)
-  const palms = loadStage >= 3 ? useDracoGLTF('/models/environment/palms.glb', DRACO_DECODER_CDN) : { scene: null };
+  const palms = loadStage >= 3 ? useDracoGLTF(assetUrl('models/environment/palms.glb'), DRACO_DECODER_CDN) : { scene: null };
   
   // Stage 4: stages.glb
-  const stages = loadStage >= 4 ? useDracoGLTF('/models/environment/stages.glb', DRACO_DECODER_CDN) : { scene: null };
+  const stages = loadStage >= 4 ? useDracoGLTF(assetUrl('models/environment/stages.glb'), DRACO_DECODER_CDN) : { scene: null };
   
   // Stage 5: Heaviest last (roof and walls)
-  const roof = loadStage >= 5 ? useDracoGLTF('/models/environment/roof and walls.glb', DRACO_DECODER_CDN) : { scene: null };
+  const roof = loadStage >= 5 ? useDracoGLTF(assetUrl('models/environment/roof and walls.glb'), DRACO_DECODER_CDN) : { scene: null };
 
   React.useEffect(() => {
     if (loadStage === 0 && road.scene && hqSidewalk.scene && !progressEmitted.current.has(0)) {

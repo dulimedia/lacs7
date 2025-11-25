@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Papa from 'papaparse';
 import { UnitData } from '../types';
+import { assetUrl } from '../lib/assets';
 
 // Singleton cache for CSV data to prevent duplicate fetches
 class CsvDataCache {
@@ -168,7 +169,7 @@ function debounce(func: (...args: any[]) => void, delay: number) {
   };
 }
 
-export function useCsvUnitData(url: string = '/unit-data.csv') {
+export function useCsvUnitData(url: string = assetUrl('unit-data.csv')) {
   const [data, setData] = useState<Record<string, UnitData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
