@@ -74,5 +74,7 @@ export const PerfFlags = (() => {
     useLogDepth: false,
     originRebase: false,
     useDracoCompressed: false,
+    
+    USE_PROGRESSIVE_LOADING: false,
   };
 })();

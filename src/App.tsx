@@ -29,6 +29,7 @@ import { HoverToast } from './ui/HoverToast';
 import { UnitHoverPreview } from './components/UnitHoverPreview';
 import { SafariErrorBoundary } from './components/SafariErrorBoundary';
 import { MobileErrorBoundary } from './components/MobileErrorBoundary';
+import { SafariDebugBanner } from './components/SafariDebugBanner';
 import { Lighting } from './scene/Lighting';
 import { ShadowHelper } from './components/ShadowHelper';
 import { Effects } from './components/Effects';
@@ -1564,6 +1565,9 @@ function App() {
       
       {/* Error Log Display - Shows persisted errors for mobile debugging */}
       <ErrorLogDisplay />
+      
+      {/* Safari Debug Banner - On-screen debugging for real iOS devices */}
+      <SafariDebugBanner />
         </div>  {/* Close app-layout */}
       </div>  {/* Close app-viewport */}
     </SafariErrorBoundary>

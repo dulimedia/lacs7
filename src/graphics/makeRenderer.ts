@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { logSafari } from '../debug/safariLogger';
 
 export type RendererType = 'webgpu' | 'webgl2';
 
@@ -38,22 +39,26 @@ async function smokeTestWebGPU(renderer: any): Promise<boolean> {
 function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.WebGLRenderer {
   const isMobile = tier.startsWith('mobile');
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
-  const isMobileLow = tier === 'mobile-low';
+  const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+  const isFirefox = /FxiOS/.test(navigator.userAgent);
+  const isOrion = /Orion/.test(navigator.userAgent);
+  
+  logSafari('createWebGLRenderer called', { tier, isIOS, isSafari, isFirefox, isOrion });
   
   const config: any = {
     canvas,
     alpha: false,
     antialias: false,
-    powerPreference: (isIOS && isSafari) ? 'default' : (isMobile ? 'low-power' : 'high-performance'),
+    powerPreference: 'default',
     logarithmicDepthBuffer: false,
     preserveDrawingBuffer: false,
-    failIfMajorPerformanceCaveat: (isIOS && isSafari) ? true : false,
+    failIfMajorPerformanceCaveat: false,
     stencil: false,
     depth: true,
     premultipliedAlpha: false
   };
   
+  logSafari('WebGL config', config);
   console.log(`🎨 Creating WebGL renderer (tier: ${tier}, iOS: ${isIOS}, Safari: ${isSafari})`);
   console.log(`🎨 Config: powerPreference=${config.powerPreference}, failIfMajorPerformanceCaveat=${config.failIfMajorPerformanceCaveat}`);
   
@@ -61,12 +66,15 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
     const renderer = new THREE.WebGLRenderer(config);
     
     if (!renderer.getContext() || renderer.getContext().isContextLost()) {
+      logSafari('ERROR: Context creation failed or lost');
       throw new Error('WebGL context creation failed or lost');
     }
     
+    logSafari('✅ WebGL context created successfully');
     console.log('✅ WebGL context created successfully');
     return configureRenderer(renderer, canvas, tier, isIOS, isSafari);
   } catch (error) {
+    logSafari('ERROR: WebGL context creation failed', { error: String(error) });
     console.error('❌ WebGL context creation failed:', error);
     
     const fallbackConfig = {
@@ -77,6 +85,7 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
       failIfMajorPerformanceCaveat: false
     };
     
+    logSafari('🔄 Attempting fallback config', fallbackConfig);
     console.log('🔄 Attempting fallback WebGL context creation');
     const renderer = new THREE.WebGLRenderer(fallbackConfig);
     return configureRenderer(renderer, canvas, tier, isIOS, isSafari);
@@ -87,14 +96,9 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   
-  if (isIOS && isSafari) {
-    renderer.toneMapping = THREE.NoToneMapping;
-    renderer.toneMappingExposure = 1.0;
-    console.log('🍎 Safari iOS: Using NoToneMapping for maximum compatibility');
-  } else {
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
-  }
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  logSafari('Tone mapping set to NoToneMapping (unified for all iOS)');
   
   renderer.useLegacyLights = false;
   renderer.setClearColor(0x000000, 0);
@@ -103,8 +107,10 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
     const testScene = new THREE.Scene();
     const testCamera = new THREE.Camera();
     renderer.compile(testScene, testCamera);
+    logSafari('✅ Tone mapping validated successfully');
     console.log('✅ Tone mapping validated successfully');
   } catch (error) {
+    logSafari('⚠️ Tone mapping validation failed', { error: String(error) });
     console.warn('⚠️ Tone mapping validation failed, falling back to NoToneMapping:', error);
     renderer.toneMapping = THREE.NoToneMapping;
     renderer.toneMappingExposure = 1.0;
@@ -136,6 +142,7 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   
   canvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
+    logSafari('ERROR: WebGL context lost event fired');
     console.error('❌ WebGL context lost! Showing fallback...');
     localStorage.setItem('webglContextLost', 'true');
     
@@ -158,6 +165,7 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   }, false);
   
   canvas.addEventListener('webglcontextrestored', () => {
+    logSafari('✅ WebGL context restored');
     console.log('✅ WebGL context restored');
     localStorage.removeItem('webglContextLost');
     location.reload();
