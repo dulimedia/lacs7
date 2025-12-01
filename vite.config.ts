@@ -2,8 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // Use VITE_BASE_PATH env var for base path (Vercel sets this dynamically)
-// Use '/' for local dev, '/LACS-WORLD-3/' for production builds (GitHub Pages)
-const base = process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/LACS-WORLD-3/' : '/')
+// Default to '/' for Vercel deployment
+const base = process.env.VITE_BASE_PATH || '/'
 
 export default defineConfig({
   plugins: [react()],
