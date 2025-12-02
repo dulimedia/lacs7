@@ -706,22 +706,20 @@ function App() {
   useEffect(() => {
     const handleContextLost = (event: Event) => {
       event.preventDefault();
-      console.error('🚨 WebGL context lost - GPU memory overload (NO AUTO-RELOAD)');
-      logger.error('WebGL context lost - GPU memory overload');
-      
-      // REMOVED: window.location.reload() - Was causing infinite crash loop
-      // Let user manually reload if needed
-      alert('WebGL context lost. GPU memory overload. Please reload the page manually.');
+      console.error('🚨 WebGL context lost - attempting recovery');
+      logger.error('WebGL context lost - attempting recovery');
       
       setModelsLoading(true);
       setLoadingPhase('initializing');
     };
 
     const handleContextRestored = () => {
-      console.log('✅ WebGL context restored (NO AUTO-RELOAD)');
+      console.log('✅ WebGL context restored - reloading app');
       logger.log('LOADING', '✅', 'WebGL context restored');
-      // REMOVED: window.location.reload() - Was causing infinite crash loop
-      alert('WebGL context restored. Page may need manual reload for clean state.');
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     };
 
     const canvas = document.querySelector('canvas');
@@ -735,6 +733,41 @@ function App() {
       };
     }
   }, []);
+  
+  // Monitor WebGL context health and force recovery if lost
+  useEffect(() => {
+    if (!canvasReady || !sceneEnabled) return;
+    
+    const checkContextHealth = () => {
+      const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+      if (!canvas) {
+        console.warn('⚠️ Canvas element not found');
+        return;
+      }
+      
+      const gl = canvas.getContext('webgl') || canvas.getContext('webgl2');
+      
+      if (!gl) {
+        console.error('❌ WebGL context is NULL/UNDEFINED - forcing page reload');
+        localStorage.setItem('webgl-recovery-attempt', Date.now().toString());
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+        return;
+      }
+      
+      if (gl.isContextLost && gl.isContextLost()) {
+        console.error('❌ WebGL context is LOST - waiting for restore event');
+        return;
+      }
+      
+      console.log('✅ WebGL context is healthy');
+    };
+    
+    const healthCheckInterval = setInterval(checkContextHealth, 2000);
+    
+    return () => clearInterval(healthCheckInterval);
+  }, [canvasReady, sceneEnabled, selectedUnitKey]);
 
   // Handle window resize for proper canvas resizing
   useEffect(() => {
@@ -1258,6 +1291,7 @@ function App() {
         {/* CRITICAL FIX: Wrap canvas in error boundary to catch mobile crashes */}
         {canvasReady && sceneEnabled && (
         <MobileErrorBoundary>
+        {console.log('🎬 Rendering RootCanvas - canvasReady:', canvasReady, 'sceneEnabled:', sceneEnabled)}
         <RootCanvas
           shadows={!PerfFlags.isIOS}
           dpr={PerfFlags.isIOS ? 1 : [1, 2]}
@@ -1284,6 +1318,8 @@ function App() {
                 backgroundIntensity={PerfFlags.isIOS ? 0.6 : tier === 'mobile-low' ? 1.4 : tier === 'mobile-high' ? 1.2 : 1.6}
                 environmentIntensity={PerfFlags.isIOS ? 0.5 : tier === 'mobile-low' ? 1.0 : tier === 'mobile-high' ? 0.8 : 1.2}
                 resolution={PerfFlags.isIOS ? 128 : tier === 'mobile-low' ? 256 : tier === 'mobile-high' ? 512 : 1024}
+                onLoad={() => console.log('✅ HDR Environment loaded successfully')}
+                onError={(error) => console.error('❌ HDR Environment failed to load:', error)}
               />
 
               {/* Adaptive Performance-Based Lighting System */}
@@ -1391,6 +1427,7 @@ function App() {
             </p>
           </div>
         )}
+        
 
 
           </div>  {/* Close scene-shell */}
