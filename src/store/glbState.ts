@@ -294,29 +294,19 @@ export const useGLBState = create<GLBState>((set, get) => ({
       // Set only the specific unit GLB to glowing
       const unitGLB = get().getGLBByUnit(building, floor, unit);
       
-      console.log('🔍 unitGLB found:', unitGLB ? unitGLB.key : 'NOT FOUND');
-      console.log('🔍 Total glbNodes:', glbNodes.size);
       
       if (unitGLB) {
-        console.log('✅ Unit found, setting to glowing and centering camera');
         get().setGLBState(unitGLB.key, 'glowing');
         
         // Only animate camera on initial selection, not when restoring state
         if (!skipCameraAnimation) {
           get().centerCameraOnUnit(building, floor, unit);
         } else {
-          console.log('📷 Skipping camera animation for unit:', unit);
         }
       } else {
-        const expectedKey = buildNodeKey(building, floor, unit);
-        console.warn('⚠️ Unit GLB not found for:', expectedKey);
-        console.log('🗂️ Available keys for this building/floor:');
-        Array.from(glbNodes.values())
-          .filter(node => node.building === building && node.floor === floor)
-          .forEach(node => console.log('  -', node.key, '(unit:', node.unitName, ')'));
+        console.warn('⚠️ Unit GLB not found for:', buildNodeKey(building, floor, unit));
       }
     } else {
-      console.log('❌ Missing required parameters:', { building: !!building, floor: !!floor, unit: !!unit });
     }
     
     set({ 
@@ -538,11 +528,9 @@ export const useGLBState = create<GLBState>((set, get) => ({
   centerCameraOnUnit: (building: string, floor: string, unit: string) => {
     const { cameraControlsRef, getGLBByUnit } = get();
     
-    console.log('🎬 centerCameraOnUnit called for:', { building, floor, unit });
     logger.log('CAMERA', '📷', 'centerCameraOnUnit called:', { building, floor, unit });
     
     if (!cameraControlsRef?.current) {
-      console.warn('🎬 No camera controls ref available');
       logger.warn('CAMERA', '⚠️', 'No camera controls ref available');
       return;
     }
