@@ -87,6 +87,7 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
                     selectedFloor === node.floor;
   const isFiltered = isUnitActive(node.key) && !isSelected && !isHovered;
   
+  // Always load GLB scenes but control visibility through shouldLoad
   const shouldLoad = isSelected || isHovered || isFiltered;
   
   // MOBILE FIX: useGLTF has internal caching - don't dispose the scene
@@ -242,7 +243,7 @@ export const GLBManager: React.FC = () => {
   
   const isMobile = PerfFlags.isMobile;
   
-  // Load only selected/hovered/filtered units to avoid loading broken GLBs
+  // Load only valid units to prevent GPU overload, but use stable keys to prevent remounting
   const nodesToRender = useMemo(() => {
     const allNodes = Array.from(glbNodes.values());
     
@@ -261,7 +262,7 @@ export const GLBManager: React.FC = () => {
       total: allNodes.length,
       rendering: activeNodes.length,
       isMobile,
-      optimization: 'lazy load on selection with useGLTF caching'
+      optimization: 'lazy load with stable keys to prevent remounting'
     });
     return activeNodes;
   }, [glbNodes, isMobile, selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, isUnitActive]);

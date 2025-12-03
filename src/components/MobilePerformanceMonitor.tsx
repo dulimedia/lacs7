@@ -117,10 +117,11 @@ export function MobilePerformanceMonitor() {
         }));
       }
       
-      const ctx = gl.getContext();
-      if (ctx.isContextLost()) {
-        window.dispatchEvent(new CustomEvent('mobile-webgl-context-lost'));
-      }
+      // Temporarily disable context loss detection to test flash fix
+      // const ctx = gl.getContext();
+      // if (ctx.isContextLost()) {
+      //   window.dispatchEvent(new CustomEvent('mobile-webgl-context-lost'));
+      // }
       
     };
 

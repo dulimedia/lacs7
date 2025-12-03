@@ -231,7 +231,7 @@ export const SelectedUnitOverlay: React.FC = () => {
     });
     overlayMeshesRef.current = [];
 
-    // Small delay to ensure the original mesh is hidden first
+    // NO DELAY - prevent flash by creating overlays immediately
     const timeoutId = setTimeout(() => {
       const unitsToHighlight = [];
       const highlightedKeys = new Set<string>();
@@ -249,21 +249,21 @@ export const SelectedUnitOverlay: React.FC = () => {
         });
       }
       
-      // 2. Add hovered unit
+      // 2. Add hovered unit - KEEP ORIGINAL VISIBLE
       if (hoveredUnit) {
         const hoveredUnitGLB = glbNodes.get(hoveredUnit);
         if (hoveredUnitGLB?.object && hoveredUnitGLB.isLoaded && !highlightedKeys.has(hoveredUnit)) {
-          hoveredUnitGLB.object.visible = false;
+          // DO NOT HIDE: hoveredUnitGLB.object.visible = false;
           unitsToHighlight.push(hoveredUnitGLB);
           highlightedKeys.add(hoveredUnit);
         }
       }
       
-      // 3. Add selected unit (if different from hovered)
+      // 3. Add selected unit (if different from hovered) - KEEP ORIGINAL VISIBLE
       if (selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined) {
         const unitGLB = getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
         if (unitGLB?.object && unitGLB.isLoaded && !highlightedKeys.has(unitGLB.key)) {
-          unitGLB.object.visible = false;
+          // DO NOT HIDE: unitGLB.object.visible = false;
           unitsToHighlight.push(unitGLB);
           highlightedKeys.add(unitGLB.key);
         }
@@ -291,15 +291,8 @@ export const SelectedUnitOverlay: React.FC = () => {
       if (unitsToHighlight.length > 0) {
         try {
           unitsToHighlight.forEach(unitGLB => {
-            // Ensure original is hidden before creating overlay
-            if (unitGLB.object) {
-              unitGLB.object.visible = false;
-              unitGLB.object.traverse((child) => {
-                if (child instanceof THREE.Mesh) {
-                  child.visible = false;
-                }
-              });
-            }
+            // KEEP ORIGINALS VISIBLE - overlay on top with depthTest: false
+            // DO NOT HIDE: unitGLB.object.visible = false;
             
             const overlayMeshes = createOverlayMeshes(unitGLB.object!);
             
@@ -321,7 +314,7 @@ export const SelectedUnitOverlay: React.FC = () => {
           console.error('Error creating overlay:', error);
         }
       }
-    }, 50); // 50ms delay to ensure original mesh is hidden
+    }, 0); // NO DELAY - immediate overlay to prevent flash
     
     return () => clearTimeout(timeoutId);
   }, [hoveredFloor, hoveredUnit, selectedUnit, selectedBuilding, selectedFloor, getGLBByUnit, getGLBsByBuilding, getGLBsByFloor, glbNodes, fresnelMaterial, camera]);
