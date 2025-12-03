@@ -147,9 +147,11 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
         fadeProgressRef.current = Math.max(0, fadeProgressRef.current - delta * fadeSpeed);
       }
 
-      // Make the group visible when animating
-      if (fadeProgressRef.current > 0) {
+      // Make the group visible when animating, but only if we have some opacity
+      if (fadeProgressRef.current > 0.01) {
         groupRef.current.visible = true;
+      } else if (fadeProgressRef.current === 0) {
+        groupRef.current.visible = false;
       }
 
       groupRef.current.traverse((child) => {
@@ -161,25 +163,33 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
             if (!child.material || !(child.material as any).__isAnimatedMaterial) {
               (sharedMaterial as any).__isAnimatedMaterial = true;
               child.material = sharedMaterial;
+              // Start with 0 opacity to prevent flash
+              sharedMaterial.opacity = 0;
+              sharedMaterial.emissiveIntensity = 0;
             }
             const mat = child.material as THREE.MeshStandardMaterial;
             mat.opacity = fadeProgressRef.current;
             mat.emissiveIntensity = SELECTED_MATERIAL_CONFIG.emissiveIntensity * fadeProgressRef.current;
-            child.visible = true;
+            child.visible = fadeProgressRef.current > 0.01;
           } else if (targetStateRef.current === 'hovered') {
             const sharedMaterial = getSharedHoveredMaterial();
             if (!child.material || !(child.material as any).__isAnimatedMaterial) {
               (sharedMaterial as any).__isAnimatedMaterial = true;
               child.material = sharedMaterial;
+              // Start with 0 opacity to prevent flash
+              sharedMaterial.emissiveIntensity = 0;
             }
             const mat = child.material as THREE.MeshStandardMaterial;
             mat.emissiveIntensity = HOVERED_MATERIAL_CONFIG.emissiveIntensity * fadeProgressRef.current;
-            child.visible = true;
+            child.visible = fadeProgressRef.current > 0.01;
           } else if (targetStateRef.current === 'filtered') {
             const sharedMaterial = getSharedFilteredMaterial();
             if (!child.material || !(child.material as any).__isAnimatedMaterial) {
               (sharedMaterial as any).__isAnimatedMaterial = true;
               child.material = sharedMaterial;
+              // Start with 0 opacity to prevent flash
+              sharedMaterial.opacity = 0;
+              sharedMaterial.emissiveIntensity = 0;
             }
             const mat = child.material as THREE.MeshStandardMaterial;
             mat.opacity = FILTER_HIGHLIGHT_CONFIG.opacity * fadeProgressRef.current;
@@ -187,7 +197,7 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
             const time = state.clock.elapsedTime;
             const pulse = (Math.sin(time * 3.0) + 1.0) * 0.5;
             mat.emissiveIntensity = FILTER_HIGHLIGHT_CONFIG.emissiveIntensity * fadeProgressRef.current * (0.5 + pulse * 0.5);
-            child.visible = true;
+            child.visible = fadeProgressRef.current > 0.01;
           } else if (fadeProgressRef.current === 0 && originalMaterial) {
             child.material = originalMaterial;
             delete (child.material as any).__isAnimatedMaterial;
