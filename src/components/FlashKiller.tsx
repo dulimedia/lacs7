@@ -21,12 +21,20 @@ export const FlashKiller: React.FC<FlashKillerProps> = ({
         const canvasElement = document.querySelector('canvas') as HTMLCanvasElement;
         
         if (canvasElement) {
-          // Capture current frame immediately
-          const dataUrl = canvasElement.toDataURL('image/jpeg', 0.8);
-          setFreezeFrameUrl(dataUrl);
-          setShowFreeze(true);
-          
-          console.log('🧊 FREEZE-FRAME: Captured canvas to prevent flash');
+          // Check if WebGL context is available before capturing
+          const gl = canvasElement.getContext('webgl2') || canvasElement.getContext('webgl');
+          if (gl && !gl.isContextLost()) {
+            // Capture current frame immediately
+            const dataUrl = canvasElement.toDataURL('image/jpeg', 0.8);
+            setFreezeFrameUrl(dataUrl);
+            setShowFreeze(true);
+            
+            console.log('🧊 FREEZE-FRAME: Captured canvas to prevent flash');
+          } else {
+            console.warn('⚠️ WebGL context lost or unavailable, skipping freeze-frame');
+            setShowFreeze(false);
+            return;
+          }
           
           // Hide freeze-frame after duration
           timeoutRef.current = setTimeout(() => {
@@ -40,7 +48,8 @@ export const FlashKiller: React.FC<FlashKillerProps> = ({
         }
         
       } catch (error) {
-        console.error('❌ Failed to capture freeze-frame:', error);
+        console.error('❌ Failed to capture freeze-frame (WebGL context may be lost):', error);
+        setShowFreeze(false);
       }
     }
     

@@ -457,7 +457,14 @@ function App() {
   // Handle unit selection with flash prevention
   const handleUnitSelectionFlash = useCallback(() => {
     if (isFirstUnitSelection && initialLoadCompleted) {
-      console.log('🧊 CANVAS FLASH PREVENTION: Activating FlashKiller for first unit selection');
+      // Disable FlashKiller on mobile to prevent WebGL context loss
+      if (deviceCapabilities.isMobile) {
+        console.log('📱 MOBILE: Skipping FlashKiller to prevent WebGL context loss');
+        setIsFirstUnitSelection(false);
+        return;
+      }
+      
+      console.log('🧊 DESKTOP: Activating FlashKiller for first unit selection');
       setFlashKillerActive(true);
       setIsFirstUnitSelection(false);
       
@@ -1244,7 +1251,7 @@ function App() {
       {modelsLoading && ReactDOM.createPortal(
         <div className="fixed inset-0 flex justify-center items-center" 
              style={{ 
-               background: deviceCapabilities.isMobile ? 'white' : 'rgba(0, 0, 0, 0.95)',
+               background: 'white',
                zIndex: 9999,
                transition: 'opacity 0.3s ease-in-out'
              }}>
