@@ -449,15 +449,37 @@ function App() {
   
   const [showFullDetails, setShowFullDetails] = useState(false);
   const [modelsLoading, setModelsLoading] = useState(true);
+  const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
   
   // AGGRESSIVE FLASH DETECTION - Monitor setModelsLoading calls
   const originalSetModelsLoading = useRef(setModelsLoading);
   const aggressiveFlashDetection = (loading: boolean) => {
     const stack = new Error().stack;
-    console.log('🚨🚨🚨 FLASH TRIGGER DETECTED 🚨🚨🚨');
-    console.log('modelsLoading changed to:', loading);
-    console.log('Call stack:', stack);
-    console.log('==========================================');
+    const currentTime = new Date().toISOString();
+    const previousState = modelsLoading;
+    
+    console.group(`🔍 LOADING STATE CHANGE: ${loading ? 'SHOW' : 'HIDE'} loading screen`);
+    console.log(`⏰ Timestamp: ${currentTime}`);
+    console.log(`🎯 Previous state: modelsLoading was ${previousState}`);
+    console.log(`🎯 New state: modelsLoading will be ${loading}`);
+    console.log(`🔒 Initial load completed: ${initialLoadCompleted}`);
+    console.log('📍 Call stack (top 10 lines):');
+    stack?.split('\n').slice(0, 10).forEach((line, i) => {
+      console.log(`  ${i}: ${line.trim()}`);
+    });
+    console.groupEnd();
+    
+    // PREVENT RE-ENABLING LOADING SCREEN AFTER INITIAL LOAD
+    if (loading && initialLoadCompleted) {
+      console.error('🚨 BLOCKED: Attempt to re-enable loading screen after initial load! This would cause white flash.');
+      console.log('🛡️ Loading screen re-enable blocked to prevent flash');
+      return; // Don't actually set loading to true
+    }
+    
+    if (loading && !previousState) {
+      console.warn('⚠️ WARNING: Loading screen being re-enabled after it was previously disabled!');
+    }
+    
     originalSetModelsLoading.current(loading);
   };
   
@@ -722,7 +744,11 @@ function App() {
         setLoadingProgress(100);
         setLoadingPhase('complete');
         setEffectsReady(true);
-        setTimeout(() => setModelsLoading(false), 300);
+        setTimeout(() => {
+          setModelsLoading(false);
+          setInitialLoadCompleted(true);
+          console.log('✅ Initial load completed - loading screen disabled permanently');
+        }, 300);
       }
     }, timeout);
     
@@ -1092,6 +1118,8 @@ function App() {
       
       setTimeout(() => {
         setModelsLoading(false);
+        setInitialLoadCompleted(true);
+        console.log('✅ Initial load completed (500ms timeout) - loading screen disabled permanently');
       }, 500);
     };
     
@@ -1142,7 +1170,11 @@ function App() {
         setLoadingPhase('complete');
         setLoadingProgress(100);
         setEffectsReady(true);
-        setTimeout(() => setModelsLoading(false), 300);
+        setTimeout(() => {
+          setModelsLoading(false);
+          setInitialLoadCompleted(true);
+          console.log('✅ Initial load completed - loading screen disabled permanently');
+        }, 300);
       }
     }, deviceCapabilities.isMobile ? 12000 : 10000);
     
@@ -1166,6 +1198,8 @@ function App() {
       // Hide loading screen immediately
       setTimeout(() => {
         setModelsLoading(false);
+        setInitialLoadCompleted(true);
+        console.log('✅ Initial load completed (100ms timeout) - loading screen disabled permanently');
       }, 100);
     }
   }, []);
@@ -1178,12 +1212,13 @@ function App() {
     <FloorplanContext.Provider value={floorplanContextValue}>
     <SafariErrorBoundary>
       {/* Loading screen - Portaled to body for true full-screen centering */}
-      {modelsLoading && console.log('🚨 FLASH: White loading overlay is visible!')}
+      {modelsLoading && console.log('🚨 FLASH: Loading overlay is visible! (no more white flash)')}
       {modelsLoading && ReactDOM.createPortal(
         <div className="fixed inset-0 flex justify-center items-center" 
              style={{ 
-               background: 'white',
-               zIndex: 9999
+               background: 'rgba(0, 0, 0, 0.95)',
+               zIndex: 9999,
+               transition: 'opacity 0.3s ease-in-out'
              }}>
           <div className="text-center">
             

@@ -285,7 +285,11 @@ export const useGLBState = create<GLBState>((set, get) => ({
   selectUnit: (building: string | null, floor: string | null, unit: string | null, skipCameraAnimation = false) => {
     const { glbNodes } = get();
     
-    console.log('🔍 selectUnit called:', { building, floor, unit });
+    console.group('🔍 selectUnit called');
+    console.log('Unit selection parameters:', { building, floor, unit, skipCameraAnimation });
+    console.log('⏰ Timestamp:', new Date().toISOString());
+    console.log('🎯 This should NOT trigger loading screen');
+    console.groupEnd();
     
     // Reset all GLBs to invisible first (like LACSWORLD2)
     glbNodes.forEach((node, key) => {
