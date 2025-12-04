@@ -1166,6 +1166,7 @@ function App() {
     <FloorplanContext.Provider value={floorplanContextValue}>
     <SafariErrorBoundary>
       {/* Loading screen - Portaled to body for true full-screen centering */}
+      {modelsLoading && console.log('🚨 FLASH: White loading overlay is visible!')}
       {modelsLoading && ReactDOM.createPortal(
         <div className="fixed inset-0 flex justify-center items-center" 
              style={{ 

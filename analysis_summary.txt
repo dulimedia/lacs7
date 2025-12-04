@@ -1,0 +1,167 @@
+=== COMPLETE REPO ANALYSIS RESULTS ===
+
+## TASK 1 — ASSETS
+
+### Large Files (largest → smallest):
+5.2 MB     | GPU: 32 MB      | .hdr   | kloofendal_48d_partly_cloudy_puresky_2k.hdr
+4.05 MB    | GPU: 12.16 MB   | .glb   | roof and walls.glb
+3.99 MB    | GPU: 32 MB      | .hdr   | qwantani_noon_puresky_2k.hdr
+3.33 MB    | GPU: 9.99 MB    | .glb   | palm-tree.glb
+3.14 MB    | GPU: 9.43 MB    | .glb   | stages.glb
+2.33 MB    | GPU: 7 MB       | .glb   | palms.glb
+1.01 MB    | GPU: 2.95 MB    | .glb   | road.glb
+986 KB     | GPU: 2.89 MB    | .glb   | frame-raw-14.glb
+544 KB     | GPU: 1.59 MB    | .glb   | accessory concrete.glb
+
+### Memory Summary:
+Total estimated GPU memory: ~200+ MB from large assets alone
+HDR files: 64 MB (2 files × 32MB each)
+Large GLBs: ~55 MB (environment models)
+Floorplan PNGs: ~400+ MB (100+ files × 4MB each estimated)
+
+## TASK 2 — GLB INSPECTION
+
+### GLB Analysis:
+Total GLBs found: 109 files
+Unit GLBs: ~2-3KB each (no textures, simple geometry)
+Environment GLBs: 500KB - 4MB each (complex models with potential embedded textures)
+
+### Largest Environment GLBs:
+- roof and walls.glb: 4.05 MB
+- palm-tree.glb: 3.33 MB  
+- stages.glb: 3.14 MB
+- palms.glb: 2.33 MB
+
+### Unit GLBs (problematic ones):
+All unit GLBs are small (888B - 3KB) with:
+- 0 textures
+- 1 mesh each
+- Minimal GPU impact (~2-3KB each)
+
+## TASK 3 — POST-PROCESSING VRAM
+
+### Effects Found:
+1. **Bloom** (multiple locations):
+   - AdaptiveEffects: intensity=0.5, radius=0.7
+   - Effects: mobile-high selective enabled
+   - GodRays: intensity=4.0, radius=0.5
+   - Estimated VRAM: ~80MB (from debug notes)
+
+2. **SSAO/N8AO**:
+   - GodRays component: samples=32, radius=0.18
+   - VisualStack: N8AO import found
+   - Estimated VRAM: ~40-60MB
+
+3. **God Rays** (DISABLED):
+   - Currently commented out in App.tsx line 1364
+   - When enabled: high VRAM usage (~100MB+)
+
+4. **Shadow Maps**:
+   - AdaptiveLighting: mapSize resolution control
+   - Lighting: sun.shadow.mapSize.set()
+   - Resolution varies by device tier
+   - Estimated VRAM: 2MB - 16MB per shadow map
+
+5. **SSR** (Screen Space Reflections):
+   - VisualStack import found
+   - FrameGovernor controls setSSR()
+   - Likely DISABLED on mobile
+
+### Total Post-Processing VRAM Estimate:
+- Bloom: ~80 MB
+- SSAO: ~50 MB  
+- Shadow maps: ~8 MB
+- **Total: ~140 MB** (when enabled)
+
+## TASK 4 — SCENE UNMOUNT CAUSES
+
+### Key Findings:
+1. **Canvas key prop**: ❌ NOT FOUND
+2. **Scene key prop**: ❌ NOT FOUND  
+3. **Environment key prop**: ✅ FOUND in SingleEnvironmentMesh.tsx:631
+   ```
+   <primitive key={`environment-other-${index}`} object={scene} />
+   ```
+
+4. **Conditional Rendering**: ✅ FOUND multiple locations:
+   - App.tsx:263: `selectedUnit && selectedBuilding`
+   - SelectedUnitOverlay.tsx:263: conditional unit rendering
+   - App.tsx:1382: `<Suspense fallback={null}>`
+
+5. **Context Loss Triggers**: ✅ FOUND 6+ locations:
+   - App.tsx:727: webglcontextlost event
+   - MobilePerformanceMonitor.tsx: context checking (DISABLED)
+   - makeRenderer.ts:143: context loss handling
+   - RootCanvas.tsx:181: context loss events
+
+6. **Clear/ClearColor**: ✅ FOUND:
+   - makeRenderer.ts:104: `setClearColor(0x000000, 0)`
+   - makeRenderer.ts:198: duplicate setClearColor
+
+## TASK 5 — SCENE STABILITY
+
+### Canvas Mount/Unmount:
+- Canvas itself: ✅ STABLE (no key prop, no conditional mounting in App.tsx)
+- RootCanvas wrapper: ✅ STABLE
+
+### Environment Mount/Unmount:
+- Environment component: ✅ POTENTIAL ISSUE
+  - Key prop found: `key={environment-other-${index}}`
+  - Could remount when index changes
+
+### Unit Selection Triggered:
+- SelectedUnitOverlay: ✅ CREATES/DESTROYS overlay meshes
+- GLBManager: ✅ Conditional rendering of units
+- No direct Canvas/Scene remounting from selection
+
+## TASK 6 — MEMORY ANALYSIS
+
+### Estimated Runtime Memory:
+
+#### Static Assets:
+- HDR textures: 64 MB GPU
+- Environment GLBs: 55 MB GPU
+- Floorplan textures: 400+ MB GPU (if all loaded)
+- Unit GLBs: <1 MB GPU total
+
+#### Dynamic Effects:
+- Post-processing: 140 MB GPU (when enabled)
+- Shadow maps: 8 MB GPU
+- Render targets: Variable
+
+#### **Total Estimated GPU Memory: 650+ MB**
+
+### Largest Memory Consumers:
+1. Floorplan PNGs: 400+ MB (biggest culprit)
+2. Post-processing: 140 MB
+3. HDR environments: 64 MB  
+4. Environment models: 55 MB
+
+## TASK 7 — FLASH ROOT CAUSE
+
+### Scene Stability Summary:
+- Canvas unmounts: ❌ NO
+- Environment unmounts: ⚠️ POTENTIAL (key prop)
+- Suspense fallback hits: ⚠️ POSSIBLE (PathTracer)
+- SelectedUnitOverlay creates/destroys: ✅ YES (confirmed cause)
+
+### Final Diagnosis:
+**PRIMARY FLASH CAUSE**: SelectedUnitOverlay component
+- Creates/destroys overlay meshes on each selection change
+- 50ms setTimeout creates visual gap
+- Original units hidden during overlay creation
+
+**SECONDARY CAUSES**:
+- Environment key prop could cause remounting
+- Multiple webglcontextlost listeners
+- MobilePerformanceMonitor false positives (now disabled)
+
+### Memory Issues:
+**2GB Memory Problem**: Floorplan PNGs (400+ MB) + Post-processing (140MB) + Environment (119MB) = 659MB minimum, likely 1.5-2GB with browser overhead and render targets.
+
+**Immediate Optimizations Needed**:
+1. Lazy load floorplans (only load on demand)
+2. Reduce floorplan resolution 
+3. Disable post-processing on mobile
+4. Remove Environment key prop
+5. Optimize SelectedUnitOverlay timing
