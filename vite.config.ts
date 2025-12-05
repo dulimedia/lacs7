@@ -3,10 +3,10 @@ import react from '@vitejs/plugin-react'
 
 // Use VITE_BASE_PATH env var for base path
 // Vercel: base = '/' (root)
-// GitHub Pages: base = '/LACSWORLD4/' (repository name)
+// GitHub Pages: base = '/lacsworld5/' (repository name)
 // Local dev: base = '/' (root)
 const base = process.env.VITE_BASE_PATH || 
-             (process.env.VERCEL ? '/' : process.env.NODE_ENV === 'development' ? '/' : '/LACSWORLD4/')
+             (process.env.VERCEL ? '/' : process.env.NODE_ENV === 'development' ? '/' : '/lacsworld5/')
 
 export default defineConfig({
   plugins: [react()],
