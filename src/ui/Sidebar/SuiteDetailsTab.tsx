@@ -10,7 +10,12 @@ import {
   Maximize2,
   ArrowUp
 } from 'lucide-react';
-import { isTowerUnit, getTowerUnitIndividualFloorplan, getTowerUnitFloorFloorplan, getFloorplanUrl as getIntelligentFloorplanUrl } from '../../services/floorplanMappingService';
+import { 
+  isTowerUnit, getTowerUnitIndividualFloorplan, getTowerUnitFloorFloorplan, 
+  isMarylandUnit, getMarylandUnitIndividualFloorplan, getMarylandUnitFloorFloorplan,
+  isFifthStreetUnit, getFifthStreetUnitIndividualFloorplan, getFifthStreetUnitFloorFloorplan,
+  getFloorplanUrl as getIntelligentFloorplanUrl 
+} from '../../services/floorplanMappingService';
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
 
 // EmailJS type declaration
@@ -34,8 +39,17 @@ export function SuiteDetailsTab() {
   const displayUnit = selectedUnitKey ? unitsData.get(selectedUnitKey) : null;
 
   const isTower = displayUnit ? isTowerUnit(displayUnit.unit_name || '') : false;
-  const individualFloorplan = displayUnit ? getTowerUnitIndividualFloorplan(displayUnit.unit_name || '') : null;
-  const hasIndividualFloorplan = isTower && individualFloorplan;
+  const isMaryland = displayUnit ? isMarylandUnit(displayUnit.unit_name || '') : false;
+  const isFifthStreet = displayUnit ? isFifthStreetUnit(displayUnit.unit_name || '') : false;
+  
+  const individualFloorplan = displayUnit ? (
+    isTower ? getTowerUnitIndividualFloorplan(displayUnit.unit_name || '') :
+    isMaryland ? getMarylandUnitIndividualFloorplan(displayUnit.unit_name || '') :
+    isFifthStreet ? getFifthStreetUnitIndividualFloorplan(displayUnit.unit_name || '') :
+    null
+  ) : null;
+  
+  const hasIndividualFloorplan = (isTower || isMaryland || isFifthStreet) && individualFloorplan;
   
   const getFloorplanUrl = () => {
     if (!displayUnit || !displayUnit.unit_name) {
@@ -54,21 +68,29 @@ export function SuiteDetailsTab() {
 
   const getSecondaryFloorplanUrl = () => {
     try {
-      console.log('🏗️ Computing secondary floorplan for:', displayUnit?.unit_name);
+      console.log('🏗️ Computing secondary floorplan for:', displayUnit?.unit_name, 'isTower:', isTower, 'isMaryland:', isMaryland, 'isFifthStreet:', isFifthStreet);
       
       if (!displayUnit || !displayUnit.unit_name) {
         console.log('❌ No displayUnit or unit_name for secondary floorplan');
         return null;
       }
       
-      // For tower units, show the opposite view as secondary
-      if (isTower) {
-        console.log('🏢 Tower unit detected, current showIndividualFloorplan:', showIndividualFloorplan, 'hasIndividualFloorplan:', hasIndividualFloorplan);
+      // For units with multiple floorplans, show the opposite view as secondary
+      if (isTower || isMaryland || isFifthStreet) {
+        console.log('🏢 Multi-floorplan unit detected, current showIndividualFloorplan:', showIndividualFloorplan, 'hasIndividualFloorplan:', hasIndividualFloorplan);
         
         if (showIndividualFloorplan && hasIndividualFloorplan) {
           // If showing individual, secondary is floor-level view
           console.log('🏗️ Getting floor-level floorplan as secondary');
-          const floorFloorplan = getTowerUnitFloorFloorplan(displayUnit.unit_name);
+          let floorFloorplan = null;
+          if (isTower) {
+            floorFloorplan = getTowerUnitFloorFloorplan(displayUnit.unit_name);
+          } else if (isMaryland) {
+            floorFloorplan = getMarylandUnitFloorFloorplan(displayUnit.unit_name);
+          } else if (isFifthStreet) {
+            floorFloorplan = getFifthStreetUnitFloorFloorplan(displayUnit.unit_name);
+          }
+          
           console.log('📄 Floor floorplan result:', floorFloorplan);
           const rawUrl = floorFloorplan ? `floorplans/converted/${floorFloorplan}` : null;
           const encodedUrl = rawUrl ? encodeFloorplanUrl(rawUrl) : null;
@@ -77,7 +99,15 @@ export function SuiteDetailsTab() {
         } else if (hasIndividualFloorplan) {
           // If showing floor-level, secondary is individual view
           console.log('🏗️ Getting individual floorplan as secondary');
-          const individualFloorplan = getTowerUnitIndividualFloorplan(displayUnit.unit_name);
+          let individualFloorplan = null;
+          if (isTower) {
+            individualFloorplan = getTowerUnitIndividualFloorplan(displayUnit.unit_name);
+          } else if (isMaryland) {
+            individualFloorplan = getMarylandUnitIndividualFloorplan(displayUnit.unit_name);
+          } else if (isFifthStreet) {
+            individualFloorplan = getFifthStreetUnitIndividualFloorplan(displayUnit.unit_name);
+          }
+          
           console.log('📄 Individual floorplan result:', individualFloorplan);
           const rawUrl = individualFloorplan ? `floorplans/converted/${individualFloorplan}` : null;
           const encodedUrl = rawUrl ? encodeFloorplanUrl(rawUrl) : null;
@@ -109,7 +139,7 @@ export function SuiteDetailsTab() {
 
   const handleSecondaryFloorPlanClick = () => {
     if (secondaryFloorplanUrl && displayUnit) {
-      const secondaryTitle = isTower && showIndividualFloorplan 
+      const secondaryTitle = (isTower || isMaryland || isFifthStreet) && showIndividualFloorplan 
         ? `${displayUnit.unit_name} - Floor Layout`
         : `${displayUnit.unit_name} - Unit Layout`;
       openFloorplan(secondaryFloorplanUrl, secondaryTitle, displayUnit);
@@ -248,7 +278,7 @@ export function SuiteDetailsTab() {
                 </div>
               </div>
               <div className="text-xs text-center text-gray-500 mt-2">
-                {isTower && showIndividualFloorplan ? 'Unit Layout' : 'Floor Plan'} - Click to expand
+                {(isTower || isMaryland || isFifthStreet) && showIndividualFloorplan ? 'Unit Layout' : 'Floor Plan'} - Click to expand
               </div>
             </div>
 
@@ -278,7 +308,7 @@ export function SuiteDetailsTab() {
                   </div>
                 </div>
                 <div className="text-xs text-center text-gray-500 mt-2">
-                  {isTower && showIndividualFloorplan ? 'Full Floor Layout' : 'Individual Unit'} - Click to expand
+                  {(isTower || isMaryland || isFifthStreet) && showIndividualFloorplan ? 'Full Floor Layout' : 'Individual Unit'} - Click to expand
                 </div>
               </div>
             )}

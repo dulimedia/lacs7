@@ -452,43 +452,8 @@ function App() {
   const [showFullDetails, setShowFullDetails] = useState(false);
   const [modelsLoading, setModelsLoading] = useState(true);
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
-  const [isFirstUnitSelection, setIsFirstUnitSelection] = useState(true);
-  const [flashKillerActive, setFlashKillerActive] = useState(false);
   
-  // Handle unit selection with flash prevention
-  const handleUnitSelectionFlash = useCallback(() => {
-    if (isFirstUnitSelection && initialLoadCompleted) {
-      // Disable FlashKiller on mobile to prevent WebGL context loss
-      if (deviceCapabilities.isMobile) {
-        console.log('📱 MOBILE: Skipping FlashKiller to prevent WebGL context loss');
-        setIsFirstUnitSelection(false);
-        return;
-      }
-      
-      console.log('🧊 DESKTOP: Activating FlashKiller for first unit selection');
-      setFlashKillerActive(true);
-      setIsFirstUnitSelection(false);
-      
-      // Deactivate FlashKiller after a short period
-      setTimeout(() => {
-        setFlashKillerActive(false);
-        console.log('✅ FlashKiller deactivated');
-      }, 600); // Longer duration to cover any canvas operations
-    }
-  }, [isFirstUnitSelection, initialLoadCompleted]);
-  
-  // Listen for unit selection events to trigger flash prevention
-  useEffect(() => {
-    const handleUnitSelectionEvent = () => {
-      handleUnitSelectionFlash();
-    };
-    
-    window.addEventListener('unit-selection-flash-prevention', handleUnitSelectionEvent);
-    
-    return () => {
-      window.removeEventListener('unit-selection-flash-prevention', handleUnitSelectionEvent);
-    };
-  }, [handleUnitSelectionFlash]);
+  // FlashKiller removed - no longer needed
   
   // AGGRESSIVE FLASH DETECTION - Monitor setModelsLoading calls
   const originalSetModelsLoading = useRef(setModelsLoading);
@@ -1245,8 +1210,7 @@ function App() {
   return (
     <FloorplanContext.Provider value={floorplanContextValue}>
     <SafariErrorBoundary>
-      {/* Canvas Flash Killer - Prevents white flashes on unit selection */}
-      <FlashKiller isActive={flashKillerActive} duration={600} />
+      {/* FlashKiller REMOVED - was causing black screen interruptions */}
       {/* Loading screen - Portaled to body for true full-screen centering */}
       {modelsLoading && console.log('🚨 FLASH: Loading overlay is visible! (no more white flash)')}
       {modelsLoading && ReactDOM.createPortal(

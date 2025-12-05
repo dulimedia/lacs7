@@ -150,8 +150,16 @@ export const useExploreState = create<ExploreState>((set, get) => ({
 
   setSelected: (unitKey: string | null) => {
     const currentSelected = get().selectedUnitKey;
+    console.log('🎯 UNIT SELECTION:', {
+      previous: currentSelected,
+      new: unitKey,
+      isChange: currentSelected !== unitKey,
+      timestamp: new Date().toISOString()
+    });
+    
     if (currentSelected !== unitKey) {
       set({ selectedUnitKey: unitKey });
+      console.log('✅ Unit selection state updated:', unitKey);
       
       // Emit selection changed event
       const selected = unitKey ? [unitKey] : [];

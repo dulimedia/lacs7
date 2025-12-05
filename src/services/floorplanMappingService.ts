@@ -154,6 +154,93 @@ const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; indi
   't1200': { floorFloorplan: 'LACS_Floor 12_M1_Color_page_1.png' }
 };
 
+// Maryland Building unit to floor mapping
+const MARYLAND_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; individualFloorplan?: string } } = {
+  // Ground Floor Maryland Units
+  'm20': { floorFloorplan: 'mg-floorplan.png' },
+  'm40': { floorFloorplan: 'mg-floorplan.png' }, 
+  'm45': { floorFloorplan: 'mg-floorplan.png' },
+  'm50': { floorFloorplan: 'mg-floorplan.png' },
+  
+  // First Floor Maryland Units (using same mg-floorplan for now, could add M1Floor_LACS if exists)
+  'm120': { floorFloorplan: 'mg-floorplan.png' },
+  'm130': { floorFloorplan: 'mg-floorplan.png' },
+  'm140': { floorFloorplan: 'mg-floorplan.png' },
+  'm145': { floorFloorplan: 'mg-floorplan.png' },
+  'm150': { floorFloorplan: 'mg-floorplan.png' },
+  'm160': { floorFloorplan: 'mg-floorplan.png' },
+  'm170': { floorFloorplan: 'mg-floorplan.png' },
+  'm180': { floorFloorplan: 'mg-floorplan.png' },
+  'm210': { floorFloorplan: 'mg-floorplan.png' },
+  'm220': { floorFloorplan: 'mg-floorplan.png' },
+  'm230': { floorFloorplan: 'mg-floorplan.png' },
+  'm240': { floorFloorplan: 'mg-floorplan.png' },
+  'm250': { floorFloorplan: 'mg-floorplan.png' },
+  'm260': { floorFloorplan: 'mg-floorplan.png' },
+  'm270': { floorFloorplan: 'mg-floorplan.png' },
+  'm300': { floorFloorplan: 'mg-floorplan.png' },
+  'm320': { floorFloorplan: 'mg-floorplan.png' },
+  'm340': { floorFloorplan: 'mg-floorplan.png' },
+  'm345': { floorFloorplan: 'mg-floorplan.png' },
+  'm350': { floorFloorplan: 'mg-floorplan.png' },
+  
+  // Mezzanine Maryland Units
+  'mezz': { floorFloorplan: 'M3Floor_LACS_page_1.png' }
+};
+
+// Fifth Street Building unit to floor mapping  
+const FIFTH_STREET_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; individualFloorplan?: string } } = {
+  // Ground Floor Fifth Street Units
+  'f10': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f15': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f20': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f25': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f30': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f35': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f40': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f50': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f60': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'f70': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'club76': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'fglibrary': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  'fgrestroom': { floorFloorplan: 'FGFloor_LACS_page_1.png' },
+  
+  // First Floor Fifth Street Units
+  'f100': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f105': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f110': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f110cr': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f115': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f120': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f130': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f140': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f150': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f160': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f170': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f175': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f180': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f185': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f187': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f190': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f200': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f240': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f250': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f280': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f290': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f300': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f330': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f340': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f345': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f350': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f360': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f363': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f365': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  'f380': { floorFloorplan: 'F1_Floorplan.png', individualFloorplan: 'F1Floor_LACS_page_1.png' },
+  
+  // Third Floor/Mezzanine Fifth Street Units
+  'f3mez': { floorFloorplan: 'F3Floor_LACS_page_1.png' }
+};
+
 // Special mappings for units that don't follow normal patterns
 const SPECIAL_MAPPINGS: { [key: string]: string } = {
   'et lab': 'mg floorplan.jpg',
@@ -264,6 +351,20 @@ export function isTowerUnit(unitName: string): boolean {
   return TOWER_UNIT_FLOOR_MAPPINGS.hasOwnProperty(cleanName);
 }
 
+// Check if unit is a Maryland Building unit
+export function isMarylandUnit(unitName: string): boolean {
+  if (!unitName) return false;
+  const cleanName = cleanUnitName(unitName);
+  return MARYLAND_UNIT_FLOOR_MAPPINGS.hasOwnProperty(cleanName);
+}
+
+// Check if unit is a Fifth Street Building unit
+export function isFifthStreetUnit(unitName: string): boolean {
+  if (!unitName) return false;
+  const cleanName = cleanUnitName(unitName);
+  return FIFTH_STREET_UNIT_FLOOR_MAPPINGS.hasOwnProperty(cleanName);
+}
+
 // Get tower unit floorplan mapping (returns both floor and individual floorplans)
 export function getTowerUnitFloorplans(unitName: string): { floorFloorplan: string; individualFloorplan?: string } | null {
   if (!unitName) return null;
@@ -280,6 +381,44 @@ export function getTowerUnitFloorFloorplan(unitName: string): string | null {
 // Get individual unit floorplan for tower unit (for side navigation)
 export function getTowerUnitIndividualFloorplan(unitName: string): string | null {
   const mapping = getTowerUnitFloorplans(unitName);
+  return mapping ? mapping.individualFloorplan || null : null;
+}
+
+// Get Maryland unit floorplan mapping (returns both floor and individual floorplans)
+export function getMarylandUnitFloorplans(unitName: string): { floorFloorplan: string; individualFloorplan?: string } | null {
+  if (!unitName) return null;
+  const cleanName = cleanUnitName(unitName);
+  return MARYLAND_UNIT_FLOOR_MAPPINGS[cleanName] || null;
+}
+
+// Get floor-level floorplan for Maryland unit
+export function getMarylandUnitFloorFloorplan(unitName: string): string | null {
+  const mapping = getMarylandUnitFloorplans(unitName);
+  return mapping ? mapping.floorFloorplan : null;
+}
+
+// Get individual unit floorplan for Maryland unit
+export function getMarylandUnitIndividualFloorplan(unitName: string): string | null {
+  const mapping = getMarylandUnitFloorplans(unitName);
+  return mapping ? mapping.individualFloorplan || null : null;
+}
+
+// Get Fifth Street unit floorplan mapping (returns both floor and individual floorplans)
+export function getFifthStreetUnitFloorplans(unitName: string): { floorFloorplan: string; individualFloorplan?: string } | null {
+  if (!unitName) return null;
+  const cleanName = cleanUnitName(unitName);
+  return FIFTH_STREET_UNIT_FLOOR_MAPPINGS[cleanName] || null;
+}
+
+// Get floor-level floorplan for Fifth Street unit
+export function getFifthStreetUnitFloorFloorplan(unitName: string): string | null {
+  const mapping = getFifthStreetUnitFloorplans(unitName);
+  return mapping ? mapping.floorFloorplan : null;
+}
+
+// Get individual unit floorplan for Fifth Street unit
+export function getFifthStreetUnitIndividualFloorplan(unitName: string): string | null {
+  const mapping = getFifthStreetUnitFloorplans(unitName);
   return mapping ? mapping.individualFloorplan || null : null;
 }
 
