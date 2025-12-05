@@ -22,7 +22,23 @@ export const WebGLContextRecovery: React.FC = () => {
       contextLostCount.current++;
       isRecovering.current = true;
       
+      console.error(`🚨🚨🚨 WEBGL CONTEXT LOST - THIS IS THE CRASH! 🚨🚨🚨`);
+      console.error('Context loss event:', event);
+      console.error('Canvas details:', canvas);
+      console.error('Call stack at context loss:', new Error().stack);
+      console.error(`🚨 WebGL context lost: ${event}`);
       console.error(`🚨 WebGL context lost! (${contextLostCount.current} times)`);
+      
+      // IMMEDIATE: Stop all rendering to prevent further errors
+      try {
+        if (scene) {
+          scene.traverse((obj: any) => {
+            if (obj.dispose) obj.dispose();
+          });
+        }
+      } catch (e) {
+        console.warn('Error during scene cleanup:', e);
+      }
       
       // Immediate cleanup to help recovery
       const memoryManager = MobileMemoryManager.getInstance();
@@ -33,6 +49,14 @@ export const WebGLContextRecovery: React.FC = () => {
         const loader = ProgressiveLoader.getInstance();
         const unloadedPaths = loader.unloadOptionalModels();
         console.log(`🧹 Unloaded ${unloadedPaths.length} optional models to aid recovery`);
+      }
+      
+      // Force page reload if context loss happens too frequently (prevents infinite crash loops)
+      if (contextLostCount.current >= 3) {
+        console.error('🚨 Too many context losses - forcing page reload to prevent crash loop');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     };
 

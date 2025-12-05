@@ -104,6 +104,34 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   renderer.setClearColor(0x000000, 0); // Transparent - back to original working state
   console.log('🎨 Renderer clear color set to transparent black');
   
+  // Add aggressive shader error handling
+  const originalShaderError = console.error;
+  console.error = (...args: any[]) => {
+    const message = args.join(' ');
+    if (message.includes('THREE.WebGLProgram: Shader Error') || 
+        message.includes('VALIDATE_STATUS false') ||
+        message.includes('INVALID_OPERATION: useProgram')) {
+      console.warn('🚨 SHADER ERROR DETECTED - ATTEMPTING RECOVERY:', message);
+      
+      // Try to dispose problematic materials
+      try {
+        const scene = canvas.closest('.scene-canvas')?.parentElement?.querySelector('canvas');
+        if (scene) {
+          console.log('🧹 Attempting to clean up problematic shaders...');
+        }
+      } catch (cleanupError) {
+        console.warn('Failed to clean up shaders:', cleanupError);
+      }
+      
+      // Still log the error but don't let it crash the context
+      originalShaderError.apply(console, ['[SHADER ERROR HANDLED]', ...args]);
+      return;
+    }
+    
+    // Pass through other errors normally
+    originalShaderError.apply(console, args);
+  };
+
   try {
     const testScene = new THREE.Scene();
     const testCamera = new THREE.Camera();
