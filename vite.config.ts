@@ -29,21 +29,11 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000, // Smaller chunks for mobile
     assetsInlineLimit: 0,
     rollupOptions: {
-      treeshake: {
-        moduleSideEffects: false,
-        // Remove unused exports for better tree-shaking
-        preset: 'safest',
-      },
+      // Disable tree-shaking for now to prevent empty chunks
+      treeshake: false,
       output: {
-        manualChunks: {
-          // Split Three.js and related libs into separate chunk
-          'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
-          // Split UI libraries
-          'ui-vendor': ['react', 'react-dom', 'lucide-react', 'framer-motion'],
-          // Split heavy optional features (these will only load if actually used)
-          'postprocessing': ['@react-three/postprocessing', 'postprocessing'],
-          'pathtracer': ['three-gpu-pathtracer'],
-        },
+        // Simplified chunk strategy
+        manualChunks: undefined,
       },
     },
     copyPublicDir: true,
