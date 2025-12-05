@@ -1464,8 +1464,8 @@ function App() {
         {/* TEMPORARILY DISABLED: FlashKiller was showing black screen freeze-frame */}
         {/* <FlashKiller isActive={preventFlash} duration={400} /> */}
         
-        {/* Transition Mask - Subtle dark overlay during unit selection changes */}
-        <TransitionMask />
+        {/* Transition Mask - DISABLED: Was causing black flash when clicking units */}
+        {/* <TransitionMask /> */}
         
         </MobileErrorBoundary>
         )}
