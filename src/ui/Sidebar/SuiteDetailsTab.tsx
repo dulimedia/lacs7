@@ -53,25 +53,7 @@ export function SuiteDetailsTab() {
   };
 
   const getSecondaryFloorplanUrl = () => {
-    if (!displayUnit || !displayUnit.unit_name) {
-      return null;
-    }
-    
-    // For tower units, show the opposite view as secondary
-    if (isTower) {
-      if (showIndividualFloorplan && hasIndividualFloorplan) {
-        // If showing individual, secondary is floor-level view
-        const floorFloorplan = getTowerUnitFloorFloorplan(displayUnit.unit_name);
-        const rawUrl = floorFloorplan ? `floorplans/converted/${floorFloorplan}` : null;
-        return rawUrl ? encodeFloorplanUrl(rawUrl) : null;
-      } else if (hasIndividualFloorplan) {
-        // If showing floor-level, secondary is individual view
-        const individualFloorplan = getTowerUnitIndividualFloorplan(displayUnit.unit_name);
-        const rawUrl = individualFloorplan ? `floorplans/converted/${individualFloorplan}` : null;
-        return rawUrl ? encodeFloorplanUrl(rawUrl) : null;
-      }
-    }
-    
+    // Temporarily disable secondary floorplans to fix freeze issue
     return null;
   };
 
@@ -240,6 +222,14 @@ export function SuiteDetailsTab() {
                     src={secondaryFloorplanUrl} 
                     alt={`${displayUnit.unit_name} Secondary Floor Plan Preview`}
                     className="w-full h-40 object-contain"
+                    onError={(e) => {
+                      console.warn('Secondary floorplan image failed to load:', secondaryFloorplanUrl);
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement?.parentElement?.remove();
+                    }}
+                    onLoad={() => {
+                      console.log('Secondary floorplan loaded:', secondaryFloorplanUrl);
+                    }}
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-2 shadow-lg">
