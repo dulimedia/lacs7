@@ -81,22 +81,22 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
   const { selectedUnit, selectedBuilding, selectedFloor, hoveredUnit } = useGLBState();
   const { selectedUnitKey, hoveredUnitKey } = useExploreState();
   const { isUnitActive } = useFilterStore();
-  
+
   const isHovered = hoveredUnit === node.key && !selectedUnit;
-  const isSelected = selectedUnit === node.unitName && 
-                    selectedBuilding === node.building && 
-                    selectedFloor === node.floor;
+  const isSelected = selectedUnit === node.unitName &&
+    selectedBuilding === node.building &&
+    selectedFloor === node.floor;
   const isFiltered = isUnitActive(node.key) && !isSelected && !isHovered;
-  
+
   // MOBILE OPTIMIZATION: Only load models that pass progressive loading check
   const shouldLoadBase = isSelected || isHovered || isFiltered;
   const canLoadOnMobile = shouldRenderUnit(node.path);
   const shouldLoad = shouldLoadBase && (PerfFlags.isMobile ? canLoadOnMobile : true);
-  
+
   // MOBILE FIX: useGLTF has internal caching - don't dispose the scene
   // The leak was from repeatedly creating/unmounting components
   const { scene } = useGLTF(node.path);
-  
+
   // Register with progressive loader when model loads
   useEffect(() => {
     if (scene && shouldLoad) {
@@ -104,7 +104,7 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
       loader.registerLoaded(node.path);
     }
   }, [scene, shouldLoad, node.path]);
-  
+
   const groupRef = useRef<THREE.Group>(null);
   const originalMaterialsRef = useRef<Map<string, THREE.Material | THREE.Material[]>>(new Map());
   const fadeProgressRef = useRef(0);
@@ -132,10 +132,10 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
       });
     }
   }, [scene, node.key]);
-  
+
   const { selectUnit, updateGLBObject } = useGLBState();
   const { setSelected } = useExploreState();
-  
+
   useEffect(() => {
     if (groupRef.current) {
       updateGLBObject(node.key, groupRef.current);
@@ -160,10 +160,10 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
 
     const targetProgress = targetStateRef.current !== 'none' ? 1 : 0;
     const fadeSpeed = 1 / FADE_DURATION;
-    
+
     // ATOMIC FRAME SYNC: Set visibility before fade calculations to prevent flash gap
     groupRef.current.visible = targetProgress > 0;
-    
+
     if (fadeProgressRef.current !== targetProgress) {
       if (fadeProgressRef.current < targetProgress) {
         fadeProgressRef.current = Math.min(1, fadeProgressRef.current + delta * fadeSpeed);
@@ -173,67 +173,67 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
     }
 
     groupRef.current.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          const originalMaterial = originalMaterialsRef.current.get(child.uuid);
-          
-          if (targetStateRef.current === 'selected') {
-            const sharedMaterial = getSharedSelectedMaterial();
-            if (!child.material || !(child.material as any).__isAnimatedMaterial) {
-              (sharedMaterial as any).__isAnimatedMaterial = true;
-              child.material = sharedMaterial;
-              // Start with 0 opacity and fade in to prevent white flash
-              sharedMaterial.opacity = 0;
-              sharedMaterial.emissiveIntensity = 0;
-            }
-            const mat = child.material as THREE.MeshStandardMaterial;
-            mat.opacity = fadeProgressRef.current;
-            mat.emissiveIntensity = SELECTED_MATERIAL_CONFIG.emissiveIntensity * fadeProgressRef.current;
-            // Keep visible during transition to prevent flash gap
-            child.visible = true;
-          } else if (targetStateRef.current === 'hovered') {
-            const sharedMaterial = getSharedHoveredMaterial();
-            if (!child.material || !(child.material as any).__isAnimatedMaterial) {
-              (sharedMaterial as any).__isAnimatedMaterial = true;
-              child.material = sharedMaterial;
-              // Start with 0 opacity to prevent flash
-              sharedMaterial.emissiveIntensity = 0;
-            }
-            const mat = child.material as THREE.MeshStandardMaterial;
-            mat.emissiveIntensity = HOVERED_MATERIAL_CONFIG.emissiveIntensity * fadeProgressRef.current;
-            // Keep visible during transition to prevent flash gap
-            child.visible = true;
-          } else if (targetStateRef.current === 'filtered') {
-            const sharedMaterial = getSharedFilteredMaterial();
-            if (!child.material || !(child.material as any).__isAnimatedMaterial) {
-              (sharedMaterial as any).__isAnimatedMaterial = true;
-              child.material = sharedMaterial;
-              // Start with 0 opacity and fade in to prevent white flash
-              sharedMaterial.opacity = 0;
-              sharedMaterial.emissiveIntensity = 0;
-            }
-            const mat = child.material as THREE.MeshStandardMaterial;
-            mat.opacity = FILTER_HIGHLIGHT_CONFIG.opacity * fadeProgressRef.current;
-            
-            const time = state.clock.elapsedTime;
-            const pulse = (Math.sin(time * 3.0) + 1.0) * 0.5;
-            mat.emissiveIntensity = FILTER_HIGHLIGHT_CONFIG.emissiveIntensity * fadeProgressRef.current * (0.5 + pulse * 0.5);
-            // Keep visible during transition to prevent flash gap
-            child.visible = true;
-          } else if (fadeProgressRef.current === 0 && originalMaterial) {
-            child.material = originalMaterial;
-            delete (child.material as any).__isAnimatedMaterial;
-            child.visible = true;
+      if (child instanceof THREE.Mesh) {
+        const originalMaterial = originalMaterialsRef.current.get(child.uuid);
+
+        if (targetStateRef.current === 'selected') {
+          const sharedMaterial = getSharedSelectedMaterial();
+          if (!child.material || !(child.material as any).__isAnimatedMaterial) {
+            (sharedMaterial as any).__isAnimatedMaterial = true;
+            child.material = sharedMaterial;
+            // Start with 0 opacity and fade in to prevent white flash
+            sharedMaterial.opacity = 0;
+            sharedMaterial.emissiveIntensity = 0;
           }
+          const mat = child.material as THREE.MeshStandardMaterial;
+          mat.opacity = fadeProgressRef.current;
+          mat.emissiveIntensity = SELECTED_MATERIAL_CONFIG.emissiveIntensity * fadeProgressRef.current;
+          // Keep visible during transition to prevent flash gap
+          child.visible = true;
+        } else if (targetStateRef.current === 'hovered') {
+          const sharedMaterial = getSharedHoveredMaterial();
+          if (!child.material || !(child.material as any).__isAnimatedMaterial) {
+            (sharedMaterial as any).__isAnimatedMaterial = true;
+            child.material = sharedMaterial;
+            // Start with 0 opacity to prevent flash
+            sharedMaterial.emissiveIntensity = 0;
+          }
+          const mat = child.material as THREE.MeshStandardMaterial;
+          mat.emissiveIntensity = HOVERED_MATERIAL_CONFIG.emissiveIntensity * fadeProgressRef.current;
+          // Keep visible during transition to prevent flash gap
+          child.visible = true;
+        } else if (targetStateRef.current === 'filtered') {
+          const sharedMaterial = getSharedFilteredMaterial();
+          if (!child.material || !(child.material as any).__isAnimatedMaterial) {
+            (sharedMaterial as any).__isAnimatedMaterial = true;
+            child.material = sharedMaterial;
+            // Start with 0 opacity and fade in to prevent white flash
+            sharedMaterial.opacity = 0;
+            sharedMaterial.emissiveIntensity = 0;
+          }
+          const mat = child.material as THREE.MeshStandardMaterial;
+          mat.opacity = FILTER_HIGHLIGHT_CONFIG.opacity * fadeProgressRef.current;
+
+          const time = state.clock.elapsedTime;
+          const pulse = (Math.sin(time * 3.0) + 1.0) * 0.5;
+          mat.emissiveIntensity = FILTER_HIGHLIGHT_CONFIG.emissiveIntensity * fadeProgressRef.current * (0.5 + pulse * 0.5);
+          // Keep visible during transition to prevent flash gap
+          child.visible = true;
+        } else if (fadeProgressRef.current === 0 && originalMaterial) {
+          child.material = originalMaterial;
+          delete (child.material as any).__isAnimatedMaterial;
+          child.visible = true;
         }
-      });
+      }
     });
+  });
 
   // Material cleanup handled globally now - don't dispose shared materials per-component
   // Don't dispose useGLTF scenes - they're cached by drei internally
 
-  // Don't render at all if mobile and shouldn't load
+  // Don't render geometry if mobile and shouldn't load, but keep the group for stability
   if (PerfFlags.isMobile && !canLoadOnMobile && !shouldLoad) {
-    return null;
+    return <group ref={groupRef} visible={false} />;
   }
 
   return (
@@ -245,7 +245,7 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
 
 const GLBInitializer: React.FC = () => {
   const { glbNodes, initializeGLBNodes } = useGLBState();
-  
+
   useEffect(() => {
     if (glbNodes.size === 0) {
       logger.log('LOADING', '🔧', 'GLBManager: Initializing GLB nodes...');
@@ -264,33 +264,21 @@ const GLBInitializer: React.FC = () => {
 export const GLBManager: React.FC = () => {
   const { glbNodes, selectedUnit, selectedBuilding, selectedFloor, hoveredUnit } = useGLBState();
   const { isUnitActive } = useFilterStore();
-  
+
   const isMobile = PerfFlags.isMobile;
-  
-  // Load only valid units to prevent GPU overload, but use stable keys to prevent remounting
+
+  // Load all valid units to ensure interactivity
   const nodesToRender = useMemo(() => {
     const allNodes = Array.from(glbNodes.values());
-    
-    const activeNodes = allNodes.filter(node => {
-      const isHovered = hoveredUnit === node.key && !selectedUnit;
-      const isSelected = selectedUnit === node.unitName && 
-                        selectedBuilding === node.building && 
-                        selectedFloor === node.floor;
-      const isFiltered = isUnitActive(node.key) && !isSelected && !isHovered;
-      
-      return isSelected || isHovered || isFiltered;
-    });
-    
-    console.log(`📦 Loading ${activeNodes.length}/${allNodes.length} units on demand (mobile: ${isMobile})`);
-    MobileDiagnostics.log('glb-manager', 'Lazy loading GLB units', { 
+
+    console.log(`📦 Loading ${allNodes.length} units (mobile: ${isMobile})`);
+    MobileDiagnostics.log('glb-manager', 'Loading GLB units', {
       total: allNodes.length,
-      rendering: activeNodes.length,
       isMobile,
-      optimization: 'lazy load with stable keys to prevent remounting'
     });
-    return activeNodes;
-  }, [glbNodes, isMobile, selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, isUnitActive]);
-  
+    return allNodes;
+  }, [glbNodes, isMobile]);
+
   return (
     <group>
       <GLBInitializer />

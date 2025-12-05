@@ -60,7 +60,7 @@ const AVAILABLE_FLOORPLANS = [
   'M1Floor_LACS-1.png',
   'M2Floor_LACS-1.png',
   'M3Floor_LACS-1.png',
-  'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
+  'FG_Floorplan.png',
   'LACS_F1 Floor Plan_M1_Color_Compressed-1.png',
   'LACS_F2 Floor Plan_M1_Color_Compressed-1.png',
   'LACS_F3 Floor Plan_M1_Color_Compressed-1.png'
@@ -207,19 +207,19 @@ const MARYLAND_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; i
 // Fifth Street Building unit to floor mapping  
 const FIFTH_STREET_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; individualFloorplan?: string } } = {
   // Ground Floor Fifth Street Units - using FG Floor Plan
-  'f10': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f15': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f20': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f25': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f30': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f35': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f40': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f50': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f60': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'f70': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'club76': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'fglibrary': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
-  'fgrestroom': { floorFloorplan: 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png' },
+  'f10': { floorFloorplan: 'FG_Floorplan.png' },
+  'f15': { floorFloorplan: 'FG_Floorplan.png' },
+  'f20': { floorFloorplan: 'FG_Floorplan.png' },
+  'f25': { floorFloorplan: 'FG_Floorplan.png' },
+  'f30': { floorFloorplan: 'FG_Floorplan.png' },
+  'f35': { floorFloorplan: 'FG_Floorplan.png' },
+  'f40': { floorFloorplan: 'FG_Floorplan.png' },
+  'f50': { floorFloorplan: 'FG_Floorplan.png' },
+  'f60': { floorFloorplan: 'FG_Floorplan.png' },
+  'f70': { floorFloorplan: 'FG_Floorplan.png' },
+  'club76': { floorFloorplan: 'FG_Floorplan.png' },
+  'fglibrary': { floorFloorplan: 'FG_Floorplan.png' },
+  'fgrestroom': { floorFloorplan: 'FG_Floorplan.png' },
 
   // First Floor Fifth Street Units (F100s) - using F1 Floor Plan
   'f100': { floorFloorplan: 'LACS_F1 Floor Plan_M1_Color_Compressed-1.png', individualFloorplan: 'f100.png' },
@@ -264,8 +264,8 @@ const SPECIAL_MAPPINGS: { [key: string]: string } = {
   'studio o.m.': 'MG Floorplan-1.png',
   'studio o.m': 'MG Floorplan-1.png',
   'studioom': 'MG Floorplan-1.png',
-  'club 76': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'club76': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
+  'club 76': 'FG_Floorplan.png',
+  'club76': 'FG_Floorplan.png',
   // Maryland Building Ground Floor units use the mg floorplan
   'm20': 'MG Floorplan-1.png',
   'm40': 'MG Floorplan-1.png',
@@ -277,18 +277,18 @@ const SPECIAL_MAPPINGS: { [key: string]: string } = {
   'f120': 'LACS_F1 Floor Plan_M1_Color_Compressed-1.png',
   'f130': 'LACS_F1 Floor Plan_M1_Color_Compressed-1.png',
   // All First Street Building Ground Floor units use the same floorplan
-  'f10': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f15': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f20': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f25': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f30': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f35': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f40': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f50': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f60': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'f70': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'fglibrary': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
-  'fgrestroom': 'LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png',
+  'f10': 'FG_Floorplan.png',
+  'f15': 'FG_Floorplan.png',
+  'f20': 'FG_Floorplan.png',
+  'f25': 'FG_Floorplan.png',
+  'f30': 'FG_Floorplan.png',
+  'f35': 'FG_Floorplan.png',
+  'f40': 'FG_Floorplan.png',
+  'f50': 'FG_Floorplan.png',
+  'f60': 'FG_Floorplan.png',
+  'f70': 'FG_Floorplan.png',
+  'fglibrary': 'FG_Floorplan.png',
+  'fgrestroom': 'FG_Floorplan.png',
   // All stages (1-8, A-F) use the site map
   'stage 1': 'LACS_Site Map_M1_Color_page_1.png',
   'stage1': 'LACS_Site Map_M1_Color_page_1.png',
@@ -447,7 +447,7 @@ export function findFloorplanForUnit(unitName: string, unitData?: any): string |
 
   // Check First Street Building ground floor units FIRST (highest priority)
   if (isFifthStreetGroundFloorUnit(unitName)) {
-    return `floorplans/converted/LACS_FG Floor Plan_M1_Color_Compressed (1)-1.png`;
+    return `floorplans/converted/FG_Floorplan.png`;
   }
 
   // Check special mappings SECOND (high priority - overrides CSV data)
