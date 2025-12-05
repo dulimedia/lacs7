@@ -13,6 +13,7 @@ import { SELECTED_MATERIAL_CONFIG, HOVERED_MATERIAL_CONFIG, FILTER_HIGHLIGHT_CON
 import { logger } from '../utils/logger';
 import { PerfFlags } from '../perf/PerfFlags';
 import { MobileDiagnostics } from '../debug/mobileDiagnostics';
+import { ProgressiveLoader, shouldRenderUnit } from '../utils/progressiveLoader';
 
 interface GLBUnitProps {
   node: GLBNodeInfo;
@@ -87,12 +88,22 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
                     selectedFloor === node.floor;
   const isFiltered = isUnitActive(node.key) && !isSelected && !isHovered;
   
-  // Always load GLB scenes but control visibility through shouldLoad
-  const shouldLoad = isSelected || isHovered || isFiltered;
+  // MOBILE OPTIMIZATION: Only load models that pass progressive loading check
+  const shouldLoadBase = isSelected || isHovered || isFiltered;
+  const canLoadOnMobile = shouldRenderUnit(node.path);
+  const shouldLoad = shouldLoadBase && (PerfFlags.isMobile ? canLoadOnMobile : true);
   
   // MOBILE FIX: useGLTF has internal caching - don't dispose the scene
   // The leak was from repeatedly creating/unmounting components
   const { scene } = useGLTF(node.path);
+  
+  // Register with progressive loader when model loads
+  useEffect(() => {
+    if (scene && shouldLoad) {
+      const loader = ProgressiveLoader.getInstance();
+      loader.registerLoaded(node.path);
+    }
+  }, [scene, shouldLoad, node.path]);
   
   const groupRef = useRef<THREE.Group>(null);
   const originalMaterialsRef = useRef<Map<string, THREE.Material | THREE.Material[]>>(new Map());
@@ -219,6 +230,11 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
 
   // Material cleanup handled globally now - don't dispose shared materials per-component
   // Don't dispose useGLTF scenes - they're cached by drei internally
+
+  // Don't render at all if mobile and shouldn't load
+  if (PerfFlags.isMobile && !canLoadOnMobile && !shouldLoad) {
+    return null;
+  }
 
   return (
     <group ref={groupRef}>

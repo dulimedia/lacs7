@@ -43,13 +43,13 @@ import { AdaptiveLighting } from './components/lighting/AdaptiveLighting';
 import { SoftShadowsController } from './components/lighting/SoftShadowsController';
 import { AtmosphericFog } from './components/environment/AtmosphericFog';
 import { AdaptiveEffects } from './components/postprocessing/AdaptiveEffects';
+import { MobileEnvironment } from './components/MobileEnvironment';
 import { lazy, Suspense } from 'react';
 const PathTracer = lazy(() => import('./components/pathtracer/PathTracer').then(m => ({ default: m.PathTracer })));
 import { useFaceDebugHotkey } from './hooks/useFaceDebugHotkey';
 import { useUnitStore } from './stores/useUnitStore';
 import { useSidebarState } from './ui/Sidebar/useSidebarState';
 import { useFlashPrevention } from './hooks/useFlashPrevention';
-import { FlashKiller } from './components/FlashKiller';
 import { useExploreState, buildUnitsIndex, isUnitExcluded, type UnitRecord } from './store/exploreState';
 import { useGLBState } from './store/glbState';
 import { useCsvUnitData } from './hooks/useCsvUnitData';
@@ -61,6 +61,7 @@ import type { Tier } from './lib/graphics/tier';
 import { ErrorLogDisplay } from './components/ErrorLogDisplay';
 import { PerformanceGovernorComponent } from './components/PerformanceGovernorComponent';
 import { WebGLRecovery } from './components/WebGLRecovery';
+import { WebGLContextRecovery } from './components/WebGLContextRecovery';
 import { log as debugLog, SAFE, Q } from './lib/debug';
 import { MobileDiagnostics } from './debug/mobileDiagnostics';
 
@@ -1378,15 +1379,10 @@ function App() {
         >
           {(tier) => (
             <>
-              {/* HDRI Environment - Using mobile-safe preset to prevent context loss */}
-              <Environment
-                files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
-                background={true}
+              {/* MOBILE-OPTIMIZED Environment - Prevents context loss on mobile */}
+              <MobileEnvironment
                 backgroundIntensity={deviceCapabilities.isMobile ? 0.4 : 1.6}
                 environmentIntensity={deviceCapabilities.isMobile ? 0.3 : 1.2}
-                resolution={mobileSettings.hdriResolution}
-                onLoad={() => console.log('✅ HDRI loaded - resolution:', mobileSettings.hdriResolution)}
-                onError={(error) => console.error('❌ HDRI failed:', error)}
               />
 
               {/* Lighting System - Mobile-safe preset uses simple lighting */}
@@ -1459,6 +1455,9 @@ function App() {
 
               {/* WebGL Context Recovery */}
               <WebGLRecovery />
+              
+              {/* Enhanced Context Recovery for Mobile */}
+              <WebGLContextRecovery />
 
               {/* Post-processing - Disabled on mobile per safe-mode preset */}
               {!mobileSettings.postProcessing && !SAFE && effectsReady && debugState.ao && !debugState.pathtracer && (

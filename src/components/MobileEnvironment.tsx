@@ -1,0 +1,90 @@
+// Ultra-lightweight environment for mobile devices
+// Replaces heavy HDRI with simple gradient or solid color to prevent context loss
+
+import React, { useMemo } from 'react';
+import { Environment } from '@react-three/drei';
+import * as THREE from 'three';
+import { PerfFlags } from '../perf/PerfFlags';
+import { assetUrl } from '../lib/assets';
+
+interface MobileEnvironmentProps {
+  backgroundIntensity?: number;
+  environmentIntensity?: number;
+}
+
+export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
+  backgroundIntensity = 1.0,
+  environmentIntensity = 1.0
+}) => {
+  // Create a simple gradient texture for mobile instead of HDRI
+  const gradientTexture = useMemo(() => {
+    if (!PerfFlags.isMobile) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;  // Tiny texture
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    
+    if (ctx) {
+      // Simple sky gradient
+      const gradient = ctx.createLinearGradient(0, 0, 0, 32);
+      gradient.addColorStop(0, '#87CEEB'); // Sky blue
+      gradient.addColorStop(0.7, '#98D8E8'); // Light blue
+      gradient.addColorStop(1, '#B8E6F0'); // Very light blue
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 32, 32);
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    texture.flipY = false;
+    
+    console.log('🎨 Created ultra-lightweight mobile environment (32x32 gradient)');
+    return texture;
+  }, []);
+
+  // Use ultra-low-res HDRI on mobile, full HDRI on desktop
+  if (PerfFlags.isMobile && PerfFlags.isIOS) {
+    // iOS Safari - use solid color background to prevent context loss
+    return (
+      <>
+        <color attach="background" args={['#87CEEB']} />
+        <ambientLight intensity={0.6} />
+        <directionalLight 
+          position={[10, 10, 5]} 
+          intensity={2.0} 
+          castShadow={false}
+        />
+      </>
+    );
+  }
+
+  if (PerfFlags.isMobile) {
+    // Android mobile - use tiny gradient texture
+    return (
+      <>
+        {gradientTexture && <primitive attach="background" object={gradientTexture} />}
+        <ambientLight intensity={0.5} />
+        <directionalLight 
+          position={[10, 10, 5]} 
+          intensity={1.8} 
+          castShadow={false}
+        />
+      </>
+    );
+  }
+
+  // Desktop - use full HDRI environment
+  return (
+    <Environment
+      files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
+      background={true}
+      backgroundIntensity={backgroundIntensity}
+      environmentIntensity={environmentIntensity}
+      resolution={1024}
+      onLoad={() => console.log('✅ Desktop HDRI loaded')}
+      onError={(error) => console.error('❌ HDRI failed:', error)}
+    />
+  );
+};

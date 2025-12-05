@@ -38,8 +38,8 @@ export class MobileMemoryManager {
       const memoryUsage = perf.memory.usedJSHeapSize / perf.memory.jsHeapSizeLimit;
       
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const aggressiveThreshold = isIOS ? 0.55 : 0.70;
-      const gentleThreshold = isIOS ? 0.45 : 0.50;
+      const aggressiveThreshold = isIOS ? 0.40 : 0.65; // Much more aggressive on iOS
+      const gentleThreshold = isIOS ? 0.30 : 0.45; // Start cleanup earlier
       
       // If memory usage is above threshold, start aggressive cleanup
       if (memoryUsage > aggressiveThreshold) {

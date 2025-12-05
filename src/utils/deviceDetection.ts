@@ -107,20 +107,20 @@ export const getMobileOptimizedSettings = (device: DeviceCapabilities): MobileRe
   }
 
   // MOBILE SAFE-MODE PRESET
-  // Aggressive settings to prevent WebGL context loss on iOS
+  // ULTRA-AGGRESSIVE settings to prevent WebGL context loss on iOS
   const safeModeSettings: MobileRenderingPreset = {
     pixelRatio: 1, // Always 1 on mobile to reduce GPU memory
     antialias: false, // Expensive on mobile
     shadows: false, // Very expensive, major GPU memory consumer
     postProcessing: false, // Can cause context loss
-    maxLights: 2, // Minimal lighting to reduce shader complexity
-    textureSize: 512, // Cap at 512px max to reduce VRAM usage
+    maxLights: 1, // Single light only to minimize shader complexity
+    textureSize: 256, // Even smaller textures - 512px was still too much
     modelComplexity: 'low',
     preserveDrawingBuffer: false, // Can cause memory leaks on iOS
     powerPreference: 'low-power', // Prioritize battery/stability over performance
     failIfMajorPerformanceCaveat: false, // Don't fail, just use software rendering if needed
     useSimpleLighting: true, // Use basic ambient + directional, no fancy lighting
-    hdriResolution: 128, // Tiny HDRI to reduce memory (iOS context loss often from HDRI)
+    hdriResolution: 64, // Smallest possible HDRI to prevent context loss
     disableFog: true, // Fog adds shader complexity
     disableBloom: true, // Post-processing effect
     disableSSAO: true // Post-processing effect

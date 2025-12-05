@@ -4,8 +4,9 @@ import react from '@vitejs/plugin-react'
 // Use VITE_BASE_PATH env var for base path
 // Vercel: base = '/' (root)
 // GitHub Pages: base = '/LACSWORLD4/' (repository name)
+// Local dev: base = '/' (root)
 const base = process.env.VITE_BASE_PATH || 
-             (process.env.VERCEL ? '/' : '/LACSWORLD4/')
+             (process.env.VERCEL ? '/' : process.env.NODE_ENV === 'development' ? '/' : '/LACSWORLD4/')
 
 export default defineConfig({
   plugins: [react()],
@@ -25,11 +26,24 @@ export default defineConfig({
     cssTarget: 'safari14',
     outDir: 'dist',
     sourcemap: false,
-    chunkSizeWarningLimit: 1500,
+    chunkSizeWarningLimit: 1000, // Smaller chunks for mobile
     assetsInlineLimit: 0,
     rollupOptions: {
+      treeshake: {
+        moduleSideEffects: false,
+        // Remove unused exports for better tree-shaking
+        preset: 'safest',
+      },
       output: {
-        manualChunks: undefined,
+        manualChunks: {
+          // Split Three.js and related libs into separate chunk
+          'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
+          // Split UI libraries
+          'ui-vendor': ['react', 'react-dom', 'lucide-react', 'framer-motion'],
+          // Split heavy optional features (these will only load if actually used)
+          'postprocessing': ['@react-three/postprocessing', 'postprocessing'],
+          'pathtracer': ['three-gpu-pathtracer'],
+        },
       },
     },
     copyPublicDir: true,
