@@ -9,7 +9,6 @@ import { PerfFlags } from './perf/PerfFlags';
 import { UNIT_BOX_GLB_FILES } from './data/unitBoxGlbFiles';
 import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Home } from 'lucide-react';
 import { assetUrl } from './lib/assets';
-import { UnitWarehouse } from './components/UnitWarehouse';
 import { SingleEnvironmentMesh } from './components/SingleEnvironmentMesh';
 import UnitDetailPopup from './components/UnitDetailPopup';
 import { ExploreUnitsPanel } from './ui/ExploreUnitsPanel';
@@ -23,6 +22,7 @@ import { UnitGlowHighlightFixed } from './components/UnitGlowHighlightFixed';
 import { TransitionMask } from './components/TransitionMask';
 import { CanvasClickHandler } from './components/CanvasClickHandler';
 import { CanvasResizeHandler } from './components/CanvasResizeHandler';
+
 import UnitRequestForm from './components/UnitRequestForm';
 import { Unit3DPopup } from './components/Unit3DPopup';
 import { Unit3DPopupOverlay } from './components/Unit3DPopupOverlay';
@@ -412,7 +412,11 @@ function App() {
   useEffect(() => {
     debugLog.info('App mounted', { SAFE, isMobile: PerfFlags.isMobile, tier: PerfFlags.tier });
   }, []);
-  const { drawerOpen, setDrawerOpen, selectedUnitKey, getUnitData, unitDetailsOpen, setUnitDetailsOpen, show3DPopup, setShow3DPopup, hoveredUnitKey } = useExploreState();
+  const {
+    drawerOpen, setDrawerOpen, selectedUnitKey, getUnitData,
+    unitDetailsOpen, setUnitDetailsOpen, show3DPopup, setShow3DPopup,
+    hoveredUnitKey, singleUnitRequestOpen, setSingleUnitRequestOpen, requestUnitData
+  } = useExploreState();
   const { setCameraControlsRef } = useGLBState();
   const { floorPlanExpanded, setFloorPlanExpanded } = useSidebarState();
 
@@ -450,6 +454,7 @@ function App() {
   const [showFullDetails, setShowFullDetails] = useState(false);
   const [modelsLoading, setModelsLoading] = useState(true);
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
 
   // FlashKiller removed - no longer needed
 
@@ -486,14 +491,14 @@ function App() {
   };
 
   // Replace setModelsLoading with detection version
+  // Replace setModelsLoading with detection version
   useEffect(() => {
     originalSetModelsLoading.current = setModelsLoading;
   }, [setModelsLoading]);
+
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingPhase, setLoadingPhase] = useState('initializing'); // Track loading phase
   const [effectsReady, setEffectsReady] = useState(false); // Delay post-processing effects
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [showSingleUnitRequest, setShowSingleUnitRequest] = useState(false);
   const [renderTier, setRenderTier] = useState<Tier>(PerfFlags.tier === 'mobileLow' ? 'mobile-low' : 'desktop-high');
   const sunPosition = useMemo(() => [165, 188, -40] as [number, number, number], []);
   const debugState = {
@@ -516,8 +521,6 @@ function App() {
   // Refs to store Three.js instances for shadow settings callback
   const sceneRef = useRef<THREE.Scene | null>(null);
   const glRef = useRef<THREE.WebGLRenderer | null>(null);
-  const [requestUnitKey, setRequestUnitKey] = useState<string>('');
-  const [requestUnitName, setRequestUnitName] = useState<string>('');
   const [showFloorplanPopup, setShowFloorplanPopup] = useState(false);
   const [floorplanPopupData, setFloorplanPopupData] = useState<{
     floorplanUrl: string;
@@ -913,7 +916,9 @@ function App() {
           recipients: unitData.email_recipients ? [unitData.email_recipients] : ['owner@lacenter.com'], // Use CSV email or default
           kitchen_size: unitData.kitchen_size,
           unit_type: unitData.unit_type || 'Suite', // Copy unit type from CSV data
-          private_offices: unitData.private_offices
+          private_offices: unitData.private_offices,
+          plug_and_play: unitData.plug_and_play,
+          build_to_suit: unitData.build_to_suit
         };
 
         // Store with the primary key
@@ -1450,9 +1455,10 @@ function App() {
                           }}
                           onRequest={(unitKey) => {
                             const unitData = getUnitData(unitKey);
-                            setRequestUnitKey(unitKey);
-                            setRequestUnitName(unitData?.unit_name || unitKey);
-                            setShowSingleUnitRequest(true);
+                            setSingleUnitRequestOpen(true, {
+                              unitKey,
+                              unitName: unitData?.unit_name || unitKey
+                            });
                           }}
                           onClose={() => setShow3DPopup(false)}
                         />
@@ -1491,7 +1497,7 @@ function App() {
             {/* Camera Controls - Desktop Only (Mobile uses touch controls) */}
             {sceneEnabled && !modelsLoading && !deviceCapabilities.isMobile && (
               <div
-                className="fixed bottom-6 z-40 camera-controls-desktop -translate-x-1/2"
+                className="fixed bottom-6 z-40 camera-controls-desktop -translate-x-1/2 hidden md:block"
               >
                 <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl border border-black/5 p-3">
                   <div className="grid grid-cols-5 gap-2">
@@ -1591,14 +1597,14 @@ function App() {
             />
 
             {/* Single Unit Request Form */}
-            {showSingleUnitRequest && (
+            {singleUnitRequestOpen && requestUnitData && (
               <SingleUnitRequestForm
-                isOpen={showSingleUnitRequest}
+                isOpen={singleUnitRequestOpen}
                 onClose={() => {
-                  setShowSingleUnitRequest(false);
+                  setSingleUnitRequestOpen(false);
                 }}
-                unitKey={requestUnitKey}
-                unitName={requestUnitName}
+                unitKey={requestUnitData.unitKey}
+                unitName={requestUnitData.unitName}
               />
             )}
 

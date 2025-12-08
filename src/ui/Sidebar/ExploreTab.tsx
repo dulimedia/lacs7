@@ -144,13 +144,12 @@ export function ExploreTab() {
             }
 
             if (statusFilter !== 'any') {
-              const unitType = (unit.unit_type || '').toLowerCase();
               if (statusFilter === 'plug-and-play') {
-                if (!unitType.includes('plug') && !unitType.includes('ready') && !unitType.includes('move-in')) {
+                if (!unit.plug_and_play) {
                   passes = false;
                 }
               } else if (statusFilter === 'build-to-suit') {
-                if (!unitType.includes('build') && !unitType.includes('custom') && !unitType.includes('suit') && !unitType.includes('shell')) {
+                if (!unit.build_to_suit) {
                   passes = false;
                 }
               }
@@ -254,13 +253,12 @@ export function ExploreTab() {
             }
 
             if (statusFilter !== 'any') {
-              const unitType = (unit.unit_type || '').toLowerCase();
               if (statusFilter === 'plug-and-play') {
-                if (!unitType.includes('plug') && !unitType.includes('ready') && !unitType.includes('move-in')) {
+                if (!unit.plug_and_play) {
                   passes = false;
                 }
               } else if (statusFilter === 'build-to-suit') {
-                if (!unitType.includes('build') && !unitType.includes('custom') && !unitType.includes('suit') && !unitType.includes('shell')) {
+                if (!unit.build_to_suit) {
                   passes = false;
                 }
               }
@@ -380,13 +378,12 @@ export function ExploreTab() {
 
           // Status filter
           if (statusFilter !== 'any') {
-            const unitType = (unit.unit_type || '').toLowerCase();
             if (statusFilter === 'plug-and-play') {
-              if (!unitType.includes('plug') && !unitType.includes('ready') && !unitType.includes('move-in')) {
+              if (!unit.plug_and_play) {
                 passes = false;
               }
             } else if (statusFilter === 'build-to-suit') {
-              if (!unitType.includes('build') && !unitType.includes('custom') && !unitType.includes('suit') && !unitType.includes('shell')) {
+              if (!unit.build_to_suit) {
                 passes = false;
               }
             }

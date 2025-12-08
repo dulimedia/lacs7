@@ -13,12 +13,14 @@ export interface UnitData {
   unit_key: string; // Unique identifier
   building: string; // Building name
   floor: string; // Floor number/name
-  area_sqft: number; // Square footage
+  area_sqft?: number; // Square footage
   status: boolean; // Availability status as boolean
   unit_type: string; // Suite, Stage, etc.
   kitchen_size?: string; // Kitchen size
   height?: string; // Max height for stages and other units
   private_offices?: number; // Number of individual closed-door offices
+  plug_and_play?: boolean; // Is unit plug and play ready?
+  build_to_suit?: boolean; // Is unit build to suit?
 }
 
 export interface LoadedModel {
