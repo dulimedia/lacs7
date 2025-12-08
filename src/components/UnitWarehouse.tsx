@@ -11,6 +11,7 @@ import FresnelMaterial from '../materials/FresnelMaterial';
 import { assetUrl } from '../lib/assets';
 import { PerfFlags } from '../perf/PerfFlags';
 import { logger } from '../utils/logger';
+import { MobileDiagnostics } from '../debug/mobileDiagnostics';
 import { FILTER_HIGHLIGHT_CONFIG } from '../config/ghostMaterialConfig';
 
 const DRACO_DECODER_CDN = 'https://www.gstatic.com/draco/versioned/decoders/1.5.6/';
@@ -327,6 +328,7 @@ const SingleModelFBX: React.FC<{
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const hasLogged = useRef(false);
+  const { gl } = useThree();
 
   if (!modelUrl) {
     console.error('❌ Missing modelUrl for FBX:', fileName);
@@ -788,9 +790,20 @@ const UnitWarehouseComponent: React.FC<UnitWarehouseProps> = ({
     if (activeUnits.length > 0 && activatedCount === 0) {
       logger.warn('GLB', '❌', `FILTER SET but NO MESHES ACTIVATED! Available models:`, boxLoadedModels.map(m => m.name));
     }
-  }, [activeFilter, boxLoadedModels, activeUnitsList, isUnitActive, isUnitAvailable, filterHighlightMaterial]);
+  }, [activeFilter, boxLoadedModels, activeUnitsList, isUnitActive, isUnitAvailable, filterHighlightMaterial, selectedUnit]);
 
   useEffect(() => {
+    // ALWAYS reset materials first
+    boxLoadedModels.forEach(model => {
+      if (model.object) {
+        model.object.traverse((child: Object3D) => {
+          if (child instanceof Mesh && (child as any).userData.originalMaterial) {
+            child.material = (child as any).userData.originalMaterial;
+          }
+        });
+      }
+    });
+
     if (!selectedUnit) {
       return;
     }
