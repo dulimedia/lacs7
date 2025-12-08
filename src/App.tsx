@@ -899,10 +899,12 @@ function App() {
 
 
 
-        // Ensure floor data is present - log warning if missing
-        const floorValue = unitData.floor?.toString() || '';
+        // Ensure floor data is present - default to "Main Floor" for Tower Building if missing
+        let floorValue = unitData.floor?.toString() || '';
         if (!floorValue && unitData.building === 'Tower Building') {
-          console.warn(`⚠️ Tower Building unit ${unitData.unit_name} has no floor data in CSV!`);
+          floorValue = 'Main Floor';
+        } else if (!floorValue) {
+          console.warn(`⚠️ Unit ${unitData.unit_name} (${unitData.building}) has no floor data in CSV!`);
         }
 
         const unitRecord: UnitRecord = {

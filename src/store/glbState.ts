@@ -80,7 +80,7 @@ const GLB_STRUCTURE = {
     "Third Floor": ["F-300", "F-330", "F-340", "F-350", "F-360", "F-363", "F-365", "F-380", "F3 Restrooms"]
   },
   "Maryland Building": {
-    "Ground Floor": ["ET Lab", "M-20", "M-40", "M-45", "M-50", "MG - Stage 7 ", "Studio O.M."],
+    "Ground Floor": ["ET Lab", "M-20", "M-40", "M-45", "M-50", "MG - Stage 7", "Studio O.M."],
     "First Floor": ["M-120", "M-130", "M-140", "M-145", "M-150", "M-160", "M-170", "M-180", "M1 Restrooms"],
     "Second Floor": ["M-210", "M-220", "M-230", "M-240", "M-250", "M-260", "M-270", "M2 Restroom"],
     "Third Floor": ["M-300", "M-320", "M-340", "M-345", "M-350", "M3 Restroom"]
