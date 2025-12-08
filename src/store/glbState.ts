@@ -23,29 +23,29 @@ export interface GLBNodeInfo {
 export interface GLBState {
   // Map of GLB nodes by their key
   glbNodes: Map<string, GLBNodeInfo>;
-  
+
   // Current selection context
   selectedBuilding: string | null;
   selectedFloor: string | null;
   selectedUnit: string | null;
-  
+
   // Camera controls reference for smooth centering
   cameraControlsRef: React.MutableRefObject<CameraControls> | null;
-  
+
   // Camera animation state
   isCameraAnimating: boolean;
   lastCameraTarget: string | null;
-  
-  
+
+
   // Hover state
   hoveredUnit: string | null;
   hoveredFloor: { building: string; floor: string } | null;
-  
+
   // Loading states
   isLoadingGLBs: boolean;
   loadedCount: number;
   totalCount: number;
-  
+
   // Actions
   initializeGLBNodes: () => void;
   updateGLBObject: (key: string, object: THREE.Group) => void;
@@ -61,7 +61,7 @@ export interface GLBState {
   setCameraControlsRef: (ref: React.MutableRefObject<CameraControls> | null) => void;
   centerCameraOnUnit: (building: string, floor: string, unit: string) => void;
   resetCameraAnimation: () => void;
-  
+
   // Getters
   getGLBsByBuilding: (building: string) => GLBNodeInfo[];
   getGLBsByFloor: (building: string, floor: string) => GLBNodeInfo[];
@@ -129,7 +129,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
       Object.entries(floors).forEach(([floor, units]) => {
         units.forEach(unit => {
           const key = buildNodeKey(building, floor, unit);
-          
+
           // Special case for Tower Building - files are directly in building folder
           let path;
           if (building === "Tower Building") {
@@ -138,13 +138,11 @@ export const useGLBState = create<GLBState>((set, get) => ({
             // Handle empty floor strings to avoid double slashes
             const floorPath = floor ? `/${floor}` : '';
             // For Fifth Street Building, check if we need trailing space for F-180
-            const fileUnit = (building === "Fifth Street Building" && unit === "F-180") ? "F-180 " :
-                           (building === "Maryland Building" && unit === "MG - Stage 7") ? "MG - Stage 7 " :
-                           (building === "Maryland Building" && unit === "Studio O.M.") ? "Studio O.M." : unit;
+            const fileUnit = (building === "Maryland Building" && unit === "Studio O.M.") ? "Studio O.M." : unit;
             path = import.meta.env.BASE_URL + `models/boxes/${building}${floorPath}/${fileUnit}.glb`;
           }
-          
-          
+
+
           nodes.set(key, {
             key,
             building,
@@ -154,8 +152,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
             state: 'invisible', // Default state - units are always invisible
             isLoaded: false
           });
-          
-          
+
+
           total++;
         });
       });
@@ -167,11 +165,11 @@ export const useGLBState = create<GLBState>((set, get) => ({
   updateGLBObject: (key: string, object: THREE.Group) => {
     const { glbNodes, loadedCount, selectedUnit, selectedBuilding, selectedFloor } = get();
     const node = glbNodes.get(key);
-    
+
     if (node) {
       // Ensure the object is hidden immediately when stored
       object.visible = false;
-      
+
       // Apply invisible material to prevent any rendering
       const invisibleMaterial = new THREE.MeshBasicMaterial({
         visible: false,
@@ -181,7 +179,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
         depthWrite: false,
         depthTest: false
       });
-      
+
       object.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.visible = false;
@@ -189,11 +187,11 @@ export const useGLBState = create<GLBState>((set, get) => ({
           child.material = invisibleMaterial;
         }
       });
-      
+
       const updatedNode = { ...node, object, isLoaded: true };
       const newNodes = new Map(glbNodes);
       newNodes.set(key, updatedNode);
-      
+
       // If this is the currently selected unit, trigger camera positioning now that object is loaded
       if (selectedUnit && selectedBuilding && selectedFloor !== null) {
         if (node.unitName === selectedUnit && node.building === selectedBuilding && node.floor === selectedFloor) {
@@ -203,11 +201,11 @@ export const useGLBState = create<GLBState>((set, get) => ({
           }, 100);
         }
       }
-      
+
       const isFirstLoad = !node.isLoaded;
-      set({ 
-        glbNodes: newNodes, 
-        loadedCount: loadedCount + (isFirstLoad ? 1 : 0) 
+      set({
+        glbNodes: newNodes,
+        loadedCount: loadedCount + (isFirstLoad ? 1 : 0)
       });
     }
   },
@@ -215,15 +213,15 @@ export const useGLBState = create<GLBState>((set, get) => ({
   setGLBState: (key: string, state: GLBVisibilityState) => {
     const { glbNodes } = get();
     const node = glbNodes.get(key);
-    
+
     if (node) {
       const updatedNode = { ...node, state };
       const newNodes = new Map(glbNodes);
       newNodes.set(key, updatedNode);
-      
+
       set({ glbNodes: newNodes });
-      
-      
+
+
       // Apply the visual state to the Three.js object if loaded
       if (node.object) {
         if (state === 'invisible') {
@@ -239,12 +237,12 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   selectBuilding: (building: string | null) => {
     const { glbNodes } = get();
-    
+
     // Reset all GLBs to invisible first
     glbNodes.forEach((node, key) => {
       get().setGLBState(key, 'invisible');
     });
-    
+
     if (building) {
       // Set building GLBs to glowing
       const buildingUnits = get().getGLBsByBuilding(building);
@@ -252,64 +250,64 @@ export const useGLBState = create<GLBState>((set, get) => ({
         get().setGLBState(node.key, 'glowing');
       });
     }
-    
-    set({ 
+
+    set({
       selectedBuilding: building,
       selectedFloor: null,
-      selectedUnit: null 
+      selectedUnit: null
     });
   },
 
   selectFloor: (building: string | null, floor: string | null) => {
     const { glbNodes } = get();
-    
+
     // Reset all GLBs to invisible first
     glbNodes.forEach((node, key) => {
       get().setGLBState(key, 'invisible');
     });
-    
+
     if (building && floor) {
       // Set floor GLBs to glowing
       get().getGLBsByFloor(building, floor).forEach(node => {
         get().setGLBState(node.key, 'glowing');
       });
     }
-    
-    set({ 
+
+    set({
       selectedBuilding: building,
       selectedFloor: floor,
-      selectedUnit: null 
+      selectedUnit: null
     });
   },
 
   selectUnit: (building: string | null, floor: string | null, unit: string | null, skipCameraAnimation = false) => {
     const { glbNodes } = get();
-    
+
     console.group('🔍 selectUnit called');
     console.log('Unit selection parameters:', { building, floor, unit, skipCameraAnimation });
     console.log('⏰ Timestamp:', new Date().toISOString());
     console.log('🎯 This should NOT trigger loading screen');
-    
+
     // Trigger flash prevention for first unit selection
     if (building && unit) {
       console.log('📡 Broadcasting unit selection event for flash prevention');
       window.dispatchEvent(new CustomEvent('unit-selection-flash-prevention'));
     }
-    
+
     console.groupEnd();
-    
+
     // Reset all GLBs to invisible first (like LACSWORLD2)
     glbNodes.forEach((node, key) => {
       get().setGLBState(key, 'invisible');
     });
-    
+
     if (building && unit && (floor !== null)) {
       // Set only the specific unit GLB to glowing
       const unitGLB = get().getGLBByUnit(building, floor, unit);
-      
+
       if (unitGLB) {
         get().setGLBState(unitGLB.key, 'glowing');
-        
+
         // Always animate camera - no blocking logic (like LACSWORLD2)
         if (!skipCameraAnimation) {
           get().centerCameraOnUnit(building, floor, unit);
@@ -318,9 +316,9 @@ export const useGLBState = create<GLBState>((set, get) => ({
         console.warn('⚠️ Unit GLB not found for:', buildNodeKey(building, floor, unit));
       }
     }
-    
+
     // Set state immediately (like LACSWORLD2)
-    set({ 
+    set({
       selectedBuilding: building,
       selectedFloor: floor,
       selectedUnit: unit
@@ -330,25 +328,25 @@ export const useGLBState = create<GLBState>((set, get) => ({
   hoverUnit: (building: string | null, floor: string | null, unit: string | null) => {
     const { selectedUnit, selectedBuilding, selectedFloor } = get();
     const { glbNodes } = get();
-    
+
     if (building && unit) {
       const key = buildNodeKey(building, floor ?? null, unit);
       const hoveredNode = glbNodes.get(key);
       if (!hoveredNode) {
         return;
       }
-      
+
       set({ hoveredUnit: key });
-      
+
       glbNodes.forEach((node, nodeKey) => {
         get().setGLBState(nodeKey, 'invisible');
       });
-      
+
       get().setGLBState(key, 'glowing');
     } else {
       // Clear hover
       set({ hoveredUnit: null });
-      
+
       // Restore previous selection state when hover is cleared
       // IMPORTANT: Don't call selectUnit as it might trigger camera movement
       // Just restore the visual highlighting state directly
@@ -357,7 +355,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
         glbNodes.forEach((node, nodeKey) => {
           get().setGLBState(nodeKey, 'invisible');
         });
-        
+
         // Then show only the selected unit (no camera movement)
         const unitGLB = get().getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
         if (unitGLB) {
@@ -379,7 +377,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
   },
 
   hoverFloor: (building: string | null, floor: string | null) => {
-    
+
     if (building && floor) {
       // Set the floor hover state - let SelectedUnitOverlay handle the rendering
       set({ hoveredFloor: { building, floor }, hoveredUnit: null });
@@ -396,8 +394,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
     glbNodes.forEach((node, key) => {
       get().setGLBState(key, 'invisible');
     });
-    
-    set({ 
+
+    set({
       selectedBuilding: null,
       selectedFloor: null,
       selectedUnit: null,
@@ -409,7 +407,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   clearUnitSelection: () => {
     const { selectedBuilding, selectedFloor } = get();
-    
+
     // Only clear the unit selection, preserve building/floor
     if (selectedBuilding && selectedFloor) {
       // Re-select the floor to show all units in that floor
@@ -418,8 +416,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
       // Re-select the building to show all units in that building
       get().selectBuilding(selectedBuilding);
     }
-    
-    set({ 
+
+    set({
       selectedUnit: null,
       hoveredUnit: null
     });
@@ -436,20 +434,20 @@ export const useGLBState = create<GLBState>((set, get) => ({
   getGLBsByBuilding: (building: string) => {
     const { glbNodes } = get();
     const result: GLBNodeInfo[] = [];
-    
+
     glbNodes.forEach(node => {
       if (node.building === building) {
         result.push(node);
       }
     });
-    
+
     return result;
   },
 
   getGLBsByFloor: (building: string, floor: string) => {
     const { glbNodes } = get();
     const result: GLBNodeInfo[] = [];
-    
+
     glbNodes.forEach(node => {
       // Special cases for buildings with simplified key structures
       if (building === "Tower Building") {
@@ -468,14 +466,14 @@ export const useGLBState = create<GLBState>((set, get) => ({
         }
       }
     });
-    
+
     return result;
   },
 
   getGLBByUnit: (building: string | null, floor: string | null, unit: string | null) => {
     const { glbNodes } = get();
     if (!building || !unit) return undefined;
-    
+
     const key = buildNodeKey(building, floor, unit);
     return glbNodes.get(key);
   },
@@ -483,13 +481,13 @@ export const useGLBState = create<GLBState>((set, get) => ({
   getVisibleGLBs: () => {
     const { glbNodes } = get();
     const result: GLBNodeInfo[] = [];
-    
+
     glbNodes.forEach(node => {
       if (node.state === 'glowing') {
         result.push(node);
       }
     });
-    
+
     return result;
   },
 
@@ -499,12 +497,12 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   getFloorList: (building: string) => {
     const floors = Object.keys(GLB_STRUCTURE[building as keyof typeof GLB_STRUCTURE] || {});
-    
+
     // Custom floor sorting: Ground, First, Second, Third, then alphabetical
     return floors.sort((a, b) => {
       const aLower = a.toLowerCase();
       const bLower = b.toLowerCase();
-      
+
       // Define floor priorities
       const getFloorPriority = (floorName: string) => {
         if (floorName.includes('ground') || floorName.includes('gound')) return 0; // Handle typo
@@ -513,15 +511,15 @@ export const useGLBState = create<GLBState>((set, get) => ({
         if (floorName.includes('third')) return 3;
         return 999; // Other floors go last
       };
-      
+
       const aPriority = getFloorPriority(aLower);
       const bPriority = getFloorPriority(bLower);
-      
+
       // Sort by priority first
       if (aPriority !== bPriority) {
         return aPriority - bPriority;
       }
-      
+
       // If same priority, sort alphabetically
       return a.localeCompare(b);
     });
@@ -539,14 +537,14 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   centerCameraOnUnit: (building: string, floor: string, unit: string) => {
     const { cameraControlsRef, getGLBByUnit, isCameraAnimating } = get();
-    
+
     logger.log('CAMERA', '📷', 'centerCameraOnUnit called:', { building, floor, unit });
-    
+
     if (!cameraControlsRef?.current) {
       logger.warn('CAMERA', '⚠️', 'No camera controls ref available');
       return;
     }
-    
+
     // ANIMATION PROTECTION: Cancel any existing animation to prevent conflicts
     const controls = cameraControlsRef.current;
     if (isCameraAnimating) {
@@ -557,27 +555,27 @@ export const useGLBState = create<GLBState>((set, get) => ({
         logger.warn('CAMERA', '⚠️', 'Could not stop camera animation:', error);
       }
     }
-    
+
     // Set animation state
     set({ isCameraAnimating: true });
-    
+
     // MOBILE OPTIMIZATION: Use instant positioning instead of animation to prevent GPU pressure
     const isMobile = window.innerWidth < 768;
-    
+
     const unitGLB = getGLBByUnit(building, floor, unit);
-    
+
     if (!unitGLB?.object) {
       logger.warn('CAMERA', '⚠️', 'Unit GLB or object not found:', { building, floor, unit });
       return;
     }
-    
+
     // Update the world matrix FIRST to ensure accurate positioning
     unitGLB.object.updateMatrixWorld(true);
-    
+
     // Get the unit's world position
     const unitPosition = new THREE.Vector3();
     unitGLB.object.getWorldPosition(unitPosition);
-    
+
     // If at origin or invalid, use bounding box center
     if (unitPosition.lengthSq() < 0.01) {
       const box = new THREE.Box3().setFromObject(unitGLB.object);
@@ -597,7 +595,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
     const baseHeight = unitPosition.y || 0; // Fallback to 0 if unitPosition.y is undefined
     let eyeLevelHeight = baseHeight + (isMobile ? 2 : 3); // Lower on mobile for closer view
     const horizontalDistance = isMobile ? 8 : 12; // Much closer on mobile for simpler rendering
-    
+
     // Unit-specific camera positioning override map
     const unitSpecificAngles: Record<string, { side: 'west' | 'north' | 'south' | 'east', heightMultiplier?: number }> = {
       // Fifth Street Building - West side units
@@ -607,7 +605,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
       'F-290': { side: 'west' },
       'F-330': { side: 'west' },
       'F-350': { side: 'west' },
-      
+
       // Maryland Building - custom west-side angles
       'M-20': { side: 'west', heightMultiplier: 1.5 },
       'M-150': { side: 'west', heightMultiplier: 1.45 },
@@ -617,19 +615,19 @@ export const useGLBState = create<GLBState>((set, get) => ({
       'M-270': { side: 'west', heightMultiplier: 1.35 },
       'M-340': { side: 'west', heightMultiplier: 1.35 },
       'M-345': { side: 'west', heightMultiplier: 1.35 },
-      
+
       // Maryland Building - North side units
       'M-120': { side: 'north' },
       'M-130': { side: 'north' },
       'M-140': { side: 'north' },
-      
+
       // Tower Building - South side units
       'T-220': { side: 'south' },
       'T-400': { side: 'south' },
       'T-430': { side: 'south' },
       'T-450': { side: 'south' },
       'T-530': { side: 'south' },
-      
+
       // Fifth Street Building - East side units (all others not specified above)
       'F-10': { side: 'east' },
       'F-15': { side: 'east' },
@@ -661,7 +659,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
       'F-363': { side: 'east' },
       'F-365': { side: 'east' },
       'F-380': { side: 'east' },
-      
+
       // Maryland Building - East side units (all others not specified above)
       'M-40': { side: 'east' },
       'M-45': { side: 'east' },
@@ -677,17 +675,17 @@ export const useGLBState = create<GLBState>((set, get) => ({
       'M-320': { side: 'east' },
       'M-350': { side: 'east' }
     };
-    
+
     // Check for unit-specific override and calculate camera position
     const unitOverride = unitSpecificAngles[unit];
     let cameraX: number;
     let cameraZ: number;
-    
+
     if (unitOverride) {
       // Use unit-specific positioning
       const heightAdjustment = unitOverride.heightMultiplier || 1.0;
       eyeLevelHeight = baseHeight + (isMobile ? 2 : 3) * heightAdjustment;
-      
+
       switch (unitOverride.side) {
         case 'west':
           cameraX = unitPosition.x + horizontalDistance;
@@ -727,9 +725,9 @@ export const useGLBState = create<GLBState>((set, get) => ({
         cameraZ = unitPosition.z + horizontalDistance * 0.7;
       }
     }
-    
+
     const cameraPosition = new THREE.Vector3(cameraX, eyeLevelHeight, cameraZ);
-    
+
     // Set target at unit center height for straight-on view
     const targetY = baseHeight; // Exact unit height for straight-on view
     const targetPosition = new THREE.Vector3(unitPosition.x, targetY, unitPosition.z);
@@ -744,7 +742,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
           targetPosition.x, targetPosition.y, targetPosition.z, // Target position
           true // Enable smooth animation
         );
-        
+
         // Force immediate update and render to fix timing glitch
         controls.update(0); // Force synchronous update
         set({ isCameraAnimating: false }); // Trigger state change to force re-render
@@ -755,7 +753,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
           targetPosition.x, targetPosition.y, targetPosition.z, // Target position
           true // Enable smooth animation
         );
-        
+
         // Clear animation state when completed
         if (animationPromise && typeof animationPromise.then === 'function') {
           animationPromise.then(() => {
@@ -771,7 +769,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
             set({ isCameraAnimating: false });
           }, 1000); // Assume 1 second max animation time
         }
-        
+
         // Additional fallback to ensure animation state ALWAYS resets
         setTimeout(() => {
           const currentState = get();
@@ -781,7 +779,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
           }
         }, 2000); // Force reset after 2 seconds maximum
       }
-      
+
       logger.log('CAMERA', '📷', `Positioned camera for ${building}:`, {
         cameraPos: { x: cameraPosition.x, y: cameraPosition.y, z: cameraPosition.z },
         targetPos: { x: targetPosition.x, y: targetPosition.y, z: targetPosition.z },
