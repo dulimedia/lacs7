@@ -180,7 +180,7 @@ export function SuiteDetailsTab() {
 
   return (
     <div ref={scrollContainerRef} className="h-full overflow-y-auto relative">
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 pb-24">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{displayUnit.unit_name}</h2>
@@ -314,38 +314,13 @@ export function SuiteDetailsTab() {
         {displayUnit.recipients && displayUnit.recipients.length > 0 && (
           <div className="pt-2">
             <button
-              onClick={async () => {
-                const recipientEmail = 'lacenterstudios3d@gmail.com';
-
-                try {
-                  // Load EmailJS if not already loaded
-                  if (!window.emailjs) {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-                    document.head.appendChild(script);
-                    await new Promise((resolve, reject) => {
-                      script.onload = resolve;
-                      script.onerror = reject;
-                      setTimeout(reject, 10000);
-                    });
-                    window.emailjs?.init('7v5wJOSuv1p_PkcU5');
-                  }
-
-                  const templateParams = {
-                    from_name: 'Website Visitor',
-                    from_email: 'visitor@website.com',
-                    phone: 'Not provided',
-                    message: `I'm interested in leasing ${displayUnit.unit_name}. Please contact me with more information.`,
-                    selected_units: displayUnit.unit_name,
-                    to_email: recipientEmail,
-                    reply_to: 'visitor@website.com'
-                  };
-
-                  await window.emailjs?.send('service_q47lbr7', 'template_0zeil8m', templateParams);
-                  alert('🎉 Your inquiry has been sent to LA Center Studios! We will contact you soon.');
-                } catch (error) {
-                  alert(`Unable to send inquiry. Please contact us directly at lacenterstudios3d@gmail.com`);
-                }
+              onClick={() => {
+                // Open the global request form
+                const { setSingleUnitRequestOpen } = useExploreState.getState();
+                setSingleUnitRequestOpen(true, {
+                  unitKey: displayUnit.unit_key,
+                  unitName: displayUnit.unit_name
+                });
               }}
               className="w-full px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition text-sm font-medium"
             >

@@ -297,9 +297,9 @@ export function RequestTab() {
                                 type="checkbox"
                                 checked={selectedSuites.has(unitKey)}
                                 onChange={() => toggleSuite(unitKey)}
-                                className="rounded border-gray-400 w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                className="rounded border-gray-400 w-5 h-5 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                               />
-                              <span className="text-xs">{unit.unit_name}</span>
+                              <span className="text-sm">{unit.unit_name}</span>
                             </label>
                           );
                         })}
@@ -329,7 +329,7 @@ export function RequestTab() {
                                     key={`${floorKey}-${selectedSuites.size}-${allFloorSelected}`}
                                     checked={allFloorSelected}
                                     onChange={() => toggleAllInFloor(building, floorName, unitKeys)}
-                                    className="rounded border-gray-400 w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                    className="rounded border-gray-400 w-5 h-5 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                                   />
                                 </label>
                                 <span
@@ -360,9 +360,9 @@ export function RequestTab() {
                                         type="checkbox"
                                         checked={selectedSuites.has(unitKey)}
                                         onChange={() => toggleSuite(unitKey)}
-                                        className="rounded border-gray-400 w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                        className="rounded border-gray-400 w-5 h-5 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                                       />
-                                      <span className="text-xs">{unit.unit_name}</span>
+                                      <span className="text-sm">{unit.unit_name}</span>
                                     </label>
                                   );
                                 })}

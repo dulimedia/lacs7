@@ -107,7 +107,7 @@ function AdaptivePixelRatio() {
   return null;
 }
 
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/1U6ocEjplhEsWpIZ6jdfBNoRCKinhh5f9F31nf7U51zc/export?format=csv';
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/1bPbHfT-Tk41NLQ2N4LToUZTDrjXU0ER9Nng5EBsBB58/export?format=csv';
 
 // Legacy HDRI Environment component - kept for fallback but not used by default
 const LegacyHDRIEnvironment = React.memo(() => {
