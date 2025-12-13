@@ -9,6 +9,7 @@ import { assetUrl } from '../lib/assets';
 const ENABLE_KTX2 = true; // Enabled by default for upgraded pipeline
 const ENABLE_DRACO = true;
 const ENABLE_MESHOPT = true;
+/**
  * Configures an existing GLTFLoader instance with KTX2, Draco, and Meshopt support.
  */
 export function configureGLTFLoader(loader: GLTFLoader, renderer?: THREE.WebGLRenderer): void {
