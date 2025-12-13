@@ -225,6 +225,9 @@ export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
             const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
 
             materials.forEach((mat: any) => {
+              // Optimize textures for ALL Tiers (Desktop & Mobile)
+              // Aggressive 1024 limit to solve 2GB memory usage
+              optimizeMaterialTextures(mat, 1024);
 
               if (shadowsEnabled) {
 

@@ -135,6 +135,7 @@ export function optimizeMaterialTextures(material: THREE.Material, maxSize: numb
 
                     // For V1, let's just do simple replacement and see if GC helps. 
                     // Explicit dispose of the old texture is aggressive.
+                    // But necessary for the user's 2GB constraint.
                     original.dispose();
                 }
             }

@@ -135,7 +135,6 @@ const SingleModelGLB: React.FC<{
     if (scene && !hasLogged.current) {
       hasLogged.current = true;
 
-      const whiteMaterial = new THREE.MeshStandardMaterial({ color: 'white' });
 
       // Process materials immediately for transparent buildings and shadows
       console.log('🔍 Processing model:', fileName, 'with', scene.children.length, 'children');
@@ -250,8 +249,8 @@ const SingleModelGLB: React.FC<{
 
           // Optimize textures for memory
           if (child.material) {
-            // 2048 is safe for most units, could go lower for boxes if needed
-            const maxTextureSize = 2048;
+            // 1024 is aggressive but needed for 2GB limit
+            const maxTextureSize = 1024;
             const materials = Array.isArray(child.material) ? child.material : [child.material];
             materials.forEach((mat: any) => {
               optimizeMaterialTextures(mat, maxTextureSize);
@@ -397,7 +396,7 @@ const SingleModelFBX: React.FC<{
         }
       });
 
-      const whiteMaterial = new THREE.MeshStandardMaterial({ color: 'white' });
+
 
       const processMaterials = () => {
         const meshesToProcess: THREE.Mesh[] = [];
@@ -436,7 +435,7 @@ const SingleModelFBX: React.FC<{
 
             // Optimize textures for memory
             if (child.material) {
-              const maxTextureSize = 2048;
+              const maxTextureSize = 1024;
               const materials = Array.isArray(child.material) ? child.material : [child.material];
               materials.forEach((mat: any) => {
                 optimizeMaterialTextures(mat, maxTextureSize);
