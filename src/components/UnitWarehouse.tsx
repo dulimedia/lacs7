@@ -15,6 +15,7 @@ import { PerfFlags } from '../perf/PerfFlags';
 import { logger } from '../utils/logger';
 import { MobileDiagnostics } from '../debug/mobileDiagnostics';
 import { FILTER_HIGHLIGHT_CONFIG } from '../config/ghostMaterialConfig';
+import { optimizeMaterialTextures } from '../utils/textureUtils';
 
 
 
@@ -246,6 +247,16 @@ const SingleModelGLB: React.FC<{
           // Keep standard materials for stability - physical materials can be added selectively later
           child.userData.materialOptimized = true;
           child.userData.isOptimizable = true;
+
+          // Optimize textures for memory
+          if (child.material) {
+            // 2048 is safe for most units, could go lower for boxes if needed
+            const maxTextureSize = 2048;
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach((mat: any) => {
+              optimizeMaterialTextures(mat, maxTextureSize);
+            });
+          }
         }
       });
 
@@ -422,6 +433,15 @@ const SingleModelFBX: React.FC<{
 
             child.userData.materialOptimized = true;
             child.userData.isOptimizable = true;
+
+            // Optimize textures for memory
+            if (child.material) {
+              const maxTextureSize = 2048;
+              const materials = Array.isArray(child.material) ? child.material : [child.material];
+              materials.forEach((mat: any) => {
+                optimizeMaterialTextures(mat, maxTextureSize);
+              });
+            }
           });
 
           processedCount += batchSize;

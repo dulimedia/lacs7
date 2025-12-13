@@ -12,6 +12,7 @@ import { PerfFlags } from '../perf/PerfFlags';
 import { log } from '../utils/debugFlags';
 import { applyPolygonOffset } from '../materials/applyPolygonOffset';
 import { assetUrl } from '../lib/assets';
+import { optimizeMaterialTextures } from '../utils/textureUtils';
 
 interface SingleEnvironmentMeshProps {
   tier: string;
@@ -713,8 +714,15 @@ function MobileEnvironment() {
         mesh.receiveShadow = false;
 
         if (mesh.material) {
+          // Optimize textures to reduce memory usage
+          // Use 2048 for desktop high quality, could specific lower for mobile if needed
+          const maxTextureSize = 1024;
+
           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           materials.forEach((mat: any) => {
+            // Optimize textures first
+            optimizeMaterialTextures(mat, maxTextureSize);
+
             if (mat.normalMap) {
               mat.normalMap.dispose();
               mat.normalMap = null;
