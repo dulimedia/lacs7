@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { logSafari } from '../debug/safariLogger';
+import { RENDER_FLAGS } from '../config/renderFlags';
 
 export type RendererType = 'webgpu' | 'webgl2';
 
@@ -24,10 +25,10 @@ async function smokeTestWebGPU(renderer: any): Promise<boolean> {
 
     renderer.setSize(1, 1);
     renderer.render(scene, camera);
-    
+
     geometry.dispose();
     material.dispose();
-    
+
     console.log('✅ WebGPU smoke test passed');
     return true;
   } catch (error) {
@@ -42,12 +43,12 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
   const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
   const isFirefox = /FxiOS/.test(navigator.userAgent);
   const isOrion = /Orion/.test(navigator.userAgent);
-  
+
   logSafari('createWebGLRenderer called', { tier, isIOS, isSafari, isFirefox, isOrion });
-  
+
   const config: any = {
     canvas,
-    alpha: false, // Disable transparency to prevent white background bleed-through
+    alpha: !RENDER_FLAGS.OPAQUE_CANVAS, // alpha: false = opaque (good for perf/no-flash)
     antialias: false,
     powerPreference: 'default',
     logarithmicDepthBuffer: false,
@@ -57,26 +58,26 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
     depth: true,
     premultipliedAlpha: false
   };
-  
+
   logSafari('WebGL config', config);
   console.log(`🎨 Creating WebGL renderer (tier: ${tier}, iOS: ${isIOS}, Safari: ${isSafari})`);
   console.log(`🎨 Config: powerPreference=${config.powerPreference}, failIfMajorPerformanceCaveat=${config.failIfMajorPerformanceCaveat}`);
-  
+
   try {
     const renderer = new THREE.WebGLRenderer(config);
-    
+
     if (!renderer.getContext() || renderer.getContext().isContextLost()) {
       logSafari('ERROR: Context creation failed or lost');
       throw new Error('WebGL context creation failed or lost');
     }
-    
+
     logSafari('✅ WebGL context created successfully');
     console.log('✅ WebGL context created successfully');
     return configureRenderer(renderer, canvas, tier, isIOS, isSafari);
   } catch (error) {
     logSafari('ERROR: WebGL context creation failed', { error: String(error) });
     console.error('❌ WebGL context creation failed:', error);
-    
+
     const fallbackConfig = {
       canvas,
       alpha: false,
@@ -84,7 +85,7 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
       powerPreference: 'default',
       failIfMajorPerformanceCaveat: false
     };
-    
+
     logSafari('🔄 Attempting fallback config', fallbackConfig);
     console.log('🔄 Attempting fallback WebGL context creation');
     const renderer = new THREE.WebGLRenderer(fallbackConfig);
@@ -93,26 +94,28 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
 }
 
 function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElement, tier: string, isIOS: boolean, isSafari: boolean): THREE.WebGLRenderer {
-  
+
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  
+
   renderer.toneMapping = THREE.NoToneMapping;
   renderer.toneMappingExposure = 1.0;
   logSafari('Tone mapping set to NoToneMapping (unified for all iOS)');
-  
+
   renderer.useLegacyLights = false;
-  renderer.setClearColor(0x000000, 0); // Transparent - back to original working state
-  console.log('🎨 Renderer clear color set to transparent black');
-  
+
+  // Set clear color based on flags - critical for preventing flashes
+  renderer.setClearColor(RENDER_FLAGS.CLEAR_COLOR, RENDER_FLAGS.CLEAR_ALPHA);
+  console.log(`🎨 Renderer clear color set to ${RENDER_FLAGS.CLEAR_ALPHA === 1 ? 'OPAQUE' : 'TRANSPARENT'} ${RENDER_FLAGS.CLEAR_COLOR.toString(16)}`);
+
   // Add aggressive shader error handling
   const originalShaderError = console.error;
   console.error = (...args: any[]) => {
     const message = args.join(' ');
-    if (message.includes('THREE.WebGLProgram: Shader Error') || 
-        message.includes('VALIDATE_STATUS false') ||
-        message.includes('INVALID_OPERATION: useProgram')) {
+    if (message.includes('THREE.WebGLProgram: Shader Error') ||
+      message.includes('VALIDATE_STATUS false') ||
+      message.includes('INVALID_OPERATION: useProgram')) {
       console.warn('🚨 SHADER ERROR DETECTED - ATTEMPTING RECOVERY:', message);
-      
+
       // Try to dispose problematic materials
       try {
         const scene = canvas.closest('.scene-canvas')?.parentElement?.querySelector('canvas');
@@ -122,12 +125,12 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
       } catch (cleanupError) {
         console.warn('Failed to clean up shaders:', cleanupError);
       }
-      
+
       // Still log the error but don't let it crash the context
       originalShaderError.apply(console, ['[SHADER ERROR HANDLED]', ...args]);
       return;
     }
-    
+
     // Pass through other errors normally
     originalShaderError.apply(console, args);
   };
@@ -144,11 +147,11 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
     renderer.toneMapping = THREE.NoToneMapping;
     renderer.toneMappingExposure = 1.0;
   }
-  
+
   renderer.shadowMap.enabled = false;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.shadowMap.autoUpdate = false;
-  
+
   let DPR = 1.0;
   if (tier === 'mobile-high') {
     DPR = Math.min(1.25, window.devicePixelRatio);
@@ -157,10 +160,10 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   } else {
     DPR = Math.min(2.0, window.devicePixelRatio);
   }
-  
+
   console.log(`📱 Renderer DPR: ${DPR} (tier: ${tier}, device: ${window.devicePixelRatio})`);
   renderer.setPixelRatio(DPR);
-  
+
   function resize() {
     const w = Math.floor(window.innerWidth);
     const h = Math.floor(window.innerHeight);
@@ -169,13 +172,13 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   }
   window.addEventListener('resize', () => requestAnimationFrame(resize), { passive: true });
   resize();
-  
+
   canvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
     logSafari('ERROR: WebGL context lost event fired');
     console.error('❌ WebGL context lost! Showing fallback...');
     localStorage.setItem('webglContextLost', 'true');
-    
+
     const banner = document.createElement('div');
     banner.style.cssText = `
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -193,56 +196,58 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
     `;
     document.body.appendChild(banner);
   }, false);
-  
+
   canvas.addEventListener('webglcontextrestored', () => {
     logSafari('✅ WebGL context restored');
     console.log('✅ WebGL context restored');
     localStorage.removeItem('webglContextLost');
     location.reload();
   }, false);
-  
+
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       renderer.setAnimationLoop(null);
     }
   }, { passive: true });
-  
+
   return renderer;
 }
 
 async function createWebGPURenderer(canvas: HTMLCanvasElement): Promise<any | null> {
   try {
     const { WebGPURenderer } = await import('three/examples/jsm/renderers/webgpu/WebGPURenderer.js');
-    
-    const renderer = new WebGPURenderer({ 
-      canvas, 
+
+    const renderer = new WebGPURenderer({
+      canvas,
       antialias: true,
       forceWebGL: false
     });
-    
+
     await renderer.init();
-    
+
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping;
     renderer.toneMappingExposure = 1.0;
-    renderer.setClearColor(0x000000, 0); // Transparent - back to original working state
-  console.log('🎨 Renderer clear color set to transparent black');
-    
+
+    // Set clear color based on flags - critical for preventing flashes
+    renderer.setClearColor(RENDER_FLAGS.CLEAR_COLOR, RENDER_FLAGS.CLEAR_ALPHA);
+    console.log(`🎨 WebGPU Renderer clear color set to ${RENDER_FLAGS.CLEAR_ALPHA === 1 ? 'OPAQUE' : 'TRANSPARENT'} ${RENDER_FLAGS.CLEAR_COLOR.toString(16)}`);
+
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     console.log('🖼️ Initial canvas size set to:', window.innerWidth, 'x', window.innerHeight);
-    
+
     const smokeOk = await smokeTestWebGPU(renderer);
-    
+
     if (!smokeOk) {
       console.warn('WebGPU smoke test failed, disposing renderer');
       renderer.dispose();
       return null;
     }
-    
+
     console.log('🚀 WebGPU renderer initialized successfully');
     return renderer;
-    
+
   } catch (error) {
     console.warn('WebGPU initialization failed:', error);
     return null;
@@ -250,13 +255,13 @@ async function createWebGPURenderer(canvas: HTMLCanvasElement): Promise<any | nu
 }
 
 export async function makeRenderer(
-  canvas: HTMLCanvasElement, 
+  canvas: HTMLCanvasElement,
   tier: string
 ): Promise<RendererResult> {
   const hasWebGPU = !!(navigator as any).gpu;
-  
+
   console.log('🔍 makeRenderer called:', { tier, hasWebGPU, userAgent: navigator.userAgent.substring(0, 50) });
-  
+
   if (!hasWebGPU || !tier.includes('webgpu')) {
     console.log('📊 Creating WebGL2 renderer (reason:', !hasWebGPU ? 'no GPU API' : 'tier not webgpu', ')');
     return {
@@ -264,10 +269,10 @@ export async function makeRenderer(
       type: 'webgl2'
     };
   }
-  
+
   console.log('🔄 Attempting WebGPU renderer initialization...');
   const webgpuRenderer = await createWebGPURenderer(canvas);
-  
+
   if (webgpuRenderer) {
     console.log('✅ WebGPU renderer created successfully');
     return {
@@ -275,7 +280,7 @@ export async function makeRenderer(
       type: 'webgpu'
     };
   }
-  
+
   console.log('⚠️ WebGPU failed, falling back to WebGL2');
   return {
     renderer: createWebGLRenderer(canvas, tier),
