@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 // RenderTarget logging disabled to prevent crash
@@ -131,75 +132,82 @@ export const MemoryProfiler: React.FC = () => {
         console.log(reportLines.join('\n'));
     }, [gl, scene]);
 
-    if (!isVisible && !report) return <div style={{ position: 'fixed', bottom: 0, left: 0, zIndex: 9999 }}><button onClick={() => setIsVisible(true)}>Show Profiler</button></div>;
+    if (!isVisible && !report) return (
+        <Html fullscreen style={{ pointerEvents: 'none', zIndex: 9999 }}>
+            <div style={{ position: 'fixed', bottom: 0, left: 0, pointerEvents: 'auto' }}>
+                <button onClick={() => setIsVisible(true)}>Show Profiler</button>
+            </div>
+        </Html>
+    );
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none', // Passthrough for clicks
-            zIndex: 10000, // Very high
-            fontFamily: 'monospace',
-            fontSize: '12px',
-            color: '#00ff00',
-            textShadow: '1px 1px 0 #000'
-        }}>
-            {/* Live Stats Overlay */}
+        <Html fullscreen style={{ pointerEvents: 'none', zIndex: 10000 }}>
             <div style={{
-                position: 'absolute',
-                top: 10,
-                left: 10,
-                background: 'rgba(0,0,0,0.8)',
-                padding: '10px',
-                border: '1px solid #00ff00',
-                pointerEvents: 'auto'
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none', // Passthrough for clicks
+                fontFamily: 'monospace',
+                fontSize: '12px',
+                color: '#00ff00',
+                textShadow: '1px 1px 0 #000'
             }}>
-                <div>[MEM] Heap: {stats.jsHeap}</div>
-                <div>Tex Count: {stats.textures}</div>
-                <div>Geo Count: {stats.geometries}</div>
-                <div>Calls: {stats.drawCalls}</div>
-                <div>Tris: {stats.triangles}</div>
-                <div style={{ marginTop: '10px', display: 'flex', gap: '5px' }}>
-                    <button style={{ background: '#333', color: '#fff', cursor: 'pointer' }} onClick={generateReport}>📸 PRINT RECEIPT</button>
-                    <button style={{ background: '#333', color: '#fff', cursor: 'pointer' }} onClick={() => setIsVisible(false)}>Minimize</button>
-                </div>
-            </div>
-
-            {/* Full Report Area */}
-            {report && (
+                {/* Live Stats Overlay */}
                 <div style={{
                     position: 'absolute',
-                    top: '50px',
-                    right: '10px',
-                    width: '600px',
-                    height: '80vh',
-                    background: 'rgba(0,0,0,0.95)',
-                    border: '1px solid #00ff00',
+                    top: 10,
+                    left: 10,
+                    background: 'rgba(0,0,0,0.8)',
                     padding: '10px',
-                    overflow: 'auto',
+                    border: '1px solid #00ff00',
                     pointerEvents: 'auto'
                 }}>
-                    <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-                        <strong>MEMORY RECEIPT</strong>
-                        <button onClick={() => setReport('')}>Close</button>
+                    <div>[MEM] Heap: {stats.jsHeap}</div>
+                    <div>Tex Count: {stats.textures}</div>
+                    <div>Geo Count: {stats.geometries}</div>
+                    <div>Calls: {stats.drawCalls}</div>
+                    <div>Tris: {stats.triangles}</div>
+                    <div style={{ marginTop: '10px', display: 'flex', gap: '5px' }}>
+                        <button style={{ background: '#333', color: '#fff', cursor: 'pointer' }} onClick={generateReport}>📸 PRINT RECEIPT</button>
+                        <button style={{ background: '#333', color: '#fff', cursor: 'pointer' }} onClick={() => setIsVisible(false)}>Minimize</button>
                     </div>
-                    <textarea
-                        readOnly
-                        value={report}
-                        style={{
-                            width: '100%',
-                            height: '90%',
-                            background: 'transparent',
-                            color: '#00ff00',
-                            border: 'none',
-                            fontSize: '11px'
-                        }}
-                    />
                 </div>
-            )}
-        </div>
+
+                {/* Full Report Area */}
+                {report && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '50px',
+                        right: '10px',
+                        width: '600px',
+                        height: '80vh',
+                        background: 'rgba(0,0,0,0.95)',
+                        border: '1px solid #00ff00',
+                        padding: '10px',
+                        overflow: 'auto',
+                        pointerEvents: 'auto'
+                    }}>
+                        <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+                            <strong>MEMORY RECEIPT</strong>
+                            <button onClick={() => setReport('')}>Close</button>
+                        </div>
+                        <textarea
+                            readOnly
+                            value={report}
+                            style={{
+                                width: '100%',
+                                height: '90%',
+                                background: 'transparent',
+                                color: '#00ff00',
+                                border: 'none',
+                                fontSize: '11px'
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
+        </Html>
     );
 };
