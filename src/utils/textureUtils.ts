@@ -23,7 +23,15 @@ export function resizeTexture(texture: THREE.Texture, maxSize: number = TEXTURE_
 
     const image = texture.image;
     // Check if image is valid (has width/height)
-    if (!image.width || !image.height) return texture;
+    if (!image || !image.width || !image.height) {
+        console.warn(`⚠️ Texture ${texture.name} has no valid image dimensions`, image);
+        return texture;
+    }
+
+    // Force log for large textures
+    if (image.width > 2048 || image.height > 2048) {
+        console.log(`🚨 FOUND GIANT TEXTURE: ${texture.name} (${image.width}x${image.height}) - Attempting resize to ${maxSize}`);
+    }
 
     // If texture is already small enough, return it
     if (image.width <= maxSize && image.height <= maxSize) {
@@ -46,7 +54,7 @@ export function resizeTexture(texture: THREE.Texture, maxSize: number = TEXTURE_
         }
     }
 
-    log.verbose(`📉 Resizing texture ${texture.name || 'unnamed'} from ${image.width}x${image.height} to ${width}x${height}`);
+    console.log(`📉 Resizing texture ${texture.name || 'unnamed'} from ${image.width}x${image.height} to ${width}x${height}`);
 
     // Create an offscreen canvas
     const canvas = document.createElement('canvas');
@@ -107,37 +115,24 @@ export function optimizeMaterialTextures(material: THREE.Material, maxSize: numb
     maps.forEach(mapName => {
         if (mat[mapName]) {
             const original = mat[mapName];
-            // Only resize if not already resized
-            if (!original.userData?.resized) {
-                const resized = resizeTexture(original, maxSize);
-                if (resized !== original) {
-                    mat[mapName] = resized;
 
-                    // Dispose original to actually save memory
-                    // WARNING: If this texture is used by other materials, they will break unless they also update
-                    // Since we usually load strictly unique GLBs or cloned materials, this might be safe-ish.
-                    // But in Three.js loaders, textures are often cached and shared.
-                    // safely disposing is hard without reference counting.
-                    // For massive reduction, we MUST dispose.
+            // Check UUID to see if we already processed this specific texture instance
+            if (original.userData?.resized) {
+                return;
+            }
 
-                    // Let's assume GLTFLoader caching. If we are traversing the scene right after load,
-                    // we are modifying the "instance" of the material.
-                    // However, the texture object itself might be shared.
+            const resized = resizeTexture(original, maxSize);
+            if (resized !== original) {
+                console.log(`✅ Replaced texture map ${mapName} on material ${mat.name}`);
+                mat[mapName] = resized;
+                mat.needsUpdate = true; // Flag material for update
 
-                    // Strategy: We won't call dispose() immediately on the *image* source if it's shared,
-                    // but we can `dispose()` the texture object if we replace it.
-                    // Actually, `resizeTexture` creates a NEW texture.
-                    // The OLD texture is still ref'd by any other materials using it.
-                    // If we update ALL materials in the scene, we inadvertently create N copies of the resized texture if we aren't careful?
-                    // NO, `optimizeModel` traverses meshes.
-
-                    // Ideally we should cache resized textures too to avoid duplications.
-
-                    // For V1, let's just do simple replacement and see if GC helps. 
-                    // Explicit dispose of the old texture is aggressive.
-                    // But necessary for the user's 2GB constraint.
+                // Dispose original to actually save memory
+                // WARNING: If this texture is used by other materials, they will break unless they also update
+                // For the massive 8K textures, we MUST dispose them.
+                try {
                     original.dispose();
-                }
+                } catch (e) { console.warn('Failed to dispose texture', e); }
             }
         }
     });
