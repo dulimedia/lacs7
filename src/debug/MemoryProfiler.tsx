@@ -141,7 +141,9 @@ export const MemoryProfiler: React.FC = () => {
             reportLines.push(`\n[Top 30 Largest Textures]`);
 
             sortedTextures.slice(0, 30).forEach((t, i) => {
-                reportLines.push(`${i + 1}. [${t.size} MB] ${t.w}x${t.h} - ${t.src} (${t.refs} refs) on [${t.names.join(', ')}]`);
+                const isTooBig = t.size > 20 || t.w > 2048 || t.h > 2048;
+                const warning = isTooBig ? ' ⚠️ [TOO LARGE]' : '';
+                reportLines.push(`${i + 1}.${warning} [${t.size} MB] ${t.w}x${t.h} - ${t.src} (${t.refs} refs) on [${t.names.join(', ')}]`);
             });
 
             // Duplicate Check (by src)
@@ -230,7 +232,7 @@ export const MemoryProfiler: React.FC = () => {
                         pointerEvents: 'auto'
                     }}>
                         <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-                            <strong>MEMORY RECEIPT (v2.2 - 2048px Cap)</strong>
+                            <strong>MEMORY RECEIPT (v2.3 - ALL SLOTS)</strong>
                             <button onClick={() => setReport('')}>Close</button>
                         </div>
                         <textarea
