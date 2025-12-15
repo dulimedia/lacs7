@@ -330,12 +330,7 @@ const BuildingNode: React.FC<BuildingNodeProps> = ({
         
         // Kitchen filter
         if (filters.hasKitchen === 'yes') {
-          const kitchenSize = unit.kitchen_size;
-          const hasKitchen = kitchenSize && 
-                            kitchenSize !== 'None' && 
-                            kitchenSize !== 'N/A' && 
-                            kitchenSize.toLowerCase() !== 'none';
-          if (!hasKitchen) return;
+          if (!unit.has_kitchen) return;
         }
         
         filtered++;
@@ -811,12 +806,7 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
     
     // Kitchen filter
     if (filters.hasKitchen === 'yes') {
-      const kitchenSize = unitData.kitchen_size;
-      const hasKitchen = kitchenSize && 
-                        kitchenSize !== 'None' && 
-                        kitchenSize !== 'N/A' && 
-                        kitchenSize.toLowerCase() !== 'none';
-      if (!hasKitchen) return false;
+      if (!unitData.has_kitchen) return false;
     }
     
     return true;
@@ -850,12 +840,7 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
         
         // Kitchen filter
         if (filters.hasKitchen === 'yes') {
-          const kitchenSize = unit.kitchen_size;
-          const hasKitchen = kitchenSize && 
-                            kitchenSize !== 'None' && 
-                            kitchenSize !== 'N/A' && 
-                            kitchenSize.toLowerCase() !== 'none';
-          if (!hasKitchen) return;
+          if (!unit.has_kitchen) return;
         }
         
         filteredUnits.add(unitName);
@@ -1569,26 +1554,14 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
                       </p>
                     </div>
                     {/* Only show kitchen info if unit actually has a kitchen */}
-                    {(() => {
-                      const kitchenSize = selectedUnitDetails?.kitchen_size;
-                      
-                      // Don't show kitchen section at all if no kitchen
-                      if (!kitchenSize || kitchenSize === 'None' || kitchenSize === 'N/A') {
-                        return null;
-                      }
-                      
-                      return (
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Kitchen</p>
-                          <p className="text-lg font-semibold text-gray-900">
-                            {kitchenSize === 'Full' ? 'Full Kitchen' :
-                             kitchenSize === 'Compact' ? 'Compact Kitchen' :
-                             kitchenSize === 'Kitchenette' ? 'Kitchenette' :
-                             kitchenSize}
-                          </p>
-                        </div>
-                      );
-                    })()}
+                    {selectedUnitDetails?.has_kitchen && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Kitchen</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          Kitchen Available
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

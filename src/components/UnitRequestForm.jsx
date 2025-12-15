@@ -13,7 +13,7 @@ const UnitRequestForm = ({ isOpen, onClose }) => {
   const [isSending, setIsSending] = useState(false);
   
   // Google Sheets CSV data source - Updated to new spreadsheet
-  const CSV_URL = 'https://docs.google.com/spreadsheets/d/1VLa1fV0mL76Eoh4ZrKJepVcxyqpm6EB6ENhh6SJgxoU/export?format=csv';
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv';
   const { data: csvUnitData, loading: isUnitDataLoading, error } = useCsvUnitData(CSV_URL);
 
   // Generate units structure from CSV data, filtering only available units

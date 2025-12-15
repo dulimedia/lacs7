@@ -68,7 +68,6 @@ export interface UnitRecord {
   node_name?: string;   // optional fallback
   recipients: string[]; // parsed from recipients_csv or default
   notes?: string;
-  kitchen_size?: string; // Kitchen size from CSV (Full, Compact, Kitchenette, None)
   unit_type?: string;   // Unit type from CSV (Suite, Event Space, Other, Parking, etc.)
   private_offices?: number;
   plug_and_play?: boolean;     // @deprecated use is_production_office

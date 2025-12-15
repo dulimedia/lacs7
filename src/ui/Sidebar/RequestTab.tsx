@@ -101,10 +101,11 @@ export function RequestTab() {
       return unit?.unit_name || key;
     });
 
-    // ALWAYS send to lacenterstudios3d@gmail.com as requested
-    const recipientEmail = 'lacenterstudios3d@gmail.com';
+    // Send to both primary and secondary emails
+    const primaryEmail = 'lacenterstudios3d@gmail.com';
+    const secondaryEmail = 'dwyatt@lacenterstudios.com';
 
-    console.log('📧 Starting direct email send to:', recipientEmail);
+    console.log('📧 Starting direct email send to primary:', primaryEmail);
 
     // Validate required fields
     if (!formData.name || !formData.email) {
@@ -149,32 +150,53 @@ export function RequestTab() {
         console.log('✅ EmailJS already loaded and available');
       }
 
-      // Prepare template parameters
+      // Prepare template parameters for primary email
       const templateParams = {
         from_name: formData.name,
         from_email: formData.email,
         phone: formData.phone || 'Not provided',
         message: formData.message || 'No additional message',
         selected_units: selectedUnits.map(unit => `• ${unit}`).join('\n'),
-        to_email: recipientEmail,
+        to_email: primaryEmail,
         reply_to: formData.email
       };
 
-      // Send email using EmailJS
-      console.log('📤 Calling EmailJS send...');
+      console.log('📧 Attempting to send email to primary:', templateParams);
+
+      // Send to primary email
       if (window.emailjs) {
-        const response = await window.emailjs.send(
-          'service_q47lbr7', // Your service ID
-          'template_0zeil8m', // Your template ID
+        await window.emailjs.send(
+          'service_q47lbr7', // Service ID
+          'template_0zeil8m', // Template ID
           templateParams
         );
-        console.log('✅ Email sent successfully via EmailJS!', response);
+        console.log('✅ Primary email sent successfully!');
+
+        // Send to secondary email (dwyatt@lacenterstudios.com)
+        if (secondaryEmail && secondaryEmail !== primaryEmail) {
+          const secondaryParams = {
+            ...templateParams,
+            to_email: secondaryEmail
+          };
+
+          console.log('📧 Attempting to send email to secondary:', secondaryParams);
+
+          await window.emailjs.send(
+            'service_q47lbr7', // Service ID
+            'template_0zeil8m', // Template ID
+            secondaryParams
+          );
+
+          console.log('✅ Secondary email sent successfully!');
+        }
+
+        console.log('✅ All emails sent successfully via EmailJS!');
       } else {
         throw new Error('EmailJS not available');
       }
 
       // Success feedback
-      alert('🎉 Your request has been sent directly to LA Center Studios! We will contact you soon.');
+      alert('🎉 Your request has been sent to LA Center Studios! We will contact you soon.');
 
       // Reset form
       setFormData({ name: '', email: '', phone: '', message: '' });
@@ -189,13 +211,13 @@ export function RequestTab() {
       if (errorMessage.includes('fill in all required fields')) {
         alert(errorMessage);
       } else if (error?.text === 'The user ID is invalid') {
-        alert('EmailJS configuration error: Invalid user ID. Please contact us directly at lacenterstudios3d@gmail.com');
+        alert('EmailJS configuration error: Invalid user ID. Please contact us directly at lacenterstudios3d@gmail.com or dwyatt@lacenterstudios.com');
       } else if (error?.status === 400) {
-        alert('EmailJS error: Bad request. Please contact us directly at lacenterstudios3d@gmail.com');
+        alert('EmailJS error: Bad request. Please contact us directly at lacenterstudios3d@gmail.com or dwyatt@lacenterstudios.com');
       } else if (error?.status === 401) {
-        alert('EmailJS error: Unauthorized. Please contact us directly at lacenterstudios3d@gmail.com');
+        alert('EmailJS error: Unauthorized. Please contact us directly at lacenterstudios3d@gmail.com or dwyatt@lacenterstudios.com');
       } else {
-        alert(`Unable to send email directly. Please contact us at lacenterstudios3d@gmail.com\n\nTechnical error: ${errorMessage}`);
+        alert(`Unable to send email directly. Please contact us at lacenterstudios3d@gmail.com or dwyatt@lacenterstudios.com\n\nTechnical error: ${errorMessage}`);
       }
     }
   };

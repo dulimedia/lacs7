@@ -82,10 +82,10 @@ class CsvDataCache {
 
             if (Array.isArray(results.data)) {
               results.data.forEach((row: any) => {
-                // Updated for new CSV format: "Unit Name" instead of "Product"
-                // CSV Header: Product,Available,Size,Amenities,Suite_Floorplan_Url,Building,Floor,Unit_Type,Kitchen_Size,Height,Is_Production_Office,Has_Kitchen,Full_Floor_Floorplan_Url,Tour_3D_Url
+                // Updated for new CSV format: "Unit_Name" instead of "Product" 
+                // CSV Header: Unit_Name,Available,Size,Amenities,Suite_Floorplan_Url,Building,Floor,Unit_Type,Is_Production_Office,Has_Kitchen,Full_Floor_Floorplan_Url,Tour_3D_Url,Private_Offices,Contact_Email_ID,Secondary_Email
 
-                const unitName = (row.Product || row['Unit Name'] || row.Unit)?.trim();
+                const unitName = (row.Unit_Name || row.Product || row['Unit Name'] || row.Unit)?.trim();
                 const unitNameLower = unitName?.toLowerCase();
 
                 if (unitName) {
@@ -191,7 +191,7 @@ function debounce(func: (...args: any[]) => void, delay: number) {
 }
 
 // Use Google Sheets as master data source
-export function useCsvUnitData(url: string = 'https://docs.google.com/spreadsheets/d/1VLa1fV0mL76Eoh4ZrKJepVcxyqpm6EB6ENhh6SJgxoU/export?format=csv') {
+export function useCsvUnitData(url: string = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv') {
   const [data, setData] = useState<Record<string, UnitData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

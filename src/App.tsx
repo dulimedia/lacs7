@@ -111,7 +111,7 @@ function AdaptivePixelRatio() {
 }
 
 // Google Sheets CSV export URL - live data source
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/1VLa1fV0mL76Eoh4ZrKJepVcxyqpm6EB6ENhh6SJgxoU/export?format=csv';
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv';
 
 // Legacy HDRI Environment component - kept for fallback but not used by default
 const LegacyHDRIEnvironment = React.memo(() => {
@@ -1009,7 +1009,6 @@ function App() {
           area_sqft: unitData.area_sqft || undefined,
           floorplan_url: unitData.floorplan || unitData.floorPlanUrl || unitData.floorplan_url,
           recipients: unitData.email_recipients ? [unitData.email_recipients] : ['owner@lacenter.com'], // Use CSV email or default
-          kitchen_size: unitData.kitchen_size,
           unit_type: unitData.unit_type || 'Suite', // Copy unit type from CSV data
           private_offices: unitData.private_offices,
           plug_and_play: unitData.plug_and_play,
