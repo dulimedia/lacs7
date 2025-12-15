@@ -1,3 +1,5 @@
+import { PerfFlags } from '../../perf/PerfFlags';
+
 export type Tier = 'desktop-webgpu' | 'desktop-webgl2' | 'mobile-high' | 'mobile-low';
 
 export async function detectTier(): Promise<Tier> {
@@ -18,8 +20,19 @@ export async function detectTier(): Promise<Tier> {
   
   const hasWebGPU = !!(navigator as any).gpu;
   const canvas = document.createElement('canvas');
-  const gl2 = canvas.getContext('webgl2') as WebGL2RenderingContext | null;
-  const webgl2 = !!gl2;
+  
+  // MOBILE FIX: Strict canvas validation for tier detection
+  let webgl2 = false;
+  if (canvas instanceof HTMLCanvasElement && typeof canvas.getContext === "function") {
+    const gl2 = canvas.getContext('webgl2') as WebGL2RenderingContext | null;
+    webgl2 = !!gl2;
+  } else if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
+    console.warn("[MOBILE] prevented getContext in tier detection", { 
+      type: typeof canvas, 
+      tag: canvas?.tagName,
+      hasGetContext: typeof canvas.getContext 
+    });
+  }
 
   if (hasWebGPU) {
     console.log('🎨 Desktop tier: webgpu');

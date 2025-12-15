@@ -20,9 +20,10 @@ export const FlashKiller: React.FC<FlashKillerProps> = ({
       console.log('🧊 FlashKiller ACTIVATED - starting freeze-frame capture');
       try {
         // Find the R3F canvas element in DOM
-        const canvasElement = document.querySelector('canvas') as HTMLCanvasElement;
+        const canvasElement = document.querySelector('canvas');
 
-        if (canvasElement) {
+        // MOBILE FIX: Strict canvas validation to prevent getContext on non-canvas
+        if (canvasElement && canvasElement instanceof HTMLCanvasElement && typeof canvasElement.getContext === "function") {
           // Check if WebGL context is available before capturing
           const gl = canvasElement.getContext('webgl2') || canvasElement.getContext('webgl');
           if (gl && !gl.isContextLost()) {

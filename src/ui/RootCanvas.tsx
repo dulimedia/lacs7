@@ -150,8 +150,29 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
     let frameCount = 0;
 
     const checkWebGLErrors = () => {
-      const canvas = document.querySelector('.scene-canvas') as HTMLCanvasElement;
+      const canvas = document.querySelector('.scene-canvas');
       if (!canvas) return;
+      
+      // MOBILE FIX: Strict canvas validation to prevent getContext on non-canvas
+      if (!(canvas instanceof HTMLCanvasElement)) {
+        if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
+          console.warn("[MOBILE] prevented getContext on non-canvas", { 
+            type: typeof canvas, 
+            tag: canvas?.tagName,
+            className: (canvas as Element)?.className 
+          });
+        }
+        return;
+      }
+      if (typeof canvas.getContext !== "function") {
+        if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
+          console.warn("[MOBILE] canvas missing getContext function", { 
+            type: typeof canvas, 
+            tag: canvas?.tagName 
+          });
+        }
+        return;
+      }
 
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
       if (!gl) return;

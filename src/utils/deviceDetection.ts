@@ -41,10 +41,13 @@ export const detectDevice = (): DeviceCapabilities => {
   
   try {
     const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (gl) {
-      maxTextureSize = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), maxTextureSize);
-      supportsWebGL2 = !!canvas.getContext('webgl2');
+    // MOBILE FIX: Strict canvas validation even for created canvas
+    if (canvas instanceof HTMLCanvasElement && typeof canvas.getContext === "function") {
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        maxTextureSize = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), maxTextureSize);
+        supportsWebGL2 = !!canvas.getContext('webgl2');
+      }
     }
   } catch (e) {
     console.warn('WebGL detection failed:', e);

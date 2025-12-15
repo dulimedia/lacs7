@@ -135,6 +135,15 @@ export const iOSSafariOptimizations = {
 
   // Setup WebGL context with iOS-specific settings
   setupWebGLContext: (canvas: HTMLCanvasElement) => {
+    // MOBILE FIX: Strict canvas validation even with typed parameter
+    if (!(canvas instanceof HTMLCanvasElement) || typeof canvas.getContext !== "function") {
+      console.warn("[MOBILE] invalid canvas passed to setupWebGLContext", { 
+        type: typeof canvas, 
+        tag: canvas?.tagName 
+      });
+      return null;
+    }
+
     const contextAttributes = {
       alpha: false,
       antialias: false,
