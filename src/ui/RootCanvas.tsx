@@ -142,6 +142,90 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
 
   useEffect(() => installErrorProbe(), []);
 
+  // MOBILE DEBUG: WebGL error monitoring for iOS Safari
+  useEffect(() => {
+    if (!PerfFlags.isMobile || !PerfFlags.isSafariIOS) return;
+
+    let errorCheckInterval: number;
+    let frameCount = 0;
+
+    const checkWebGLErrors = () => {
+      const canvas = document.querySelector('.scene-canvas') as HTMLCanvasElement;
+      if (!canvas) return;
+
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      if (!gl) return;
+
+      const error = gl.getError();
+      if (error !== gl.NO_ERROR) {
+        console.error('🚨 iOS Safari WebGL Error:', {
+          errorCode: error,
+          errorName: getWebGLErrorName(error, gl),
+          frameCount,
+          rendererInfo: gl.getParameter(gl.RENDERER),
+          timestamp: Date.now()
+        });
+      }
+
+      // Log memory info periodically
+      if (frameCount % 60 === 0) { // Every ~1 second at 60fps
+        const info = (gl as any).getExtension('WEBGL_debug_renderer_info');
+        console.log('📱 iOS Safari GPU Status:', {
+          maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+          maxTextureUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+          renderer: info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : 'unknown',
+          vendor: info ? gl.getParameter(info.UNMASKED_VENDOR_WEBGL) : 'unknown',
+          frameCount
+        });
+      }
+
+      frameCount++;
+    };
+
+    const getWebGLErrorName = (error: number, gl: WebGLRenderingContext) => {
+      switch (error) {
+        case gl.INVALID_ENUM: return 'INVALID_ENUM';
+        case gl.INVALID_VALUE: return 'INVALID_VALUE';
+        case gl.INVALID_OPERATION: return 'INVALID_OPERATION';
+        case gl.INVALID_FRAMEBUFFER_OPERATION: return 'INVALID_FRAMEBUFFER_OPERATION';
+        case gl.OUT_OF_MEMORY: return 'OUT_OF_MEMORY';
+        case gl.CONTEXT_LOST_WEBGL: return 'CONTEXT_LOST_WEBGL';
+        default: return `UNKNOWN_ERROR_${error}`;
+      }
+    };
+
+    // Check for WebGL errors every 500ms on mobile to avoid performance impact
+    errorCheckInterval = window.setInterval(checkWebGLErrors, 500);
+
+    return () => {
+      if (errorCheckInterval) clearInterval(errorCheckInterval);
+    };
+  }, []);
+
+  // MOBILE DEBUG: Renderer capabilities logging
+  const logRendererCapabilities = useCallback((renderer: THREE.WebGLRenderer) => {
+    if (!PerfFlags.isMobile || !PerfFlags.isSafariIOS) return;
+
+    console.log('📱 iOS Safari Renderer Capabilities:', {
+      maxTextureSize: renderer.capabilities.maxTextureSize,
+      maxTextures: renderer.capabilities.maxTextures,
+      maxVertexTextures: renderer.capabilities.maxVertexTextures,
+      maxCubemapSize: renderer.capabilities.maxCubemapSize,
+      maxAttributes: renderer.capabilities.maxAttributes,
+      maxSamples: renderer.capabilities.maxSamples,
+      isWebGL2: renderer.capabilities.isWebGL2,
+      precision: renderer.capabilities.precision,
+      logarithmicDepthBuffer: renderer.capabilities.logarithmicDepthBuffer,
+      floatFragmentTextures: renderer.capabilities.floatFragmentTextures,
+      floatVertexTextures: renderer.capabilities.floatVertexTextures
+    });
+
+    // Monitor memory usage periodically
+    setInterval(() => {
+      console.log('📱 iOS Safari Memory:', renderer.info.memory);
+    }, 5000);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -279,6 +363,9 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
         setSSGI: (v) => log.info('[DegradePolicy] SSGI:', v),
         setMaxAnisotropy: (n) => log.info('[DegradePolicy] Max Anisotropy:', n),
       });
+
+      // MOBILE DEBUG: Log renderer capabilities for iOS Safari
+      logRendererCapabilities(result.renderer);
 
       return result.renderer;
     } catch (err) {
