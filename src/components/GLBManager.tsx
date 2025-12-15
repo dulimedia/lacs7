@@ -14,6 +14,7 @@ import { SELECTED_MATERIAL_CONFIG, HOVERED_MATERIAL_CONFIG, FILTER_HIGHLIGHT_CON
 import { logger } from '../utils/logger';
 import { MobileDiagnostics } from '../debug/mobileDiagnostics';
 import { ProgressiveLoader } from '../utils/progressiveLoader';
+import { PerfFlags } from '../perf/PerfFlags';
 
 interface GLBUnitProps {
   node: GLBNodeInfo;
@@ -295,7 +296,33 @@ const GLBInitializer: React.FC = () => {
     if (glbNodes.size === 0) {
       logger.log('LOADING', '🔧', 'GLBManager: Initializing GLB nodes...');
       MobileDiagnostics.log('glb-manager', 'Initializing GLB nodes');
-      initializeGLBNodes();
+      
+      // Add delay for mobile to ensure proper initialization
+      const initDelay = PerfFlags.isMobile ? 500 : 0;
+      
+      const timeoutId = setTimeout(() => {
+        try {
+          initializeGLBNodes();
+          
+          // Verify initialization after a short delay
+          setTimeout(() => {
+            const currentCount = useGLBState.getState().glbNodes.size;
+            console.log(`📦 GLB initialization verification: ${currentCount} nodes registered`);
+            
+            if (currentCount === 0) {
+              console.warn('⚠️ GLB initialization failed, retrying...');
+              initializeGLBNodes();
+            }
+          }, 100);
+          
+        } catch (error) {
+          console.error('❌ GLB initialization error:', error);
+          // Retry after delay
+          setTimeout(initializeGLBNodes, 1000);
+        }
+      }, initDelay);
+      
+      return () => clearTimeout(timeoutId);
     } else {
       MobileDiagnostics.log('glb-manager', 'GLB nodes already initialized', {
         count: glbNodes.size,

@@ -107,38 +107,54 @@ export const getMobileOptimizedSettings = (device: DeviceCapabilities): MobileRe
   }
 
   // MOBILE SAFE-MODE PRESET
-  // ULTRA-AGGRESSIVE settings to prevent WebGL context loss on iOS
+  // Conservative settings for mobile, but not overly aggressive
   const safeModeSettings: MobileRenderingPreset = {
     pixelRatio: 1, // Always 1 on mobile to reduce GPU memory
     antialias: false, // Expensive on mobile
     shadows: false, // Very expensive, major GPU memory consumer
     postProcessing: false, // Can cause context loss
     maxLights: 1, // Single light only to minimize shader complexity
-    textureSize: 128, // Ultra-small textures for maximum mobile stability
+    textureSize: 512, // Reasonable quality for modern mobile devices
     modelComplexity: 'low',
     preserveDrawingBuffer: false, // Can cause memory leaks on iOS
     powerPreference: 'low-power', // Prioritize battery/stability over performance
     failIfMajorPerformanceCaveat: false, // Don't fail, just use software rendering if needed
     useSimpleLighting: true, // Use basic ambient + directional, no fancy lighting
-    hdriResolution: 32, // Extremely small HDRI to prevent context loss
+    hdriResolution: 128, // Small but usable HDRI resolution
     disableFog: true, // Fog adds shader complexity
     disableBloom: true, // Post-processing effect
     disableSSAO: true // Post-processing effect
   };
 
-  // iOS Safari gets the most aggressive settings (main source of context loss)
+  // Check device capabilities to determine appropriate settings
+  const deviceMemory = (navigator as any).deviceMemory || 4; // fallback to 4GB
+  const maxTextureSize = device.maxTextureSize || 2048;
+  const isLowEndDevice = deviceMemory <= 2 || maxTextureSize < 4096;
+
+  console.log('📱 Mobile device capabilities:', {
+    memory: deviceMemory + 'GB',
+    maxTextureSize,
+    isLowEnd: isLowEndDevice
+  });
+
+  // iOS Safari - use conditional settings based on device capability
   if (device.isIOS) {
-    console.log('📱 MOBILE SAFE-MODE ACTIVE: Aggressive GPU memory limits for iOS');
-    return safeModeSettings;
+    console.log('📱 MOBILE SAFE-MODE ACTIVE: iOS optimized settings');
+    return {
+      ...safeModeSettings,
+      // Higher quality for capable devices, lower for weak ones
+      textureSize: isLowEndDevice ? 256 : 512,
+      hdriResolution: isLowEndDevice ? 64 : 128
+    };
   }
 
   // Android can handle slightly more but still conservative
   if (device.isAndroid) {
     return {
       ...safeModeSettings,
-      textureSize: 128, // Keep same as iOS for consistency
+      textureSize: isLowEndDevice ? 256 : 512,
       maxLights: 2,
-      hdriResolution: 64
+      hdriResolution: isLowEndDevice ? 64 : 128
     };
   }
 
