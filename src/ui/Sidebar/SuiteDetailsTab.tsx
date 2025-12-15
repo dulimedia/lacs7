@@ -144,31 +144,39 @@ export function SuiteDetailsTab() {
   const displayUnit = selectedUnitKey ? unitsData.get(selectedUnitKey) : null;
 
   // --- Floorplan Resolution Logic ---
-  // Prioritize CSV data, fallback to mapping service if needed
+  // --- Floorplan Resolution Logic ---
+  // Prioritize Intelligent PDF Mapping Service over outdated CVS/CSV data
   const getPrimaryFloorplan = () => {
     if (!displayUnit) return null;
+
+    // 1. Try to get a high-quality PDF from our mapping service
+    const intelligentUrl = getIntelligentFloorplanUrl(displayUnit.unit_name, displayUnit);
+    if (intelligentUrl && intelligentUrl.endsWith('.pdf')) {
+      return encodeFloorplanUrl(intelligentUrl);
+    }
+
+    // 2. Fallback to CSV data if provided (likely PNGs)
     if (displayUnit.floorplan_url) return encodeFloorplanUrl(displayUnit.floorplan_url);
 
-    // Fallback logic
-    if (isTowerUnit(displayUnit.unit_name)) return encodeFloorplanUrl(`floorplans/converted/${getTowerUnitIndividualFloorplan(displayUnit.unit_name)}`);
-    if (isMarylandUnit(displayUnit.unit_name)) return encodeFloorplanUrl(`floorplans/converted/${getMarylandUnitIndividualFloorplan(displayUnit.unit_name)}`);
-    if (isFifthStreetUnit(displayUnit.unit_name)) return encodeFloorplanUrl(`floorplans/converted/${getFifthStreetUnitIndividualFloorplan(displayUnit.unit_name)}`);
-
-    // Generic fallback
-    return encodeFloorplanUrl(getIntelligentFloorplanUrl(displayUnit.unit_name, displayUnit));
+    // 3. Last resort fallback (returns what we found in step 1 even if not PDF, or null)
+    return intelligentUrl ? encodeFloorplanUrl(intelligentUrl) : null;
   };
 
   const getSecondaryFloorplan = () => {
     if (!displayUnit) return null;
+
+    // Try to get explicit floor-level plan from mapping service
+    let floorPlan: string | null = null;
+
+    if (isTowerUnit(displayUnit.unit_name)) floorPlan = getTowerUnitFloorFloorplan(displayUnit.unit_name);
+    else if (isMarylandUnit(displayUnit.unit_name)) floorPlan = getMarylandUnitFloorFloorplan(displayUnit.unit_name);
+    else if (isFifthStreetUnit(displayUnit.unit_name)) floorPlan = getFifthStreetUnitFloorFloorplan(displayUnit.unit_name);
+
+    if (floorPlan) return encodeFloorplanUrl(floorPlan);
+
+    // Fallback to CSV
     if (displayUnit.full_floor_floorplan_url) return encodeFloorplanUrl(displayUnit.full_floor_floorplan_url);
 
-    // Fallback logic
-    if (displayUnit.floorplan_url) {
-      // If we have a primary, maybe the legacy logic has a secondary?
-      if (isTowerUnit(displayUnit.unit_name)) return encodeFloorplanUrl(`floorplans/converted/${getTowerUnitFloorFloorplan(displayUnit.unit_name)}`);
-      if (isMarylandUnit(displayUnit.unit_name)) return encodeFloorplanUrl(`floorplans/converted/${getMarylandUnitFloorFloorplan(displayUnit.unit_name)}`);
-      if (isFifthStreetUnit(displayUnit.unit_name)) return encodeFloorplanUrl(`floorplans/converted/${getFifthStreetUnitFloorFloorplan(displayUnit.unit_name)}`);
-    }
     return null;
   };
 
