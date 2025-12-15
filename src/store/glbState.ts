@@ -390,9 +390,26 @@ export const useGLBState = create<GLBState>((set, get) => ({
   clearSelection: () => {
     const { glbNodes } = get();
 
-    // Reset all GLBs to invisible
+    // Reset all GLBs to invisible and dispose of object references to free memory
     glbNodes.forEach((node, key) => {
       get().setGLBState(key, 'invisible');
+      
+      // Dispose of the loaded GLB object to free memory if it exists
+      if (node.object) {
+        // Traverse and dispose of materials and geometries
+        node.object.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            if (child.geometry) child.geometry.dispose();
+            if (Array.isArray(child.material)) {
+              child.material.forEach(material => material.dispose());
+            } else if (child.material) {
+              child.material.dispose();
+            }
+          }
+        });
+        // Clear the object reference
+        node.object = undefined;
+      }
     });
 
     set({

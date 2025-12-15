@@ -10,6 +10,7 @@ import { useUnitStore } from '../../stores/useUnitStore';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { MobileDiagnostics } from '../../debug/mobileDiagnostics';
+import { MobileMemoryManager } from '../../utils/memoryManager';
 
 export default function Sidebar() {
   const { tab, setTab, view, setView, floorPlanExpanded, setFloorPlanExpanded } = useSidebarState();
@@ -43,6 +44,11 @@ export default function Sidebar() {
     // Clear GLB selection and reset camera animation state
     clearSelection();
     resetCameraAnimation();
+    
+    // Aggressive memory cleanup to prevent memory leaks on Back to Explore
+    const memoryManager = MobileMemoryManager.getInstance();
+    memoryManager.aggressiveCleanup();
+    console.log('🧹 Memory cleanup triggered on Back to Explore');
     
     setView('explore');
     setFloorPlanExpanded(false);
