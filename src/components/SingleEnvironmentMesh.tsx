@@ -78,71 +78,50 @@ export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
           } else if (isMobile) {
             mesh.castShadow = false;
             mesh.receiveShadow = false;
-          }
+            if (shadowsEnabled) {
+              mat.shadowSide = THREE.FrontSide;
+            }
 
-          // Material Optimization
-          if (mesh.material) {
-            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-            materials.forEach((mat: any) => {
-              // Fix for specific corrupted material in consolidated GLB
-              if (mat.name === 'MI_MWPalmTree_Bark_01.001') {
-                console.warn('⚠️ Repairing corrupt material:', mat.name);
-                // Strip complex maps that might be causing shader errors
-                if (mat.normalMap) { mat.normalMap.dispose(); mat.normalMap = null; }
-                if (mat.roughnessMap) { mat.roughnessMap.dispose(); mat.roughnessMap = null; }
-                if (mat.metalnessMap) { mat.metalnessMap.dispose(); mat.metalnessMap = null; }
-                if (mat.aoMap) { mat.aoMap.dispose(); mat.aoMap = null; }
-                mat.needsUpdate = true;
-              }
+            // Polygon Offset for ground-like meshes to prevent z-fighting
+            const meshNameLower = (mesh.name || '').toLowerCase();
+            if (meshNameLower.includes('road') || meshNameLower.includes('plaza') ||
+              meshNameLower.includes('roof') || meshNameLower.includes('floor') ||
+              meshNameLower.includes('ground') || meshNameLower.includes('deck')) {
+              applyPolygonOffset(mat);
+            }
 
-              // Texture Resizing (Skipped: User optimized GLB to 2K/1K, runtime resize causing shader errors)
-              // optimizeMaterialTextures(mat, 1024);
+            // Mobile specific material reductions
+            if (isMobile) {
+              if (mat.normalMap) { mat.normalMap.dispose(); mat.normalMap = null; }
+              if (mat.roughnessMap) { mat.roughnessMap.dispose(); mat.roughnessMap = null; }
+              if (mat.metalnessMap) { mat.metalnessMap.dispose(); mat.metalnessMap = null; }
+              mat.envMapIntensity = RendererConfig.materials.envMapIntensity;
+            }
 
-              // Shadow Side
-              if (shadowsEnabled) {
-                mat.shadowSide = THREE.FrontSide;
-              }
+            // Ensure updates
+            if (!isMobile) {
+              mat.envMapIntensity = RendererConfig.materials.envMapIntensity;
+            }
 
-              // Polygon Offset for ground-like meshes to prevent z-fighting
-              const meshNameLower = (mesh.name || '').toLowerCase();
-              if (meshNameLower.includes('road') || meshNameLower.includes('plaza') ||
-                meshNameLower.includes('roof') || meshNameLower.includes('floor') ||
-                meshNameLower.includes('ground') || meshNameLower.includes('deck')) {
-                applyPolygonOffset(mat);
-              }
-
-              // Mobile specific material reductions
-              if (isMobile) {
-                if (mat.normalMap) { mat.normalMap.dispose(); mat.normalMap = null; }
-                if (mat.roughnessMap) { mat.roughnessMap.dispose(); mat.roughnessMap = null; }
-                if (mat.metalnessMap) { mat.metalnessMap.dispose(); mat.metalnessMap = null; }
-                mat.envMapIntensity = RendererConfig.materials.envMapIntensity;
-              }
-
-              // Ensure updates
-              if (!isMobile) {
-                mat.envMapIntensity = RendererConfig.materials.envMapIntensity;
-              }
-
-              if (mat.map) mat.map.needsUpdate = true;
-              mat.needsUpdate = true;
-            });
-          }
-        }
+            if (mat.map) mat.map.needsUpdate = true;
+            mat.needsUpdate = true;
+          });
+    }
+  }
       });
 
-      console.log(`✨ Environment Configuration Complete. Processed ${meshCount} meshes.`);
+console.log(`✨ Environment Configuration Complete. Processed ${meshCount} meshes.`);
 
-      // Cleanup for Mobile
-      if (isMobile) {
-        if ((window as any).gc) (window as any).gc();
-      }
+// Cleanup for Mobile
+if (isMobile) {
+  if ((window as any).gc) (window as any).gc();
+}
     }
   }, [fullEnv.scene, isMobile, shadowsEnabled]);
 
-  return (
-    <>
-      {fullEnv.scene && <primitive object={fullEnv.scene} />}
-    </>
-  );
+return (
+  <>
+    {fullEnv.scene && <primitive object={fullEnv.scene} />}
+  </>
+);
 }
