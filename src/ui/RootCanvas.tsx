@@ -150,7 +150,9 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
     let frameCount = 0;
 
     const checkWebGLErrors = () => {
-      const canvas = document.querySelector('.scene-canvas');
+      // MOBILE FIX: Use querySelector('canvas') instead of querySelector('.scene-canvas') 
+      // which returns the R3F Canvas wrapper DIV, not the actual canvas element
+      const canvas = document.querySelector('canvas');
       if (!canvas) return;
       
       // MOBILE FIX: Strict canvas validation to prevent getContext on non-canvas
@@ -172,6 +174,11 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
           });
         }
         return;
+      }
+      
+      // Mobile-only log when canvas resolved correctly
+      if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
+        console.log("[MOBILE] canvas resolved OK", { tagName: canvas.tagName });
       }
 
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
