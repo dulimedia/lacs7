@@ -19,6 +19,7 @@ import {
   getFloorplanUrl as getIntelligentFloorplanUrl
 } from '../../services/floorplanMappingService';
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
+import { CameraControls } from './CameraFooter';
 
 // EmailJS type declaration
 declare global {
@@ -386,6 +387,9 @@ export function SuiteDetailsTab() {
   return (
     <div ref={scrollContainerRef} className="h-full overflow-y-auto relative">
       <div className="p-4 space-y-4 pb-24">
+
+        {/* Camera Controls - Mobile First */}
+        <CameraControls />
 
         {/* Header Section */}
         <div className="flex items-start justify-between">

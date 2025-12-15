@@ -798,21 +798,71 @@ function App() {
     return () => clearTimeout(fallbackTimer);
   }, [deviceCapabilities, loadingPhase]);
 
-  // Handle WebGL context loss (log only to avoid white overlay loops)
+  // Mobile memory monitoring and WebGL context loss handling
   useEffect(() => {
     const canvas = document.querySelector('canvas');
     if (!canvas) return;
 
+    let memoryCheckInterval: NodeJS.Timeout | null = null;
+
     const handleContextLost = (event: Event) => {
       event.preventDefault();
-      logger.warn('WebGL context lost (ignored)', event);
+      logger.warn('WebGL context lost - cleaning up for recovery', event);
+      
+      // Clear all GLB objects to free memory
+      const glbState = useGLBState.getState();
+      glbState.clearSelection();
+      
+      // Force garbage collection if available
+      if ('gc' in window && typeof (window as any).gc === 'function') {
+        (window as any).gc();
+      }
     };
 
+    // Mobile memory monitoring
+    if (deviceCapabilities.isMobile) {
+      let lastMemoryWarning = 0;
+      
+      memoryCheckInterval = setInterval(() => {
+        // Check memory usage if available
+        if ('memory' in performance && (performance as any).memory) {
+          const memory = (performance as any).memory;
+          const usedMB = memory.usedJSHeapSize / (1024 * 1024);
+          const limitMB = memory.jsHeapSizeLimit / (1024 * 1024);
+          const usagePercent = (usedMB / limitMB) * 100;
+          
+          // Aggressive cleanup when memory usage is high
+          if (usagePercent > 70 && Date.now() - lastMemoryWarning > 5000) {
+            console.warn(`📱 High memory usage: ${usedMB.toFixed(1)}MB (${usagePercent.toFixed(1)}%)`);
+            lastMemoryWarning = Date.now();
+            
+            // Trigger aggressive cleanup
+            const glbState = useGLBState.getState();
+            glbState.clearSelection();
+            
+            // Clear selections to unload units
+            if (setSelectedUnitKey) {
+              setSelectedUnitKey(null);
+            }
+            
+            // Force garbage collection
+            if ('gc' in window && typeof (window as any).gc === 'function') {
+              (window as any).gc();
+            }
+          }
+        }
+      }, 2000); // Check every 2 seconds on mobile
+    }
+
     canvas.addEventListener('webglcontextlost', handleContextLost);
+    
     return () => {
       canvas.removeEventListener('webglcontextlost', handleContextLost);
+      if (memoryCheckInterval) {
+        clearInterval(memoryCheckInterval);
+      }
     };
-  }, []);
+  }, [deviceCapabilities.isMobile, setSelectedUnitKey]);
 
   // DISABLED: Context health monitor was causing "Canvas has existing context" error
   // The webglcontextlost/restored event handlers above are sufficient

@@ -271,16 +271,40 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
 
   useEffect(() => {
     if (isActive) {
-      setShouldRender(true);
-    } else {
-      // Delay unmount to allow fade-out animation to complete
-      // FADE_DURATION is 0.8s, so we wait 1s to be safe
+      const delay = PerfFlags.isMobile ? 300 : 0; // Delay on mobile for stability
       const timeout = setTimeout(() => {
-        setShouldRender(false);
-      }, (FADE_DURATION * 1000) + 200);
+        setShouldRender(true);
+      }, delay);
       return () => clearTimeout(timeout);
+    } else {
+      // MOBILE: Immediate disposal for memory conservation
+      if (PerfFlags.isMobile) {
+        setShouldRender(false);
+        
+        // Dispose GLB object immediately on mobile
+        if (node.object) {
+          console.log(`🗑️ Mobile cleanup: Disposing GLB unit ${node.unitName}`);
+          node.object.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              if (child.geometry) child.geometry.dispose();
+              if (Array.isArray(child.material)) {
+                child.material.forEach(material => material.dispose());
+              } else if (child.material) {
+                child.material.dispose();
+              }
+            }
+          });
+          node.object = undefined;
+        }
+      } else {
+        // Desktop: Delay unmount to allow fade-out animation to complete
+        const timeout = setTimeout(() => {
+          setShouldRender(false);
+        }, (FADE_DURATION * 1000) + 200);
+        return () => clearTimeout(timeout);
+      }
     }
-  }, [isActive]);
+  }, [isActive, node]);
 
   if (!shouldRender) {
     return null;

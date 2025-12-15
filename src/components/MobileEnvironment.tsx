@@ -62,29 +62,19 @@ export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
 
 
   if (PerfFlags.isMobile) {
-    // Mobile browsers - use real HDRI at reduced resolution for proper PBR lighting
+    // Mobile browsers - use ultra-lightweight gradient to prevent context loss
+    console.log('📱 Using ultra-lightweight mobile environment (gradient only)');
     return (
-      <Environment
-        files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
-        background={true}
-        backgroundIntensity={backgroundIntensity * 0.7}
-        environmentIntensity={environmentIntensity * 0.8}
-        resolution={256} // Reduced resolution for mobile
-        onLoad={() => console.log('✅ Mobile HDRI loaded at 256px resolution')}
-        onError={(error) => {
-          console.error('❌ HDRI failed on mobile, falling back to gradient:', error);
-          // Error boundary will handle fallback
-        }}
-      >
-        {/* Fallback if HDRI fails to load */}
+      <>
         {gradientTexture && <primitive attach="background" object={gradientTexture} />}
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={0.6} />
         <directionalLight 
           position={[10, 10, 5]} 
-          intensity={1.8} 
+          intensity={2.2} 
           castShadow={false}
         />
-      </Environment>
+        {/* No HDRI on mobile - too memory intensive and causes context loss */}
+      </>
     );
   }
 

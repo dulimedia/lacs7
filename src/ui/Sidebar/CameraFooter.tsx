@@ -2,7 +2,7 @@ import React from 'react';
 import { useGLBState } from '../../store/glbState';
 import { Home, ZoomIn, ZoomOut, RotateCw, RotateCcw } from 'lucide-react';
 
-export function CameraFooter() {
+export function CameraControls() {
   const { cameraControlsRef } = useGLBState();
 
   const handleReset = () => {
@@ -36,45 +36,45 @@ export function CameraFooter() {
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 border-t border-black/5 bg-white/90 backdrop-blur px-3 py-2">
+    <div className="border border-black/5 bg-white rounded-lg p-3 mb-3">
       <label className="block text-xs font-semibold uppercase tracking-wide text-black/40 mb-2">
-        Camera
+        Camera Controls
       </label>
       <div className="grid grid-cols-5 gap-2">
         <button
-          className="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-xs shadow-sm hover:shadow transition flex items-center justify-center"
+          className="rounded-lg border border-black/10 bg-gray-50 hover:bg-gray-100 px-3 py-2 text-sm font-medium shadow-sm hover:shadow transition-all flex items-center justify-center min-h-[44px] touch-manipulation"
           onClick={handleRotateLeft}
           title="Rotate Left"
         >
-          <RotateCcw size={14} />
+          <RotateCcw size={18} />
         </button>
         <button
-          className="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-xs shadow-sm hover:shadow transition flex items-center justify-center"
+          className="rounded-lg border border-black/10 bg-gray-50 hover:bg-gray-100 px-3 py-2 text-sm font-medium shadow-sm hover:shadow transition-all flex items-center justify-center min-h-[44px] touch-manipulation"
           onClick={handleRotateRight}
           title="Rotate Right"
         >
-          <RotateCw size={14} />
+          <RotateCw size={18} />
         </button>
         <button
-          className="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-xs shadow-sm hover:shadow transition flex items-center justify-center"
+          className="rounded-lg border border-black/10 bg-gray-50 hover:bg-gray-100 px-3 py-2 text-sm font-medium shadow-sm hover:shadow transition-all flex items-center justify-center min-h-[44px] touch-manipulation"
           onClick={handleZoomIn}
           title="Zoom In"
         >
-          <ZoomIn size={14} />
+          <ZoomIn size={18} />
         </button>
         <button
-          className="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-xs shadow-sm hover:shadow transition flex items-center justify-center"
+          className="rounded-lg border border-black/10 bg-gray-50 hover:bg-gray-100 px-3 py-2 text-sm font-medium shadow-sm hover:shadow transition-all flex items-center justify-center min-h-[44px] touch-manipulation"
           onClick={handleZoomOut}
           title="Zoom Out"
         >
-          <ZoomOut size={14} />
+          <ZoomOut size={18} />
         </button>
         <button
-          className="rounded-lg border border-black/10 bg-white px-2 py-1.5 text-xs shadow-sm hover:shadow transition flex items-center justify-center"
+          className="rounded-lg border border-black/10 bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 text-sm font-medium shadow-sm hover:shadow transition-all flex items-center justify-center min-h-[44px] touch-manipulation"
           onClick={handleReset}
           title="Reset View"
         >
-          <Home size={14} />
+          <Home size={18} />
         </button>
       </div>
     </div>

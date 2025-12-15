@@ -195,8 +195,43 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
       log.warn('webglcontextlost event');
       MobileDiagnostics.warn('root-canvas', 'webglcontextlost');
 
-      // Alert user about the crash
-      alert('WebGL context lost! This is likely the cause of the white screen crash.');
+      // Show user-friendly recovery instead of alert
+      const recoverButton = document.createElement('div');
+      recoverButton.innerHTML = `
+        <div style="
+          position: fixed; 
+          top: 50%; 
+          left: 50%; 
+          transform: translate(-50%, -50%);
+          background: white;
+          padding: 20px 30px;
+          border-radius: 12px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+          text-align: center;
+          z-index: 10000;
+          font-family: system-ui;
+        ">
+          <h3 style="margin: 0 0 10px 0; color: #333;">3D Viewer Needs Recovery</h3>
+          <p style="margin: 0 0 20px 0; color: #666; font-size: 14px;">
+            The 3D graphics encountered a memory issue.<br/>
+            Click below to reload with optimized settings.
+          </p>
+          <button onclick="window.location.reload()" style="
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            min-height: 44px;
+            min-width: 120px;
+          ">
+            Reload App
+          </button>
+        </div>
+      `;
+      document.body.appendChild(recoverButton);
     }, false);
 
     canvas.addEventListener('webglcontextrestored', () => {
