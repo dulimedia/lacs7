@@ -69,6 +69,7 @@ import { MobileDiagnostics } from './debug/mobileDiagnostics';
 const SceneCapture = ({ sceneRef, glRef }: { sceneRef: React.RefObject<THREE.Scene>, glRef: React.RefObject<THREE.WebGLRenderer> }) => {
   const { gl, scene } = useThree();
   const setupComplete = useRef(false);
+  const validationComplete = useRef(false);
   useFaceDebugHotkey();
 
   useEffect(() => {
@@ -82,13 +83,16 @@ const SceneCapture = ({ sceneRef, glRef }: { sceneRef: React.RefObject<THREE.Sce
     }
   }, [scene, gl, sceneRef, glRef]);
 
-  // Run material validation after scene loads
+  // Run material validation after scene loads - ONCE per session to prevent degradation loops
   useEffect(() => {
-    const timer = setTimeout(() => {
-      validateAllMaterials(scene);
-    }, 2000); // After models load
+    if (!validationComplete.current) {
+      validationComplete.current = true;
+      const timer = setTimeout(() => {
+        validateAllMaterials(scene);
+      }, 2000); // After models load
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, [scene]);
 
   return null;
@@ -801,7 +805,7 @@ function App() {
   // Mobile memory monitoring and WebGL context loss handling
   useEffect(() => {
     const canvas = document.querySelector('canvas');
-    if (!canvas) return;
+    if (!canvas || !(canvas instanceof HTMLCanvasElement)) return;
 
     let memoryCheckInterval: NodeJS.Timeout | null = null;
 
@@ -1605,10 +1609,10 @@ function App() {
 
 
 
-            {/* Camera Controls - Desktop Only (Mobile uses touch controls) */}
-            {sceneEnabled && !modelsLoading && !deviceCapabilities.isMobile && (
+            {/* Camera Controls - Overlay for both Desktop and Mobile */}
+            {sceneEnabled && !modelsLoading && (
               <div
-                className="fixed bottom-6 z-40 camera-controls-desktop -translate-x-1/2 hidden md:block"
+                className="fixed bottom-6 left-1/2 z-40 camera-controls-overlay -translate-x-1/2"
               >
                 <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl border border-black/5 p-3">
                   <div className="grid grid-cols-5 gap-2">

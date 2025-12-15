@@ -70,25 +70,64 @@ export function ProgressiveEnvironmentMesh() {
 
         if (mesh.material) {
           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-          materials.forEach((mat: any) => {
-            // Re-enabled texture optimization (user verified this fixes white flash)
-            optimizeMaterialTextures(mat, 2048);
-
-            if (mat.normalMap) {
-              mat.normalMap.dispose();
-              mat.normalMap = null;
-            }
-            if (mat.roughnessMap) {
-              mat.roughnessMap.dispose();
-              mat.roughnessMap = null;
-            }
-            if (mat.metalnessMap) {
-              mat.metalnessMap.dispose();
-              mat.metalnessMap = null;
-            }
-            mat.envMapIntensity = 0.8;
-            mat.needsUpdate = true;
-          });
+          
+          // MOBILE FIX: Clone materials before optimization to prevent shared material corruption
+          if (PerfFlags.isMobile) {
+            const clonedMaterials = materials.map(mat => {
+              if (mat && mat.isMaterial) {
+                const cloned = mat.clone();
+                console.log(`📱 [MOBILE] Cloned material for safe optimization: ${mat.name}`);
+                return cloned;
+              }
+              return mat;
+            });
+            
+            mesh.material = Array.isArray(mesh.material) ? clonedMaterials : clonedMaterials[0];
+            
+            clonedMaterials.forEach((mat: any) => {
+              // Re-enabled texture optimization (user verified this fixes white flash)
+              optimizeMaterialTextures(mat, 2048);
+              
+              // Dispose normal/roughness/metalness maps for environment
+              if (mat.normalMap) {
+                mat.normalMap.dispose();
+                mat.normalMap = null;
+              }
+              if (mat.roughnessMap) {
+                mat.roughnessMap.dispose();
+                mat.roughnessMap = null;
+              }
+              if (mat.metalnessMap) {
+                mat.metalnessMap.dispose();
+                mat.metalnessMap = null;
+              }
+              
+              mat.envMapIntensity = 0.8;
+              mat.needsUpdate = true;
+            });
+          } else {
+            materials.forEach((mat: any) => {
+              // Re-enabled texture optimization (user verified this fixes white flash)
+              optimizeMaterialTextures(mat, 2048);
+              
+              // Dispose normal/roughness/metalness maps for environment
+              if (mat.normalMap) {
+                mat.normalMap.dispose();
+                mat.normalMap = null;
+              }
+              if (mat.roughnessMap) {
+                mat.roughnessMap.dispose();
+                mat.roughnessMap = null;
+              }
+              if (mat.metalnessMap) {
+                mat.metalnessMap.dispose();
+                mat.metalnessMap = null;
+              }
+              
+              mat.envMapIntensity = 0.8;
+              mat.needsUpdate = true;
+            });
+          }
         }
       }
     });

@@ -94,7 +94,7 @@ export default function Sidebar() {
               <button
                 className={cn(
                   'flex-1 rounded-lg font-medium transition',
-                  isMobile ? 'px-4 py-3 text-base min-h-[48px]' : 'px-3 py-1.5 text-sm',
+                  isMobile ? 'px-4 py-2 text-sm min-h-[36px]' : 'px-3 py-1.5 text-sm',
                   tab === 'explore' ? 'bg-white shadow' : 'opacity-70 hover:opacity-100'
                 )}
                 onClick={() => {
@@ -107,7 +107,7 @@ export default function Sidebar() {
               <button
                 className={cn(
                   'flex-1 rounded-lg font-medium transition',
-                  isMobile ? 'px-4 py-3 text-base min-h-[48px]' : 'px-3 py-1.5 text-sm',
+                  isMobile ? 'px-4 py-2 text-sm min-h-[36px]' : 'px-3 py-1.5 text-sm',
                   tab === 'request' ? 'bg-white shadow' : 'opacity-70 hover:opacity-100'
                 )}
                 onClick={() => {

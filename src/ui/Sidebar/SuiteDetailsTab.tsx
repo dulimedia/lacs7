@@ -389,8 +389,7 @@ export function SuiteDetailsTab() {
     <div ref={scrollContainerRef} className="h-full overflow-y-auto relative">
       <div className="p-4 space-y-4 pb-24">
 
-        {/* Camera Controls - Mobile Only (Desktop has overlay controls) */}
-        {PerfFlags.isMobile && <CameraControls />}
+        {/* Camera Controls now in overlay for all devices */}
 
         {/* Header Section */}
         <div className="flex items-start justify-between">

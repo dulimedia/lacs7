@@ -119,7 +119,7 @@ function CanvasWatchdog({ children }: { children: ReactNode }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       const canvas = document.querySelector('canvas');
-      if (!canvas) {
+      if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
         log.err('Watchdog: canvas never mounted in 12s');
         MobileDiagnostics.error('watchdog', 'Canvas failed to mount within 12s');
         setOk(false);

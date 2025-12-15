@@ -6,12 +6,18 @@ export function CanvasResizeHandler() {
   const { camera, size, gl, invalidate, setSize } = useThree();
 
   useEffect(() => {
-    const sceneShell = document.querySelector('.scene-shell') as HTMLElement;
+    // Use R3F's gl.domElement instead of DOM queries to prevent getContext errors
+    const canvas = gl.domElement;
     
-    if (!sceneShell) return;
+    // Mobile-only log ONCE to confirm canvas resolved correctly
+    if (PerfFlags.isMobile) {
+      console.log('✅ iOS canvas resolved: CANVAS element confirmed', {
+        tagName: canvas?.tagName,
+        isCanvas: canvas instanceof HTMLCanvasElement
+      });
+    }
 
     // CRITICAL DEBUG: Monitor canvas size changes continuously
-    const canvas = sceneShell.querySelector('canvas');
     if (canvas) {
       console.log('📐 INITIAL CANVAS SIZE:', {
         width: canvas.width,
