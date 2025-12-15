@@ -1735,6 +1735,14 @@ function App() {
 
             {/* Safari Debug Banner - On-screen debugging for real iOS devices */}
             <SafariDebugBanner />
+
+            {/* Single Unit Request Form Modal */}
+            {singleUnitRequestOpen && (
+              <SingleUnitRequestForm
+                onClose={() => setSingleUnitRequestOpen(false)}
+                unitData={requestUnitData}
+              />
+            )}
           </div>  {/* Close app-layout */}
         </div>  {/* Close app-viewport */}
       </SafariErrorBoundary>
