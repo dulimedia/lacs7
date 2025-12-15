@@ -3,6 +3,74 @@ import { RendererConfig, getCurrentShadowConfig } from '../../config/RendererCon
 import { PerfFlags } from '../../perf/PerfFlags';
 
 /**
+ * Apply mobile-specific material fixes for iOS Safari stability
+ */
+function applyMobileMaterialFix(material: THREE.MeshStandardMaterial): void {
+    if (!material) return;
+    
+    // Fix colorSpace and texture settings for all maps
+    const allMaps = [
+        { map: material.map, name: 'map', shouldBeSRGB: true },
+        { map: material.emissiveMap, name: 'emissiveMap', shouldBeSRGB: true },
+        { map: material.normalMap, name: 'normalMap', shouldBeSRGB: false },
+        { map: material.roughnessMap, name: 'roughnessMap', shouldBeSRGB: false },
+        { map: material.metalnessMap, name: 'metalnessMap', shouldBeSRGB: false },
+        { map: material.aoMap, name: 'aoMap', shouldBeSRGB: false },
+        { map: material.alphaMap, name: 'alphaMap', shouldBeSRGB: false },
+    ];
+    
+    allMaps.forEach(({ map, name, shouldBeSRGB }) => {
+        if (map) {
+            // Set correct colorSpace
+            map.colorSpace = shouldBeSRGB ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+            
+            // Set anisotropy to 1 for mobile stability
+            map.anisotropy = 1;
+            
+            // Handle huge textures
+            const img = map.image;
+            if (img && Math.max(img.width, img.height) > 2048) {
+                console.log(`📱 iOS Safari: Fixing huge texture ${name} (${img.width}x${img.height}) on ${material.name}`);
+                map.generateMipmaps = false;
+                map.minFilter = THREE.LinearFilter;
+            }
+            
+            // Force texture update
+            map.needsUpdate = true;
+        }
+    });
+    
+    // Force material update
+    material.needsUpdate = true;
+}
+
+/**
+ * Apply transparent material fixes specifically for sidewalk materials
+ */
+function applyTransparentSidewalkFix(material: THREE.MeshStandardMaterial): void {
+    if (!material) return;
+    
+    // Check if this is a transparent material
+    if (material.transparent === true || material.opacity < 1) {
+        console.log(`📱 iOS Safari: Applying transparent sidewalk fix to ${material.name}`);
+        
+        // Fix depth settings for transparency
+        material.depthWrite = false;
+        material.depthTest = true;
+        
+        // Set alpha test based on whether there's an alpha texture
+        if (material.alphaMap) {
+            material.alphaTest = 0.5; // Cutout alpha texture
+        } else {
+            material.alphaTest = 0.0; // Smooth transparency
+        }
+        
+        // Force update
+        material.needsUpdate = true;
+    }
+}
+
+/**
  * Standardizes a loaded scene or model according to the renderer configuration.
  * Steals the "traverse and setup" logic from standard examples.
  */
@@ -30,6 +98,75 @@ export function postprocessLoadedScene(
         if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
             const material = mesh.material as THREE.MeshStandardMaterial;
+
+            // MOBILE DEBUG: Log broken asset materials specifically
+            if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
+                const brokenAssetNames = ["roof", "wall", "frame", "sidewalk", "road", "transparent"];
+                const meshName = mesh.name?.toLowerCase() || '';
+                const materialName = material?.name?.toLowerCase() || '';
+                
+                const isBrokenAsset = brokenAssetNames.some(name => 
+                    meshName.includes(name) || materialName.includes(name)
+                );
+                
+                if (isBrokenAsset) {
+                    console.log(`🚨 BROKEN ASSET DETECTED - Mesh: ${mesh.name}, Material: ${material?.name}`);
+                    
+                    if (material) {
+                        const materialMaps = {
+                            map: material.map,
+                            normalMap: material.normalMap,
+                            roughnessMap: material.roughnessMap,
+                            metalnessMap: material.metalnessMap,
+                            aoMap: material.aoMap,
+                            emissiveMap: material.emissiveMap,
+                            alphaMap: material.alphaMap,
+                        };
+                        
+                        const mapDetails: Record<string, any> = {};
+                        Object.entries(materialMaps).forEach(([mapName, map]) => {
+                            if (map) {
+                                const img = map.image;
+                                mapDetails[mapName] = {
+                                    exists: true,
+                                    imageSize: img ? `${img.width}x${img.height}` : 'no-image',
+                                    colorSpace: map.colorSpace,
+                                    generateMipmaps: map.generateMipmaps,
+                                    minFilter: map.minFilter,
+                                    magFilter: map.magFilter,
+                                    anisotropy: map.anisotropy,
+                                    isHugeTexture: img ? Math.max(img.width, img.height) > 2048 : false
+                                };
+                            } else {
+                                mapDetails[mapName] = { exists: false };
+                            }
+                        });
+                        
+                        console.log(`📱 BROKEN ASSET DETAILS:`, {
+                            meshName: mesh.name,
+                            materialName: material.name,
+                            transparent: material.transparent,
+                            opacity: material.opacity,
+                            alphaTest: material.alphaTest,
+                            depthWrite: material.depthWrite,
+                            depthTest: material.depthTest,
+                            blending: material.blending,
+                            maps: mapDetails
+                        });
+                        
+                        // Apply mobile-specific fixes to broken assets
+                        applyMobileMaterialFix(material);
+                        
+                        // Apply transparent fixes specifically for sidewalk materials
+                        if (meshName.includes('sidewalk') || materialName.includes('sidewalk')) {
+                            applyTransparentSidewalkFix(material);
+                        }
+                        
+                        // Log confirmation
+                        console.log(`✅ iOS Safari fix applied to: ${material.name} (mesh: ${mesh.name})`);
+                    }
+                }
+            }
 
             // SHADOWS
             // Only cast shadows if enabled in config and for non-environment meshes (usually)
