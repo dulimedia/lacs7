@@ -3,7 +3,7 @@ import { useThree } from '@react-three/fiber';
 import { PerfFlags } from '../perf/PerfFlags';
 
 export function CanvasResizeHandler() {
-  const { camera, size, gl, invalidate } = useThree();
+  const { camera, size, gl, invalidate, setSize } = useThree();
 
   useEffect(() => {
     const sceneShell = document.querySelector('.scene-shell') as HTMLElement;
@@ -84,17 +84,16 @@ export function CanvasResizeHandler() {
             if (PerfFlags.isMobile && width > 0 && height > 0) {
               console.log('📱 iOS Safari: Scheduling renderer resize retry via R3F (no direct CSS)');
               
-              // Schedule resize retry on next animation frame using R3F's resize mechanism
+              // Schedule resize retry on next animation frame using R3F's setSize directly
               requestAnimationFrame(() => {
                 const container = canvas.parentElement;
                 if (container) {
                   const containerRect = container.getBoundingClientRect();
                   if (containerRect.width > 0 && containerRect.height > 0) {
-                    console.log(`🔄 iOS Safari: Triggering R3F resize to ${containerRect.width}x${containerRect.height}`);
+                    console.log(`🔄 iOS Safari: R3F setSize retry to ${containerRect.width}x${containerRect.height}`);
                     
-                    // Trigger R3F's resize mechanism by dispatching a resize event
-                    // This will call setSize internally with proper DPR handling
-                    window.dispatchEvent(new Event('resize'));
+                    // Use R3F's setSize directly with proper DPR handling (no CSS manipulation)
+                    setSize(containerRect.width, containerRect.height);
                     invalidate(); // Force a frame render
                   }
                 }
