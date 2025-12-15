@@ -65,10 +65,17 @@ export function postprocessLoadedScene(
                     material.roughnessMap,
                     material.metalnessMap,
                     material.alphaMap,
-                ].forEach((map) => {
+                ].forEach((map, index) => {
                     if (map) {
                         map.anisotropy = RendererConfig.materials.anisotropy;
-                        map.colorSpace = THREE.SRGBColorSpace; // Ensure correct color space for all browsers including Firefox mobile
+                        // Only set sRGB for color textures (map, emissiveMap), others need linear
+                        const textureTypes = ['map', 'emissiveMap', 'bumpMap', 'normalMap', 'displacementMap', 'roughnessMap', 'metalnessMap', 'alphaMap'];
+                        const currentType = textureTypes[index];
+                        if (currentType === 'map' || currentType === 'emissiveMap') {
+                            map.colorSpace = THREE.SRGBColorSpace;
+                        } else {
+                            map.colorSpace = THREE.LinearSRGBColorSpace;
+                        }
                     }
                 });
 
