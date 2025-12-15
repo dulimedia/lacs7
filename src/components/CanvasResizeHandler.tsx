@@ -3,7 +3,7 @@ import { useThree } from '@react-three/fiber';
 import { PerfFlags } from '../perf/PerfFlags';
 
 export function CanvasResizeHandler() {
-  const { camera } = useThree();
+  const { camera, size, gl, invalidate } = useThree();
 
   useEffect(() => {
     const sceneShell = document.querySelector('.scene-shell') as HTMLElement;
@@ -80,11 +80,25 @@ export function CanvasResizeHandler() {
               timestamp: Date.now()
             });
             
-            // Attempt to fix canvas sizing immediately on mobile Safari
+            // Mobile Safari: Retry resize via proper R3F renderer path (no direct CSS manipulation)
             if (PerfFlags.isMobile && width > 0 && height > 0) {
-              console.log('🔧 Attempting to fix canvas size using fallback dimensions');
-              canvas.style.width = `${width}px`;
-              canvas.style.height = `${height}px`;
+              console.log('📱 iOS Safari: Scheduling renderer resize retry via R3F (no direct CSS)');
+              
+              // Schedule resize retry on next animation frame using R3F's resize mechanism
+              requestAnimationFrame(() => {
+                const container = canvas.parentElement;
+                if (container) {
+                  const containerRect = container.getBoundingClientRect();
+                  if (containerRect.width > 0 && containerRect.height > 0) {
+                    console.log(`🔄 iOS Safari: Triggering R3F resize to ${containerRect.width}x${containerRect.height}`);
+                    
+                    // Trigger R3F's resize mechanism by dispatching a resize event
+                    // This will call setSize internally with proper DPR handling
+                    window.dispatchEvent(new Event('resize'));
+                    invalidate(); // Force a frame render
+                  }
+                }
+              });
             }
             
             zeroSizeCount = 0; // Reset counter after logging
