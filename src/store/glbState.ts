@@ -599,7 +599,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
     // Unit-specific camera positioning override map
     const unitSpecificAngles: Record<string, { side: 'west' | 'north' | 'south' | 'east', heightMultiplier?: number }> = {
       // Fifth Street Building - West side units
-      'F-35': { side: 'west', heightMultiplier: 1.3 },
+      'F-35': { side: 'west', heightMultiplier: 1.8 },
       'F-170': { side: 'west' },
       'F-250': { side: 'west' },
       'F-290': { side: 'west' },
