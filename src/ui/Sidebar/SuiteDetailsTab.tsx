@@ -32,31 +32,69 @@ declare global {
 
 // Helper component to render PDF or Image floorplan
 function FloorplanPreview({ url, title, label, onShare }: { url: string, title: string, label: string, onShare: () => void }) {
+  const [isValid, setIsValid] = useState<boolean | null>(null);
   const isPdf = url.toLowerCase().endsWith('.pdf');
+
+  useEffect(() => {
+    let active = true;
+    setIsValid(null);
+
+    // Head request to verify content type and existence (prevents loading index.html/app recursively on 404)
+    fetch(url, { method: 'HEAD' })
+      .then(res => {
+        if (!active) return;
+        const type = res.headers.get('content-type');
+        if (res.ok && type && (type.includes('pdf') || type.includes('image'))) {
+          setIsValid(true);
+        } else {
+          console.warn(`Floorplan load failed or invalid type for ${url}: ${type}`);
+          setIsValid(false);
+        }
+      })
+      .catch(() => {
+        if (active) setIsValid(false);
+      });
+
+    return () => { active = false; };
+  }, [url]);
 
   const handleOpen = () => {
     window.open(url, '_blank');
   };
 
+  if (isValid === false) {
+    return (
+      <div className="space-y-2">
+        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+          <FileText size={32} className="mb-2 opacity-50" />
+          <span className="text-xs">Preview unavailable</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (isValid === null) {
+    return (
+      <div className="space-y-2">
+        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] flex items-center justify-center animate-pulse">
+          <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-black animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
   if (isPdf) {
     return (
       <div className="space-y-2">
         <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all">
-          {/* Use Object for PDF embedding as it is often more reliable than embed for this use case */}
           <object data={`${url}#view=Fit&toolbar=0&navpanes=0&scrollbar=0`} type="application/pdf" className="w-full h-full cursor-pointer pointer-events-none">
-            {/* Fallback to icon if PDF fails to load in object */}
+            {/* Fallback */}
             <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 text-red-500">
               <FileText size={48} />
               <p className="text-xs font-medium mt-2">Preview Unavailable</p>
             </div>
           </object>
 
-          {/* Overlay to allow clicking the whole area to open? 
-               Actually, pointer-events-none on object allows clicks to pass through to a wrapper if we want.
-               But users might want to scroll the PDF. 
-               The user asked for "preview", implies seeing it.
-               Let's enable pointer events but keep a "Open New Tab" overlay.
-           */}
           <a
             href={`${url}#view=Fit`}
             target="_blank"
