@@ -63,6 +63,7 @@ import { WebGLContextRecovery } from './components/WebGLContextRecovery';
 import { log as debugLog, SAFE, Q } from './lib/debug';
 import { UNIT_CAMERA_CONFIG } from './config/cameraConfig';
 import { MobileDiagnostics } from './debug/mobileDiagnostics';
+import { TextureDebugger } from './debug/TextureDebugger';
 
 
 // Component to capture scene and gl refs + setup safety
@@ -1409,6 +1410,7 @@ function App() {
 
                         {/* Capture scene and gl for external callbacks */}
                         <SceneCapture sceneRef={sceneRef} glRef={glRef} />
+                        <TextureDebugger />
 
                         {/* 3D Scene - Testing Single Environment Mesh */}
                         <SingleEnvironmentMesh tier={renderTier} />

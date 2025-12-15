@@ -337,6 +337,11 @@ export const GLBManager: React.FC = () => {
   const nodesToRender = useMemo(() => {
     const allNodes = Array.from(glbNodes.values());
     console.log(`📦 GLBManager: Registered ${allNodes.length} units (Lazy Loading Enabled)`);
+    if (allNodes.length === 0) {
+      console.warn('⚠️ GLBManager: No units registered! Check initialization timing.');
+    } else {
+      console.log(`✅ GLBManager: First unit: ${allNodes[0]?.key}`);
+    }
     return allNodes;
   }, [glbNodes]);
 

@@ -125,6 +125,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
     const nodes = new Map<string, GLBNodeInfo>();
     let total = 0;
 
+    console.log('🚀 initializeGLBNodes: Starting initialization...');
+
     Object.entries(GLB_STRUCTURE).forEach(([building, floors]) => {
       Object.entries(floors).forEach(([floor, units]) => {
         units.forEach(unit => {
@@ -143,6 +145,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
           }
 
 
+          // console.log(`🔹 Init unit node: ${key}`);
+
           nodes.set(key, {
             key,
             building,
@@ -159,6 +163,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
       });
     });
 
+    console.log(`✅ initializeGLBNodes: Completed with ${total} units derived from structure.`);
     set({ glbNodes: nodes, totalCount: total, loadedCount: 0 });
   },
 

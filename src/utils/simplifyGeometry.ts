@@ -4,27 +4,27 @@ import * as THREE from 'three';
 export function downscaleTexturesForMobile(material: THREE.Material, maxSize = 256): void {
   const processTexture = (texture: THREE.Texture | null, name: string) => {
     if (!texture || !texture.image) return;
-    
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     const img = texture.image;
     const originalWidth = img.width || img.videoWidth || 512;
     const originalHeight = img.height || img.videoHeight || 512;
-    
+
     // Calculate new size while maintaining aspect ratio
     const scale = Math.min(maxSize / originalWidth, maxSize / originalHeight, 1);
     const newWidth = Math.floor(originalWidth * scale);
     const newHeight = Math.floor(originalHeight * scale);
-    
+
     if (newWidth < originalWidth || newHeight < originalHeight) {
       canvas.width = newWidth;
       canvas.height = newHeight;
-      
+
       try {
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
-        
+
         // Create new texture from downscaled canvas
         const newTexture = new THREE.CanvasTexture(canvas);
         newTexture.format = texture.format;
@@ -34,22 +34,22 @@ export function downscaleTexturesForMobile(material: THREE.Material, maxSize = 2
         newTexture.magFilter = texture.magFilter;
         newTexture.minFilter = texture.minFilter;
         newTexture.anisotropy = Math.min(texture.anisotropy, 2); // Reduce anisotropy
-        
+
         // Dispose original texture
         texture.dispose();
-        
+
         console.log(`📉 Downscaled ${name}: ${originalWidth}x${originalHeight} → ${newWidth}x${newHeight}`);
-        
+
         return newTexture;
       } catch (error) {
         console.warn(`⚠️ Failed to downscale ${name}:`, error);
         return texture;
       }
     }
-    
+
     return texture;
   };
-  
+
   if ((material as any).map) {
     (material as any).map = processTexture((material as any).map, 'diffuse map');
   }
@@ -68,7 +68,7 @@ export function downscaleTexturesForMobile(material: THREE.Material, maxSize = 2
   if ((material as any).aoMap) {
     (material as any).aoMap = processTexture((material as any).aoMap, 'AO map');
   }
-  
+
   material.needsUpdate = true;
 }
 
@@ -77,7 +77,7 @@ export function simplifyGeometryForMobile(geometry: THREE.BufferGeometry, target
   // TODO: Implement proper mesh decimation algorithm (Quadric Edge Collapse)
   console.log('⚠️ Geometry simplification disabled - use texture reduction instead');
   return geometry;
-  
+
   /* BROKEN CODE - DO NOT USE
   const vertexCount = geometry.attributes.position.count;
   
@@ -176,7 +176,7 @@ export function simplifyGeometryForMobile(geometry: THREE.BufferGeometry, target
 export function shouldSimplifyMesh(mesh: THREE.Mesh, isMobile: boolean): boolean {
   // DISABLED: Geometry simplification causes visual artifacts
   return false;
-  
+
   /* ORIGINAL CODE - DISABLED
   if (!isMobile) return false;
   
@@ -192,49 +192,50 @@ export function shouldSimplifyMesh(mesh: THREE.Mesh, isMobile: boolean): boolean
 // Apply comprehensive mobile optimizations to a mesh
 export function optimizeMeshForMobile(mesh: THREE.Mesh): void {
   console.log(`🔧 Optimizing mesh for mobile: ${mesh.name || 'unnamed'}`);
-  
+
   // Disable shadows
   mesh.castShadow = false;
   mesh.receiveShadow = false;
-  
+
   // DISABLED: Geometry simplification - causes crashes and artifacts
   // Mobile optimization now relies on:
   // - Texture downscaling (256px)
   // - Material property removal
   // - Shadow disabling
   console.log(`📦 Preserving original geometry for ${mesh.name} (texture-only optimization)`);
-  
+
   // Optimize materials (KEEP THIS - textures are safe to reduce)
   if (mesh.material) {
     const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     materials.forEach((material) => {
       // Downscale textures to 256px (PRIMARY mobile optimization)
-      downscaleTexturesForMobile(material, 256);
-      
+      // DISABLED: Causing texture corruption and "white/black overlay" bugs
+      // downscaleTexturesForMobile(material, 256);
+
       // Keep normal/roughness/metalness maps - only downscaled, not removed
       // Removing them causes visual quality loss
-      
+
       // Reduce environment reflection intensity
-      if ((material as any).envMapIntensity !== undefined) {
-        (material as any).envMapIntensity = 0.3;
-      }
-      
+      // if ((material as any).envMapIntensity !== undefined) {
+      //   (material as any).envMapIntensity = 0.3;
+      // }
+
       material.needsUpdate = true;
     });
   }
-  
+
   // Dispose of unused geometry attributes to save memory
   if (mesh.geometry) {
     // Remove tangent attributes if present (not needed without normal maps)
     if (mesh.geometry.attributes.tangent) {
       mesh.geometry.deleteAttribute('tangent');
     }
-    
+
     // Remove secondary UV channels if present
     if (mesh.geometry.attributes.uv2) {
       mesh.geometry.deleteAttribute('uv2');
     }
-    
+
     // Remove vertex colors if present and not needed
     if (mesh.geometry.attributes.color && !mesh.material) {
       mesh.geometry.deleteAttribute('color');
