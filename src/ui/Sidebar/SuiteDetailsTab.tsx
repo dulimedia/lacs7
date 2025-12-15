@@ -227,7 +227,31 @@ export function SuiteDetailsTab() {
     secondaryFloorplanUrl = null;
   }
 
-  const tourUrl = displayUnit?.tour_3d_url;
+  // Matterport URL mapping for specific units
+  const getMatterportUrl = (unitName: string): string | null => {
+    const mappings: { [key: string]: string } = {
+      'T-1200': 'https://my.matterport.com/show/?m=ZsNhx82axda',
+      'T-300': 'https://my.matterport.com/show/?m=k8A8Lhb3dAY',
+      'T-200': 'https://my.matterport.com/show/?m=71W3fTvAmFU',
+      'T-310': 'https://my.matterport.com/show/?m=5vkydpxwnE5',
+      'T-550': 'https://my.matterport.com/show/?m=VdQhoZ2MqBL',
+      'M-150': 'https://my.matterport.com/show/?m=KQHM8B5bqAc',
+      'M-340': 'https://my.matterport.com/show/?m=Cv6hmDmgNHV',
+      'M-345': 'https://my.matterport.com/show/?m=r86nwbqsKJ6',
+      'M-240': 'https://my.matterport.com/show/?m=QLuCzvmoJ2V',
+      'F-280': 'https://my.matterport.com/show/?m=3vDW6DRofBF',
+      'F-240': 'https://my.matterport.com/show/?m=vQziShGJYmn',
+      'F-250': 'https://my.matterport.com/show/?m=EqsrBxBQrLE',
+      'F-360': 'https://my.matterport.com/show/?m=HAhMMXMwxry',
+      'F-380': 'https://my.matterport.com/show/?m=NWmSEQ1ozGf',
+      'F-175': 'https://my.matterport.com/show/?m=YjynxrdQ36k',
+      'F-365': 'https://my.matterport.com/show/?m=XThnDcJSZf5'
+    };
+    
+    return mappings[unitName.toUpperCase()] || null;
+  };
+
+  const tourUrl = displayUnit?.tour_3d_url || getMatterportUrl(displayUnit?.unit_name || '');
 
   // Helper to open floorplan in a custom new tab with Download button
   const openFloorplanInNewTab = (url: string, title: string) => {
@@ -462,14 +486,14 @@ export function SuiteDetailsTab() {
         {/* --- Media Buttons & Previews --- */}
         <div className="space-y-4 pt-2">
 
-          {/* 3D Tour Button */}
+          {/* 3D Tour Button - positioned above floorplans */}
           {tourUrl && (
             <button
               onClick={handleTourClick}
               className="w-full flex items-center justify-center gap-2 p-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-sm"
             >
               <Maximize2 size={16} />
-              <span>Launch 3D Virtual Tour</span>
+              <span>3D Tour</span>
             </button>
           )}
 
