@@ -192,15 +192,16 @@ const UnitRequestForm = ({ isOpen, onClose }) => {
     
     const selectedUnitsList = Array.from(selectedUnits).sort();
     
-    // SIMPLIFIED: All emails go to main address for now
-    const recipientEmail = 'lacenterstudios3d@gmail.com';
+    // Get contact emails from CSV or use defaults
+    const primaryEmail = 'lacenterstudios3d@gmail.com';
+    const secondaryEmail = 'dwyatt@lacenterstudios.com';
     
-    console.log('📧 DEBUG: All emails will be sent to:', recipientEmail);
+    console.log('📧 DEBUG: Emails will be sent to primary:', primaryEmail, 'and secondary:', secondaryEmail);
     console.log('🔍 DEBUG: Selected units list:', selectedUnitsList);
     
     // Format the email data
     const emailData = {
-      to: recipientEmail, // Use unit-specific email from CSV
+      to: primaryEmail, // Use primary email
       subject: `Unit Inquiry - ${senderName}`,
       body: `
 New Unit Inquiry
@@ -222,7 +223,7 @@ Sent from LA Center Unit Request System
 
     // EmailJS Integration - Send actual emails directly
     try {
-      console.log('📧 Starting direct email send to:', recipientEmail);
+      console.log('📧 Starting direct email send to primary:', primaryEmail);
       console.log('🔧 Form data:', { senderName, senderEmail, senderPhone, selectedUnits: selectedUnitsList.length });
       
       // Ensure all required fields are filled
@@ -248,25 +249,45 @@ Sent from LA Center Unit Request System
         console.log('✅ EmailJS initialized');
       }
 
-      // Prepare template parameters
+      // Prepare template parameters for primary email
       const templateParams = {
         from_name: senderName,
         from_email: senderEmail,
         phone: senderPhone || 'Not provided',
         message: message || 'No additional message',
         selected_units: selectedUnitsList.map(unit => `• ${unit}`).join('\n'),
-        to_email: recipientEmail,
+        to_email: primaryEmail,
         reply_to: senderEmail
       };
       
-      console.log('📧 Sending email with template params:', templateParams);
+      console.log('📧 Sending email with template params to primary:', templateParams);
 
-      // Send email using EmailJS
+      // Send to primary email
       const response = await window.emailjs.send(
         'service_q47lbr7', // Your service ID
         'template_0zeil8m', // Your template ID
         templateParams
       );
+
+      console.log('✅ Primary email sent successfully!');
+
+      // Send to secondary email (dwyatt@lacenterstudios.com)
+      if (secondaryEmail && secondaryEmail !== primaryEmail) {
+        const secondaryParams = {
+          ...templateParams,
+          to_email: secondaryEmail
+        };
+
+        console.log('📧 Sending email to secondary:', secondaryParams);
+
+        await window.emailjs.send(
+          'service_q47lbr7', // Your service ID
+          'template_0zeil8m', // Your template ID
+          secondaryParams
+        );
+
+        console.log('✅ Secondary email sent successfully!');
+      }
 
       console.log('✅ Email sent successfully via EmailJS:', response);
       

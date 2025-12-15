@@ -8,6 +8,8 @@ export const PerfFlags = (() => {
   const isMobileUA = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent);
   const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
   const isSafari = /Safari/.test(userAgent) && !/Chrome|CriOS|FxiOS/.test(userAgent);
+  const isFirefox = /Firefox|FxiOS/i.test(userAgent);
+  const isFirefoxMobile = isFirefox && isMobileUA;
   const isSafariIOS = isIOS && isSafari;
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
   const isNarrowViewport = window.innerWidth < 768;
@@ -21,6 +23,8 @@ export const PerfFlags = (() => {
     isIOS,
     isSafari,
     isSafariIOS,
+    isFirefox,
+    isFirefoxMobile,
     isMobile,
     tier,
     userAgent: userAgent.substring(0, 80),
@@ -44,6 +48,8 @@ export const PerfFlags = (() => {
     isIOS,
     isSafari,
     isSafariIOS,
+    isFirefox,
+    isFirefoxMobile,
     isTouch: isTouchDevice,
 
     DPR_MAX: isLow ? 1.25 : isBalanced ? 1.3 : 1.5,

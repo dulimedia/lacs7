@@ -45,8 +45,8 @@ export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
   }, []);
 
   // Use ultra-low-res HDRI on mobile, full HDRI on desktop
-  if (PerfFlags.isMobile && PerfFlags.isIOS) {
-    // iOS Safari - use solid color background to prevent context loss
+  if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
+    // iOS Safari - use solid color background to prevent context loss (preserve existing behavior)
     return (
       <>
         <color attach="background" args={['#87CEEB']} />
@@ -60,8 +60,26 @@ export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
     );
   }
 
+  if (PerfFlags.isMobile && PerfFlags.isFirefoxMobile) {
+    // Firefox mobile - use full HDRI with reduced resolution to fix texture issues
+    return (
+      <Environment
+        files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
+        background={true}
+        backgroundIntensity={backgroundIntensity * 0.8}
+        environmentIntensity={environmentIntensity * 0.9}
+        resolution={512} // Lower resolution for Firefox mobile
+        onLoad={() => console.log('✅ Firefox mobile HDRI loaded')}
+        onError={(error) => {
+          console.error('❌ HDRI failed on Firefox mobile, falling back to gradient:', error);
+          // Fallback handled by error boundary
+        }}
+      />
+    );
+  }
+
   if (PerfFlags.isMobile) {
-    // Android mobile - use tiny gradient texture
+    // Other mobile browsers - use tiny gradient texture
     return (
       <>
         {gradientTexture && <primitive attach="background" object={gradientTexture} />}

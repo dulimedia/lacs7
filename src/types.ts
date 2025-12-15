@@ -16,8 +16,6 @@ export interface UnitData {
   area_sqft?: number; // Square footage
   status: boolean; // Availability status as boolean
   unit_type: string; // Suite, Stage, etc.
-  kitchen_size?: string; // Kitchen size (Legacy display string)
-  height?: string; // Max height for stages and other units
   private_offices?: number; // Number of individual closed-door offices
 
   // New Normalized Fields
@@ -29,6 +27,10 @@ export interface UnitData {
   floorplan_url?: string; // Primary suite floorplan (was floorPlanUrl)
   full_floor_floorplan_url?: string; // Secondary full floor floorplan
   tour_3d_url?: string; // Matterport/3D tour URL
+
+  // CONTACT EMAILS
+  contact_email_id?: string; // Primary contact email for requests
+  secondary_email?: string; // Secondary contact email (dwyatt@lacenterstudios.com)
 
   // Legacy fields (optional/deprecated)
   plug_and_play?: boolean;

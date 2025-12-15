@@ -85,7 +85,7 @@ class CsvDataCache {
                 // Updated for new CSV format: "Unit Name" instead of "Product"
                 // CSV Header: Product,Available,Size,Amenities,Suite_Floorplan_Url,Building,Floor,Unit_Type,Kitchen_Size,Height,Is_Production_Office,Has_Kitchen,Full_Floor_Floorplan_Url,Tour_3D_Url
 
-                const unitName = (row.Product || row['Unit Name'])?.trim();
+                const unitName = (row.Product || row['Unit Name'] || row.Unit)?.trim();
                 const unitNameLower = unitName?.toLowerCase();
 
                 if (unitName) {
@@ -109,8 +109,6 @@ class CsvDataCache {
                     floor: row.Floor || '',
                     status: isAvailable,
                     unit_type: row.Unit_Type || row.Type || 'Commercial',
-                    kitchen_size: row.Kitchen_Size || 'None',
-                    height: row.Height || '',
                     amenities: row.Amenities || 'Central Air',
 
                     // Parsed Number Fields
@@ -122,7 +120,12 @@ class CsvDataCache {
                     })(),
 
                     private_offices: (() => {
-                      // Attempt to parse if column exists (optional)
+                      // Parse private offices count from new CSV format
+                      const rawOffices = row.Private_Offices || row['Private Offices'];
+                      if (rawOffices !== undefined && rawOffices !== '') {
+                        const parsed = parseInt(String(rawOffices));
+                        return parsed >= 0 ? parsed : undefined;
+                      }
                       return undefined;
                     })(),
 
@@ -134,6 +137,10 @@ class CsvDataCache {
                     floorplan_url: floorplanUrl,
                     full_floor_floorplan_url: row.Full_Floor_Floorplan_Url || undefined,
                     tour_3d_url: row.Tour_3D_Url || undefined,
+
+                    // CONTACT EMAILS
+                    contact_email_id: row.Contact_Email_ID || row['Contact Email ID'] || 'lacenterstudios3d@gmail.com',
+                    secondary_email: row.Secondary_Email || 'dwyatt@lacenterstudios.com',
 
                     // Legacy Support
                     plug_and_play: (String(row.Is_Production_Office).toUpperCase() === 'TRUE') || ['T-700', 'T-200'].includes(unitName),

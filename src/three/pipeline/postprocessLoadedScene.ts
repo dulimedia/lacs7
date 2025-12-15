@@ -68,7 +68,7 @@ export function postprocessLoadedScene(
                 ].forEach((map) => {
                     if (map) {
                         map.anisotropy = RendererConfig.materials.anisotropy;
-                        // map.colorSpace = THREE.SRGBColorSpace; // GLTFLoader usually handles this, but good to verify
+                        map.colorSpace = THREE.SRGBColorSpace; // Ensure correct color space for all browsers including Firefox mobile
                     }
                 });
 

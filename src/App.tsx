@@ -405,6 +405,9 @@ function App() {
     MobileDiagnostics.log('scene', 'Scene policy resolved', { param, enabled, reason, isMobile: PerfFlags.isMobile });
     return { enabled, reason, param };
   });
+  
+  // Deep link handling for unit selection
+  const [deepLinkHandled, setDeepLinkHandled] = useState(false);
   const { enabled: sceneEnabled, reason: sceneDisableReason, param: sceneParam } = scenePolicy;
   const { selectedUnit, hoveredUnit, setSelectedUnit, setHoveredUnit } = useUnitStore();
 
@@ -726,6 +729,41 @@ function App() {
 
   // Use new CSV-based data fetching
   const { data: csvUnitData, loading: isUnitDataLoading, error } = useCsvUnitData(CSV_URL);
+
+  // Deep link handling - select unit from URL parameter
+  useEffect(() => {
+    if (!deepLinkHandled && csvUnitData && Object.keys(csvUnitData).length > 0 && !isUnitDataLoading) {
+      const selectedUnitParam = Q.get('sel');
+      if (selectedUnitParam) {
+        console.log('🔗 Processing deep link for unit:', selectedUnitParam);
+        
+        // Find unit in CSV data
+        const unitKey = selectedUnitParam.toLowerCase();
+        const unitData = csvUnitData[unitKey];
+        
+        if (unitData) {
+          console.log('✅ Deep link unit found:', unitData);
+          
+          // Set the unit as selected in the explore state
+          // Use the explore state's selection function instead
+          const exploreSetSelected = useExploreState.getState().setSelected;
+          exploreSetSelected(selectedUnitParam);
+          setDrawerOpen(true);
+          setUnitDetailsOpen(true);
+          
+          // Wait a bit then mark as handled
+          setTimeout(() => {
+            setDeepLinkHandled(true);
+          }, 1000);
+        } else {
+          console.warn('⚠️ Deep link unit not found:', selectedUnitParam);
+          setDeepLinkHandled(true);
+        }
+      } else {
+        setDeepLinkHandled(true);
+      }
+    }
+  }, [csvUnitData, isUnitDataLoading, deepLinkHandled, setDrawerOpen, setUnitDetailsOpen]);
 
   // Initialize viewer and emit ready event when models are loaded
   useEffect(() => {

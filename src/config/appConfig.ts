@@ -6,7 +6,7 @@
 // If set to null, it will fallback to window.location.origin (the current browser URL).
 export const APP_CONFIG = {
     // Set to the client's embedding URL:
-    shareBaseUrl: 'https://lacenterstudios.com/offices-embed/',
+    shareBaseUrl: 'https://lacenterstudios.com/office-space/',
 
     // Alternative: 'https://lacscampus26.vercel.app/'
     // Alternative: null (uses current window URL)

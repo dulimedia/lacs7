@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { X, Send, CheckCircle } from 'lucide-react';
 import { detectDevice } from '../utils/deviceDetection';
+import { useCsvUnitData } from '../hooks/useCsvUnitData';
+import { assetUrl } from '../lib/assets';
 
 interface SingleUnitRequestFormProps {
   isOpen: boolean;
@@ -15,6 +17,10 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
   unitKey,
   unitName
 }) => {
+  // Get unit data from merged CSV
+  const CSV_URL = assetUrl('unit-data.csv');
+  const { data: csvUnitData } = useCsvUnitData(CSV_URL);
+  const unitData = csvUnitData[unitKey.toLowerCase()];
 
   const [formData, setFormData] = useState({
     name: '',
@@ -54,8 +60,9 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
 
     setIsSubmitting(true);
 
-    // ALWAYS send to lacenterstudios3d@gmail.com as requested
-    const recipientEmail = 'lacenterstudios3d@gmail.com';
+    // Get contact emails from CSV or fallback to defaults
+    const primaryEmail = unitData?.contact_email_id || 'lacenterstudios3d@gmail.com';
+    const secondaryEmail = unitData?.secondary_email || 'dwyatt@lacenterstudios.com';
 
     try {
       console.log('🔄 Starting EmailJS send process for single unit...');
@@ -89,25 +96,45 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
         console.log('✅ EmailJS already loaded and available');
       }
 
-      // Prepare template parameters
+      // Prepare template parameters for primary email
       const templateParams = {
         from_name: formData.name,
         from_email: formData.email,
         phone: formData.phone || 'Not provided',
         message: formData.message || 'No additional message',
         selected_units: `• ${unitName} (Single Unit Request)`,
-        to_email: recipientEmail,
+        to_email: primaryEmail,
         reply_to: formData.email
       };
 
-      console.log('📧 Attempting to send email with:', templateParams);
+      console.log('📧 Attempting to send email to primary:', templateParams);
 
-      // Send email using EmailJS
+      // Send to primary email
       await window.emailjs.send(
         'service_q47lbr7', // Service ID
         'template_0zeil8m', // Template ID
         templateParams
       );
+
+      console.log('✅ Primary email sent successfully!');
+
+      // Send to secondary email (dwyatt@lacenterstudios.com)
+      if (secondaryEmail && secondaryEmail !== primaryEmail) {
+        const secondaryParams = {
+          ...templateParams,
+          to_email: secondaryEmail
+        };
+
+        console.log('📧 Attempting to send email to secondary:', secondaryParams);
+
+        await window.emailjs.send(
+          'service_q47lbr7', // Service ID
+          'template_0zeil8m', // Template ID
+          secondaryParams
+        );
+
+        console.log('✅ Secondary email sent successfully!');
+      }
 
       console.log('✅ Email sent successfully via EmailJS!');
 
