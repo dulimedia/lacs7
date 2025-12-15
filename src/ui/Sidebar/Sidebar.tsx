@@ -34,16 +34,16 @@ export default function Sidebar() {
     setExploreHovered(null);
     setGlobalSelectedUnit(null);
     setGlobalHoveredUnit(null);
-
+    
     // Reset camera to home position like home button
     if (cameraControlsRef?.current) {
       cameraControlsRef.current.reset(true); // smooth animation
     }
-
+    
     // Clear GLB selection and reset camera animation state
     clearSelection();
     resetCameraAnimation();
-
+    
     setView('explore');
     setFloorPlanExpanded(false);
   };
@@ -64,7 +64,7 @@ export default function Sidebar() {
 
       <aside
         ref={asideRef}
-        className={cn('sidebar flex flex-col', floorPlanExpanded && 'floorplan-expanded')}
+        className={cn('sidebar', floorPlanExpanded && 'floorplan-expanded')}
         role="complementary"
         aria-label="Suite Controls"
       >
@@ -74,10 +74,10 @@ export default function Sidebar() {
               onClick={handleBackToExplore}
               className={cn(
                 "flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition",
-                isMobile ? "px-2 py-1.5 text-sm min-h-[36px]" : "text-sm"
+                isMobile ? "px-2 py-2 text-base min-h-[44px]" : "text-sm"
               )}
             >
-              <ChevronLeft size={isMobile ? 18 : 16} />
+              <ChevronLeft size={isMobile ? 20 : 16} />
               <span>Back to Explore</span>
             </button>
           ) : (
@@ -88,7 +88,7 @@ export default function Sidebar() {
               <button
                 className={cn(
                   'flex-1 rounded-lg font-medium transition',
-                  isMobile ? 'px-3 py-2 text-sm min-h-[40px]' : 'px-3 py-1.5 text-sm',
+                  isMobile ? 'px-4 py-3 text-base min-h-[48px]' : 'px-3 py-1.5 text-sm',
                   tab === 'explore' ? 'bg-white shadow' : 'opacity-70 hover:opacity-100'
                 )}
                 onClick={() => {
@@ -101,7 +101,7 @@ export default function Sidebar() {
               <button
                 className={cn(
                   'flex-1 rounded-lg font-medium transition',
-                  isMobile ? 'px-3 py-2 text-sm min-h-[40px]' : 'px-3 py-1.5 text-sm',
+                  isMobile ? 'px-4 py-3 text-base min-h-[48px]' : 'px-3 py-1.5 text-sm',
                   tab === 'request' ? 'bg-white shadow' : 'opacity-70 hover:opacity-100'
                 )}
                 onClick={() => {
@@ -115,7 +115,7 @@ export default function Sidebar() {
           )}
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden relative mt-3">
+        <div className="h-[calc(100%-80px)] overflow-hidden relative mt-3">
           <div
             className="absolute inset-0 transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)]"
             style={{
