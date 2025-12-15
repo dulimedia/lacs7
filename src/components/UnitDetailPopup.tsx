@@ -9,10 +9,10 @@ interface UnitDetailPopupProps {
   onClose: () => void;
 }
 
-const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({ 
-  selectedUnit, 
+const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
+  selectedUnit,
   unitData,
-  onClose 
+  onClose
 }) => {
   const [imageError, setImageError] = useState<string | null>(null);
   const [useIframe, setUseIframe] = useState(false);
@@ -20,11 +20,11 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [startPanPosition, setStartPanPosition] = useState({ x: 0, y: 0 });
-  
+
   if (!selectedUnit) return null;
-  
+
   const data = unitData[selectedUnit];
-  
+
   // Use floorPlanUrl from unit data if available, otherwise use default mapping
   const getFloorPlanUrl = (unitName: string, unitData: UnitData): string => {
     // First check if unit data has a specific floorPlanUrl from CSV (Column E)
@@ -32,7 +32,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
       console.log(`📋 Using floorplan from CSV Column E for ${unitName}:`, unitData.floorPlanUrl);
       return unitData.floorPlanUrl;
     }
-    
+
     // Legacy fallback: Special cases for units with specific floorplans
     // This will be removed once Column E is populated in the spreadsheet
     if (unitName.toLowerCase() === 'b1' || unitName.toLowerCase() === 'c13') {
@@ -40,15 +40,15 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
       console.log(`📋 Using legacy Google Drive URL for ${unitName} (add to Column E to override):`, googleDriveUrl);
       return googleDriveUrl;
     }
-    
+
     // Default naming convention for other units (will show "not available" placeholder)
     const defaultUrl = `/floorplans/${unitName.toLowerCase()}.png`;
     console.log(`📋 Using default local path for ${unitName} (add URL to Column E for floorplan):`, defaultUrl);
     return defaultUrl;
   };
-  
+
   const floorPlanUrl = getFloorPlanUrl(selectedUnit, data);
-  
+
   // Convert Google Drive uc URL to iframe URL if needed
   const getIframeUrl = (url: string): string => {
     const match = url.match(/\/uc\?export=view&id=([a-zA-Z0-9_-]+)/);
@@ -61,10 +61,10 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
     const url = target.src;
-    
+
     console.error(`🖼️ Image failed to load for ${selectedUnit}:`, url);
     console.error('Error details:', e);
-    
+
     // Check if this is a Google Drive URL
     if (url.includes('drive.google.com/uc')) {
       console.log('🔄 Google Drive direct image failed, trying iframe approach...');
@@ -72,7 +72,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
       setUseIframe(true);
       return; // Don't set fallback image yet
     }
-    
+
     // For other URLs, set the fallback
     setImageError(`Failed to load: ${url}`);
     target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlmYTZiNyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkZsb29yIFBsYW4gTm90IEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
@@ -101,7 +101,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('unit', selectedUnit);
     const shareUrl = currentUrl.toString();
-    
+
     try {
       if (navigator.share) {
         // Use native share API if available (mobile)
@@ -148,16 +148,16 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isPanning) return;
-    
+
     // Calculate new position with limits to prevent dragging too far
     const newX = e.clientX - startPanPosition.x;
     const newY = e.clientY - startPanPosition.y;
-    
+
     // Limit pan distance to prevent image from being dragged completely out of view
     const maxPan = 300; // pixels
     const limitedX = Math.max(-maxPan, Math.min(maxPan, newX));
     const limitedY = Math.max(-maxPan, Math.min(maxPan, newY));
-    
+
     setPanOffset({
       x: limitedX,
       y: limitedY
@@ -188,7 +188,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
         transition={{ duration: 0.3, ease: "easeInOut" }}
         onClick={onClose}
       />
-      
+
       {/* Popup Content - In front of dimming */}
       <motion.div
         key="popup-container"
@@ -205,26 +205,26 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
                      overflow-hidden flex flex-col
                      border border-white border-opacity-60 pointer-events-auto"
           style={{ userSelect: 'none' }} // Prevent text selection
-          initial={{ 
-            scale: 0.8, 
-            opacity: 0, 
+          initial={{
+            scale: 0.8,
+            opacity: 0,
             x: 100,
             y: 20
           }}
-          animate={{ 
-            scale: 1, 
-            opacity: 1, 
+          animate={{
+            scale: 1,
+            opacity: 1,
             x: 0,
             y: 0
           }}
-          exit={{ 
-            scale: 0.8, 
-            opacity: 0, 
+          exit={{
+            scale: 0.8,
+            opacity: 0,
             x: 100,
             y: 20
           }}
-          transition={{ 
-            duration: 0.4, 
+          transition={{
+            duration: 0.4,
             ease: [0.23, 1, 0.32, 1], // Custom easing for smooth feel
             opacity: { duration: 0.3 }
           }}
@@ -237,7 +237,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
               <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
                 Unit {selectedUnit.toUpperCase()}
               </h2>
-              <motion.button 
+              <motion.button
                 onClick={onClose}
                 className="p-2 rounded-full hover:bg-gray-100 hover:bg-opacity-70 transition-colors duration-200"
                 whileHover={{ scale: 1.1 }}
@@ -248,12 +248,11 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
             </div>
 
             {/* Availability Status */}
-            <motion.div 
-              className={`mb-6 p-4 rounded-lg flex items-center shadow-sm ${
-                isAvailable 
-                  ? 'bg-sage-50 bg-opacity-100 border border-sage-200 border-opacity-90' 
+            <motion.div
+              className={`mb-6 p-4 rounded-lg flex items-center shadow-sm ${isAvailable
+                  ? 'bg-sage-50 bg-opacity-100 border border-sage-200 border-opacity-90'
                   : 'bg-red-50 bg-opacity-100 border border-red-300 border-opacity-90'
-              }`}
+                }`}
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.3 }}
@@ -272,7 +271,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
             </motion.div>
 
             {/* Unit Details */}
-            <motion.div 
+            <motion.div
               className="space-y-4 mb-6"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -296,16 +295,16 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
             </motion.div>
 
             {/* Floor Plan */}
-            <motion.div 
+            <motion.div
               className="mb-6"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.3 }}
             >
               <h3 className="text-lg md:text-xl font-medium text-gray-800 mb-3">Floor Plan</h3>
-              
+
               {/* Floor Plan Container with Scroll Lock */}
-              <div 
+              <div
                 className="border border-gray-200 border-opacity-90 rounded-lg overflow-hidden shadow-sm bg-white bg-opacity-100 relative"
                 style={{ height: '400px' }}
                 onWheel={handleWheel}
@@ -315,23 +314,35 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
                 onMouseLeave={handleMouseUp}
                 onContextMenu={(e) => e.preventDefault()} // Prevent right-click menu
               >
-                <div 
+                <div
                   className="w-full h-full overflow-hidden flex items-center justify-center"
-                  style={{ 
+                  style={{
                     cursor: isPanning ? 'grabbing' : 'grab',
                     userSelect: 'none'
                   }}
                 >
-                  {shouldUseIframe ? (
-                    <div 
-                      style={{ 
-                        width: '100%', 
+                  {floorPlanUrl.toLowerCase().endsWith('.pdf') ? (
+                    <object
+                      data={floorPlanUrl}
+                      type="application/pdf"
+                      className="w-full h-full"
+                      style={{ pointerEvents: 'auto' }}
+                    >
+                      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                        <p>PDF Preview Unavailable</p>
+                        <a href={floorPlanUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">Download PDF</a>
+                      </div>
+                    </object>
+                  ) : shouldUseIframe ? (
+                    <div
+                      style={{
+                        width: '100%',
                         height: '100%',
                         transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
                         transition: isPanning ? 'none' : 'transform 0.2s ease-out'
                       }}
                     >
-                      <iframe 
+                      <iframe
                         src={iframeUrl}
                         title={`Floor plan for Unit ${selectedUnit}`}
                         className="border-0 w-full h-full"
@@ -346,11 +357,11 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
                       />
                     </div>
                   ) : (
-                    <img 
+                    <img
                       src={floorPlanUrl}
                       alt={`Floor plan for Unit ${selectedUnit}`}
                       className="max-w-none h-full object-contain"
-                      style={{ 
+                      style={{
                         transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
                         transformOrigin: 'center center',
                         transition: isPanning ? 'none' : 'transform 0.2s ease-out'
@@ -366,7 +377,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
                 {/* Zoom level indicator */}
                 {/* Removed zoom level indicator */}
               </div>
-              
+
               {/* Controls help text */}
               <div className="mt-2 text-xs text-gray-500">
                 <span>Use bottom zoom controls • Click and drag to pan</span>
@@ -375,7 +386,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
           </div>
 
           {/* Fixed Action Buttons at bottom */}
-          <motion.div 
+          <motion.div
             className="p-6 pt-0 bg-gradient-to-t from-white to-transparent"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -391,7 +402,7 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
                 <Share2 className="w-5 h-5 mr-2" />
                 {shareSuccess ? 'Link Copied!' : 'Share Suite'}
               </motion.button>
-              
+
               <motion.button
                 onClick={onClose}
                 className="flex-1 bg-slate-600 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 shadow-lg"

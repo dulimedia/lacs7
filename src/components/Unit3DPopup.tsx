@@ -21,23 +21,23 @@ export const Unit3DPopup: React.FC<Unit3DPopupProps> = ({
   const [unitData, setUnitData] = useState<any>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  
+
   const { selectedUnitKey, getUnitData } = useExploreState();
-  
+
   useEffect(() => {
     if (!isOpen || !selectedUnitKey) return;
-    
+
     // Get unit data from explore state
     const data = getUnitData(selectedUnitKey);
     setUnitData(data);
-    
+
     // Reset image states
     setImageLoaded(false);
     setImageError(false);
   }, [isOpen, selectedUnitKey, getUnitData]);
-  
+
   if (!isOpen || !unitData || !position) return null;
-  
+
   const getFloorPlanUrl = (unitName: string) => {
     // Use floorplan URL from unit data if available
     if (unitData?.floorplan_url) {
@@ -46,10 +46,10 @@ export const Unit3DPopup: React.FC<Unit3DPopupProps> = ({
     // Fallback to local placeholder
     return `/floorplans/${unitName?.toLowerCase()}.png`;
   };
-  
+
   const floorPlanUrl = getFloorPlanUrl(unitData?.unit_name);
   const isAvailable = unitData?.status === 'Available';
-  
+
   return (
     <AnimatePresence>
       <motion.div
@@ -81,19 +81,30 @@ export const Unit3DPopup: React.FC<Unit3DPopupProps> = ({
               <X size={16} />
             </button>
           </div>
-          
+
           {/* Floor Plan Image */}
           <div className="relative bg-gray-100 h-32">
             {!imageError ? (
-              <img
-                src={floorPlanUrl}
-                alt={`${unitData?.unit_name} floor plan`}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
-                onLoad={() => setImageLoaded(true)}
-                onError={() => setImageError(true)}
-              />
+              floorPlanUrl?.toLowerCase().endsWith('.pdf') ? (
+                <object
+                  data={`${floorPlanUrl}#view=FitH&toolbar=0&navpanes=0&scrollbar=0`}
+                  type="application/pdf"
+                  className="w-full h-full"
+                >
+                  <div className="flex flex-col items-center justify-center h-full bg-gray-50 text-gray-500">
+                    <span className="text-xs font-semibold">PDF Floorplan</span>
+                  </div>
+                </object>
+              ) : (
+                <img
+                  src={floorPlanUrl}
+                  alt={`${unitData?.unit_name} floor plan`}
+                  className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  onLoad={() => setImageLoaded(true)}
+                  onError={() => setImageError(true)}
+                />
+              )
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-200">
                 <div className="text-center">
@@ -102,14 +113,14 @@ export const Unit3DPopup: React.FC<Unit3DPopupProps> = ({
                 </div>
               </div>
             )}
-            
+
             {!imageLoaded && !imageError && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                 <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full" />
               </div>
             )}
           </div>
-          
+
           {/* Details */}
           <div className="p-3 space-y-2 bg-gray-50">
             {unitData?.area_sqft && (
@@ -118,14 +129,14 @@ export const Unit3DPopup: React.FC<Unit3DPopupProps> = ({
                 <span className="font-medium">{unitData.area_sqft.toLocaleString()} sq ft</span>
               </div>
             )}
-            
+
             {unitData?.price_per_sqft && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Price/sqft:</span>
                 <span className="font-medium">${unitData.price_per_sqft}</span>
               </div>
             )}
-            
+
             {unitData?.lease_term && (
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Lease:</span>
@@ -133,7 +144,7 @@ export const Unit3DPopup: React.FC<Unit3DPopupProps> = ({
               </div>
             )}
           </div>
-          
+
           {/* Action Buttons */}
           <div className="p-3 bg-white border-t border-gray-200 flex gap-2">
             <button
@@ -143,7 +154,7 @@ export const Unit3DPopup: React.FC<Unit3DPopupProps> = ({
               <Expand size={14} />
               Expand Details
             </button>
-            
+
             {isAvailable && (
               <button
                 onClick={() => onRequest(selectedUnitKey!)}
