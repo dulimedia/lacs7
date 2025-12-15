@@ -84,6 +84,17 @@ export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
           if (mesh.material) {
             const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
             materials.forEach((mat: any) => {
+              // Fix for specific corrupted material in consolidated GLB
+              if (mat.name === 'MI_MWPalmTree_Bark_01.001') {
+                console.warn('⚠️ Repairing corrupt material:', mat.name);
+                // Strip complex maps that might be causing shader errors
+                if (mat.normalMap) { mat.normalMap.dispose(); mat.normalMap = null; }
+                if (mat.roughnessMap) { mat.roughnessMap.dispose(); mat.roughnessMap = null; }
+                if (mat.metalnessMap) { mat.metalnessMap.dispose(); mat.metalnessMap = null; }
+                if (mat.aoMap) { mat.aoMap.dispose(); mat.aoMap = null; }
+                mat.needsUpdate = true;
+              }
+
               // Texture Resizing (Skipped: User optimized GLB to 2K/1K, runtime resize causing shader errors)
               // optimizeMaterialTextures(mat, 1024);
 
