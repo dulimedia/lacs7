@@ -41,7 +41,7 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
   if (isPdf) {
     return (
       <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-video group-hover:shadow-md transition-all">
+        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all">
           {/* Use Object for PDF embedding as it is often more reliable than embed for this use case */}
           <object data={`${url}#view=Fit&toolbar=0&navpanes=0&scrollbar=0`} type="application/pdf" className="w-full h-full cursor-pointer pointer-events-none">
             {/* Fallback to icon if PDF fails to load in object */}
