@@ -34,7 +34,7 @@ jobs:
       - name: Build
         env:
           NODE_ENV: production
-          VITE_BASE_PATH: /LACSworld6/
+          VITE_BASE_PATH: /lacs7/
         run: npm run build
 
       - name: List build
