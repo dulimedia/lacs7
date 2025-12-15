@@ -190,8 +190,8 @@ function debounce(func: (...args: any[]) => void, delay: number) {
   };
 }
 
-// Use local CSV file as master source
-export function useCsvUnitData(url: string = assetUrl('unit-data.csv')) {
+// Use Google Sheets as master data source
+export function useCsvUnitData(url: string = 'https://docs.google.com/spreadsheets/d/1VLa1fV0mL76Eoh4ZrKJepVcxyqpm6EB6ENhh6SJgxoU/export?format=csv') {
   const [data, setData] = useState<Record<string, UnitData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

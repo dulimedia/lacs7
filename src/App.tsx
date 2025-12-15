@@ -106,7 +106,8 @@ function AdaptivePixelRatio() {
   return null;
 }
 
-const CSV_URL = assetUrl('unit-data.csv');
+// Google Sheets CSV export URL - live data source
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/1VLa1fV0mL76Eoh4ZrKJepVcxyqpm6EB6ENhh6SJgxoU/export?format=csv';
 
 // Legacy HDRI Environment component - kept for fallback but not used by default
 const LegacyHDRIEnvironment = React.memo(() => {
