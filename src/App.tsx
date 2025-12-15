@@ -840,9 +840,10 @@ function App() {
             const glbState = useGLBState.getState();
             glbState.clearSelection();
             
-            // Clear selections to unload units
-            if (setSelectedUnitKey) {
-              setSelectedUnitKey(null);
+            // Clear selections through explore state instead
+            const exploreState = useExploreState.getState();
+            if (exploreState.setSelected) {
+              exploreState.setSelected(null);
             }
             
             // Force garbage collection
@@ -862,7 +863,7 @@ function App() {
         clearInterval(memoryCheckInterval);
       }
     };
-  }, [deviceCapabilities.isMobile, setSelectedUnitKey]);
+  }, [deviceCapabilities.isMobile]);
 
   // DISABLED: Context health monitor was causing "Canvas has existing context" error
   // The webglcontextlost/restored event handlers above are sufficient

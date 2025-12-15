@@ -107,20 +107,20 @@ export const getMobileOptimizedSettings = (device: DeviceCapabilities): MobileRe
   }
 
   // MOBILE SAFE-MODE PRESET
-  // ULTRA-AGGRESSIVE settings to prevent WebGL context loss
+  // Balanced settings for stability vs quality
   const safeModeSettings: MobileRenderingPreset = {
     pixelRatio: 1, // Always 1 on mobile to reduce GPU memory
     antialias: false, // Expensive on mobile
     shadows: false, // Very expensive, major GPU memory consumer
     postProcessing: false, // Can cause context loss
     maxLights: 1, // Single light only to minimize shader complexity
-    textureSize: 256, // Ultra-conservative for stability over quality
+    textureSize: 512, // Better balance of quality vs stability
     modelComplexity: 'low',
     preserveDrawingBuffer: false, // Can cause memory leaks on iOS
     powerPreference: 'low-power', // Prioritize battery/stability over performance
     failIfMajorPerformanceCaveat: false, // Don't fail, just use software rendering if needed
     useSimpleLighting: true, // Use basic ambient + directional, no fancy lighting
-    hdriResolution: 64, // Extremely small HDRI to prevent context loss
+    hdriResolution: 128, // Small but functional HDRI resolution
     disableFog: true, // Fog adds shader complexity
     disableBloom: true, // Post-processing effect
     disableSSAO: true // Post-processing effect
@@ -137,26 +137,24 @@ export const getMobileOptimizedSettings = (device: DeviceCapabilities): MobileRe
     isLowEnd: isLowEndDevice
   });
 
-  // iOS Safari - aggressive settings to prevent context loss
+  // iOS Safari - conservative but functional settings
   if (device.isIOS) {
-    console.log('📱 ULTRA-AGGRESSIVE MOBILE MODE: iOS context loss prevention');
+    console.log('📱 MOBILE SAFE-MODE ACTIVE: iOS optimized settings');
     return {
       ...safeModeSettings,
-      // Even lower for context loss prevention
-      textureSize: isLowEndDevice ? 128 : 256,
-      hdriResolution: 32, // Extremely small to prevent memory issues
-      pixelRatio: 0.75 // Sub-pixel rendering to save memory
+      // Better balance for modern iOS devices
+      textureSize: isLowEndDevice ? 256 : 512,
+      hdriResolution: isLowEndDevice ? 64 : 128
     };
   }
 
-  // Android - slightly less aggressive but still very conservative
+  // Android - similar conservative approach
   if (device.isAndroid) {
     return {
       ...safeModeSettings,
-      textureSize: isLowEndDevice ? 128 : 256,
-      maxLights: 1, // Reduce to 1 for stability
-      hdriResolution: 32,
-      pixelRatio: 0.85
+      textureSize: isLowEndDevice ? 256 : 512,
+      maxLights: 1,
+      hdriResolution: isLowEndDevice ? 64 : 128
     };
   }
 
