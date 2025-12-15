@@ -18,7 +18,7 @@ export function Effects({ tier, enabled = true }: EffectsProps) {
   const isMobileHigh = tier === 'mobile-high';
 
   if (!enabled || !gl || gl.domElement?.isConnected === false) return null;
-  
+
   if (!gl.getContext || gl.isContextLost?.()) {
     console.warn('⚠️ Effects: WebGL context is lost, skipping effects');
     return null;
@@ -28,7 +28,7 @@ export function Effects({ tier, enabled = true }: EffectsProps) {
     console.log('📱 Mobile-low: Post-processing effects DISABLED for performance');
     return null;
   }
-  
+
   if (isMobileHigh) {
     console.log('📱 Mobile-high: Selective post-processing enabled (Bloom + ToneMapping)');
     return (
@@ -44,11 +44,17 @@ export function Effects({ tier, enabled = true }: EffectsProps) {
       </EffectComposer>
     );
   }
-  
+
   console.log('🖥️ Desktop: Full post-processing effects enabled');
 
   return (
-    <EffectComposer multisampling={0} disableNormalPass={true} resolutionScale={0.75}>
+    <EffectComposer multisampling={0} disableNormalPass={false} resolutionScale={0.75}>
+      <N8AO
+        halfRes={aoPreset.halfRes}
+        aoRadius={aoPreset.radius}
+        intensity={aoPreset.intensity}
+        quality={aoPreset.quality}
+      />
       <Bloom
         intensity={0.8}
         luminanceThreshold={0.7}

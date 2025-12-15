@@ -22,7 +22,6 @@ export const RendererConfig = {
         mapSize: PerfFlags.SHADOW_MAP_SIZE,
         bias: PerfFlags.SHADOW_BIAS,
         normalBias: PerfFlags.SHADOW_NORMAL_BIAS,
-        normalBias: PerfFlags.SHADOW_NORMAL_BIAS,
         maxExtent: PerfFlags.SHADOW_MAX_EXTENT,
         margin: PerfFlags.SHADOW_MARGIN,
 

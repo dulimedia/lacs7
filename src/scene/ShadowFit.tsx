@@ -27,45 +27,9 @@ export function useFitDirectionalLightShadow(
 
   useEffect(() => {
     if (!light) return;
-    
+
     light.shadow.mapSize.set(mapSize, mapSize);
     light.shadow.autoUpdate = true;
-    light.shadow.needsUpdate = true;
-  }, [light, mapSize]);
-
-  const tmp = useMemo(
-    () => ({
-      lightView: new THREE.Matrix4(),
-      invLightView: new THREE.Matrix4(),
-      frustumCornersWS: Array.from({ length: 8 }, () => new THREE.Vector3()),
-      frustumCornersLS: Array.from({ length: 8 }, () => new THREE.Vector3()),
-      boxLS: new THREE.Box3(),
-      centerLS: new THREE.Vector3(),
-      tmpV: new THREE.Vector3(),
-    }),
-    []
-  );
-
-  function updateShadowFrustum() {
-    if (!light) return;
-    
-    const dirCam = light.shadow.camera as THREE.OrthographicCamera;
-
-    const near = pCam.near;
-    const far = Math.min(pCam.far, 220);
-    const fov = (pCam.fov * Math.PI) / 180;
-    const aspect = pCam.aspect;
-
-    const nh = Math.tan(fov * 0.5) * near;
-    const nw = nh * aspect;
-    const fh = Math.tan(fov * 0.5) * far;
-    const fw = fh * aspect;
-
-    const camPos = pCam.position.clone();
-    const camDir = new THREE.Vector3(0, 0, -1).applyQuaternion(pCam.quaternion).normalize();
-    const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(pCam.quaternion).normalize();
-    const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(pCam.quaternion).normalize();
-
     const nc = camPos.clone().addScaledVector(camDir, near);
     const fc = camPos.clone().addScaledVector(camDir, far);
 
@@ -86,11 +50,11 @@ export function useFitDirectionalLightShadow(
     const lightPos = light.position.clone();
     const lightTarget = light.target.getWorldPosition(tmp.tmpV);
     const up = new THREE.Vector3(0, 1, 0);
-    
+
     if (!tmp.lightView || typeof tmp.lightView.makeLookAt !== 'function') {
       return;
     }
-    
+
     tmp.lightView.makeLookAt(lightPos, lightTarget, up).invert();
 
     tmp.boxLS.makeEmpty();
@@ -107,7 +71,7 @@ export function useFitDirectionalLightShadow(
     const [minX, maxX] = clampAxis(min.x, max.x);
     const [minY, maxY] = clampAxis(min.y, max.y);
     const nearLS = Math.max(min.z - margin, -220);
-    const farLS  = Math.min(max.z + margin,  220);
+    const farLS = Math.min(max.z + margin, 220);
 
     let snappedMinX = minX, snappedMaxX = maxX, snappedMinY = minY, snappedMaxY = maxY;
     if (snap) {
@@ -130,24 +94,11 @@ export function useFitDirectionalLightShadow(
     dirCam.updateProjectionMatrix();
     light.shadow.needsUpdate = true;
   }
+};
+frameId = requestAnimationFrame(onFrame);
 
-  useEffect(() => {
-    // Critical: Don't start frame loop if light doesn't exist or isn't ready
-    if (!light || !light.shadow || !light.shadow.camera) return;
-    
-    let frameId: number;
-    const onFrame = () => {
-      try {
-        updateShadowFrustum();
-        frameId = requestAnimationFrame(onFrame);
-      } catch (error) {
-        // Silent fail - WebGL context issues
-      }
-    };
-    frameId = requestAnimationFrame(onFrame);
-    
-    return () => {
-      if (frameId) cancelAnimationFrame(frameId);
-    };
+return () => {
+  if (frameId) cancelAnimationFrame(frameId);
+};
   }, [light, gl, size.width, size.height]);
 }

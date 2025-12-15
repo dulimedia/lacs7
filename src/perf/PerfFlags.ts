@@ -52,12 +52,12 @@ export const PerfFlags = (() => {
     // 🔥 Texture & shadow caps - no shadows at all on mobile
     maxTextureSize: isLow ? 1024 : 4096, // Reverted to 4K for stability
     MAX_TEXTURE_DIM: isLow ? 1024 : 4096,
-    SHADOW_MAP_SIZE: isLow ? 1024 : 4096, // 4K is sufficient with PCF Soft; 8K caused instability
-    SHADOWS_ENABLED: true, // FIXED: Force shadows enabled for all tiers
-    SHADOW_MAX_EXTENT: isLow ? 120 : isBalanced ? 140 : 150, // TIGHTENED: Reduced from 210 to concentrate resolution
+    SHADOW_MAP_SIZE: isLow ? 1024 : 4096, // 4K for desktop
+    SHADOWS_ENABLED: true,
+    SHADOW_MAX_EXTENT: isLow ? 60 : isBalanced ? 80 : 80, // ULTRA-TIGHT: 80m extent for 50px/m resolution
     SHADOW_MARGIN: isLow ? 4 : isBalanced ? 5.5 : 6,
-    SHADOW_BIAS: -0.0005, // Standard bias to prevent acne but keep contact
-    SHADOW_NORMAL_BIAS: 0.02, // Lowered normal bias for better accuracy (was 0.05)
+    SHADOW_BIAS: -0.0001, // Almost zero bias (CustomShadowMaterial handles acne)
+    SHADOW_NORMAL_BIAS: 0.01, // Minimal normal bias for maximum accuracy
 
     // 🔥 Post FX flags - none on mobile
     dynamicShadows: !isLow && isHigh,

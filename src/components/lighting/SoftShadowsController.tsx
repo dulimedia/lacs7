@@ -6,12 +6,13 @@ interface SoftShadowsControllerProps {
 }
 
 export function SoftShadowsController({ tier }: SoftShadowsControllerProps) {
-
+  // Re-enabling PCSS for soft, blurred shadows
+  console.log('☁️ SoftShadows Active');
   return (
     <SoftShadows
-      size={28}
+      size={25}
       focus={0}
-      samples={tier.startsWith('desktop') ? 17 : tier === 'mobile-high' ? 12 : 7}
+      samples={25}
     />
   );
 }

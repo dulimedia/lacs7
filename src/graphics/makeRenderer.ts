@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { logSafari } from '../debug/safariLogger';
 import { RENDER_FLAGS } from '../config/renderFlags';
+import { RendererConfig } from '../config/RendererConfig';
 
 export type RendererType = 'webgpu' | 'webgl2';
 
