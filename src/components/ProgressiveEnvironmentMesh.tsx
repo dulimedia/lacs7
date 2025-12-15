@@ -8,6 +8,7 @@ import { logSafari } from '../debug/safariLogger';
 import * as THREE from 'three';
 import { makeFacesBehave } from '../utils/makeFacesBehave';
 import { optimizeMaterialTextures } from '../utils/textureUtils';
+import { PerfFlags } from '../perf/PerfFlags';
 
 function useDracoGLTF(path: string) {
   const { gl } = useThree();
@@ -30,8 +31,36 @@ export function ProgressiveEnvironmentMesh() {
   const palms = useDracoGLTF(assetUrl('models/environment/palms.glb'));
   const stages = useDracoGLTF(assetUrl('models/environment/stages.glb'));
 
-  const optimizeModel = (scene: THREE.Object3D) => {
+  // Mobile-only skip list for critical site GLBs that have texture corruption 
+  const shouldSkipOptimization = (glbFileName: string): boolean => {
+    if (!PerfFlags.isMobile || !PerfFlags.isSafariIOS) return false;
+    
+    const criticalGLBs = [
+      'roof', 'walls', 'whitewall', 'frame', 'hqsidewalk', 'hq_sidewalk', 
+      'road', 'transparent_sidewalk', 'transparentsidewalk'
+    ];
+    
+    const fileName = glbFileName.toLowerCase();
+    return criticalGLBs.some(pattern => fileName.includes(pattern));
+  };
+
+  const optimizeModel = (scene: THREE.Object3D, glbName: string = '') => {
     if (!scene) return;
+    
+    // MOBILE DEBUG: Skip optimization for critical site GLBs
+    if (shouldSkipOptimization(glbName)) {
+      console.log(`[MOBILE] skipped optimization for ${glbName}`);
+      makeFacesBehave(scene, true);
+      scene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          mesh.castShadow = false;
+          mesh.receiveShadow = false;
+        }
+      });
+      return;
+    }
+    
     makeFacesBehave(scene, true);
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -66,27 +95,27 @@ export function ProgressiveEnvironmentMesh() {
   };
 
   useEffect(() => {
-    if (road.scene) optimizeModel(road.scene);
+    if (road.scene) optimizeModel(road.scene, 'road.glb');
   }, [road.scene]);
 
   useEffect(() => {
-    if (hqSidewalk.scene) optimizeModel(hqSidewalk.scene);
+    if (hqSidewalk.scene) optimizeModel(hqSidewalk.scene, 'hq_sidewalk.glb');
   }, [hqSidewalk.scene]);
 
   useEffect(() => {
-    if (whiteWall.scene) optimizeModel(whiteWall.scene);
+    if (whiteWall.scene) optimizeModel(whiteWall.scene, 'whitewall.glb');
   }, [whiteWall.scene]);
 
   useEffect(() => {
-    if (frame.scene) optimizeModel(frame.scene);
+    if (frame.scene) optimizeModel(frame.scene, 'frame.glb');
   }, [frame.scene]);
 
   useEffect(() => {
-    if (roof.scene) optimizeModel(roof.scene);
+    if (roof.scene) optimizeModel(roof.scene, 'roof.glb');
   }, [roof.scene]);
 
   useEffect(() => {
-    if (transparentSidewalk.scene) optimizeModel(transparentSidewalk.scene);
+    if (transparentSidewalk.scene) optimizeModel(transparentSidewalk.scene, 'transparent_sidewalk.glb');
   }, [transparentSidewalk.scene]);
 
   useEffect(() => {
