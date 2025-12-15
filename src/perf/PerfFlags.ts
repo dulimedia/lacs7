@@ -56,8 +56,8 @@ export const PerfFlags = (() => {
     SHADOWS_ENABLED: true, // FIXED: Force shadows enabled for all tiers
     SHADOW_MAX_EXTENT: isLow ? 150 : isBalanced ? 180 : 210,
     SHADOW_MARGIN: isLow ? 4 : isBalanced ? 5.5 : 6,
-    SHADOW_BIAS: isLow ? -0.001 : isBalanced ? -0.003 : -0.007, // Even more negative (was -0.005)
-    SHADOW_NORMAL_BIAS: isLow ? 0.2 : isBalanced ? 0.35 : 0.6, // Increased normal bias again (was 0.4)
+    SHADOW_BIAS: -0.0005, // Standard bias to prevent acne but keep contact
+    SHADOW_NORMAL_BIAS: 0.05, // Much lower normal bias to prevent peter-panning/detached shadows (was 0.6!)
 
     // 🔥 Post FX flags - none on mobile
     dynamicShadows: !isLow && isHigh,

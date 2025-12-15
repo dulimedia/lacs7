@@ -45,9 +45,10 @@ export function configureDirectionalShadows(
     cam.updateProjectionMatrix();
 
     // 5. Global Renderer Shadow Map Settings (One-time setup helper)
+    // 5. Global Renderer Shadow Map Settings (One-time setup helper)
     if (renderer) {
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFShadowMap; // Standard PCF (Sharper, less issues than Soft)
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Use Soft shadows as requested
         // renderer.shadowMap.autoUpdate = true; // Default
     }
 }
