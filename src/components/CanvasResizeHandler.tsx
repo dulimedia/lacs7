@@ -26,24 +26,67 @@ export function CanvasResizeHandler() {
       const monitorInterval = PerfFlags.isMobile ? 1000 : 100; // 1s on mobile, 100ms on desktop
       let zeroSizeCount = 0;
       
+      // Helper function to get reliable canvas dimensions
+      const getCanvasDimensions = () => {
+        // Prefer getBoundingClientRect over clientWidth/clientHeight as per CODEX guidelines
+        const rect = canvas.getBoundingClientRect();
+        let width = rect.width;
+        let height = rect.height;
+        
+        // Fallback to clientWidth/clientHeight if rect is empty
+        if (width === 0 || height === 0) {
+          width = canvas.clientWidth;
+          height = canvas.clientHeight;
+        }
+        
+        // iOS Safari fallback: use visualViewport when available and canvas dimensions are 0
+        if ((width === 0 || height === 0) && typeof window !== 'undefined' && window.visualViewport) {
+          const vp = window.visualViewport;
+          console.log('📱 Using visualViewport fallback for iOS Safari');
+          width = vp.width;
+          height = vp.height;
+        }
+        
+        return { width, height, rect };
+      };
+      
       const sizeMonitor = setInterval(() => {
-        if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
+        const { width, height, rect } = getCanvasDimensions();
+        
+        if (width === 0 || height === 0) {
           zeroSizeCount++;
           
           // Only log errors after multiple consecutive zero size detections
           // This prevents noise from normal layout transitions
           if (zeroSizeCount >= (PerfFlags.isMobile ? 3 : 5)) {
             console.error('🚨 PERSISTENT CANVAS SIZE ISSUE!', {
-              width: canvas.width,
-              height: canvas.height,
+              canvasWidth: canvas.width,
+              canvasHeight: canvas.height,
               clientWidth: canvas.clientWidth,
               clientHeight: canvas.clientHeight,
+              rectWidth: rect.width,
+              rectHeight: rect.height,
+              finalWidth: width,
+              finalHeight: height,
+              visualViewport: window.visualViewport ? {
+                width: window.visualViewport.width,
+                height: window.visualViewport.height,
+                scale: window.visualViewport.scale
+              } : null,
               style: canvas.style.cssText,
               parentStyle: canvas.parentElement?.style.cssText,
               zeroSizeCount,
               isMobile: PerfFlags.isMobile,
               timestamp: Date.now()
             });
+            
+            // Attempt to fix canvas sizing immediately on mobile Safari
+            if (PerfFlags.isMobile && width > 0 && height > 0) {
+              console.log('🔧 Attempting to fix canvas size using fallback dimensions');
+              canvas.style.width = `${width}px`;
+              canvas.style.height = `${height}px`;
+            }
+            
             zeroSizeCount = 0; // Reset counter after logging
           }
         } else {
@@ -67,10 +110,33 @@ export function CanvasResizeHandler() {
         console.log('🎯 HANDLING SCENE SHELL TRANSFORM - POTENTIAL CRASH TRIGGER!');
         
         const container = sceneShell;
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+        // Use same reliable dimension detection as in monitor
+        const rect = container.getBoundingClientRect();
+        let width = rect.width;
+        let height = rect.height;
         
-        console.log('📐 Container dimensions:', { width, height });
+        // Fallback to clientWidth/clientHeight if rect is empty
+        if (width === 0 || height === 0) {
+          width = container.clientWidth;
+          height = container.clientHeight;
+        }
+        
+        // iOS Safari fallback: use visualViewport when available
+        if ((width === 0 || height === 0) && typeof window !== 'undefined' && window.visualViewport) {
+          const vp = window.visualViewport;
+          console.log('📱 Using visualViewport fallback for container sizing');
+          width = vp.width;
+          height = vp.height;
+        }
+        
+        console.log('📐 Container dimensions:', { 
+          width, 
+          height,
+          rectWidth: rect.width,
+          rectHeight: rect.height,
+          clientWidth: container.clientWidth,
+          clientHeight: container.clientHeight 
+        });
         
         if (width > 0 && height > 0 && camera && 'aspect' in camera) {
           const currentAspect = (camera as any).aspect;
