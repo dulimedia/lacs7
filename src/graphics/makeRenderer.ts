@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { logSafari } from '../debug/safariLogger';
 import { RENDER_FLAGS } from '../config/renderFlags';
 import { RendererConfig } from '../config/RendererConfig';
+import { PerfFlags } from '../perf/PerfFlags';
 
 export type RendererType = 'webgpu' | 'webgl2';
 
@@ -63,6 +64,15 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
 }
 
 function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElement, tier: string, isIOS: boolean, isSafari: boolean): THREE.WebGLRenderer {
+  // Mobile safeguard: Ensure canvas has minimum dimensions
+  if (PerfFlags.isMobile && canvas) {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      console.warn('⚠️ Canvas has zero dimensions on mobile, setting fallback size');
+      canvas.style.width = '100vw';
+      canvas.style.height = '50vh';
+    }
+  }
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
+import { PerfFlags } from '../perf/PerfFlags';
 
 export function CanvasResizeHandler() {
   const { camera } = useThree();
@@ -21,20 +22,34 @@ export function CanvasResizeHandler() {
         offsetHeight: canvas.offsetHeight
       });
 
-      // Monitor canvas size every 100ms during sidebar operations
+      // Monitor canvas size, but be less aggressive on mobile to prevent layout interference
+      const monitorInterval = PerfFlags.isMobile ? 1000 : 100; // 1s on mobile, 100ms on desktop
+      let zeroSizeCount = 0;
+      
       const sizeMonitor = setInterval(() => {
         if (canvas.clientWidth === 0 || canvas.clientHeight === 0) {
-          console.error('🚨 CANVAS SIZE WENT TO ZERO!', {
-            width: canvas.width,
-            height: canvas.height,
-            clientWidth: canvas.clientWidth,
-            clientHeight: canvas.clientHeight,
-            style: canvas.style.cssText,
-            parentStyle: canvas.parentElement?.style.cssText,
-            timestamp: Date.now()
-          });
+          zeroSizeCount++;
+          
+          // Only log errors after multiple consecutive zero size detections
+          // This prevents noise from normal layout transitions
+          if (zeroSizeCount >= (PerfFlags.isMobile ? 3 : 5)) {
+            console.error('🚨 PERSISTENT CANVAS SIZE ISSUE!', {
+              width: canvas.width,
+              height: canvas.height,
+              clientWidth: canvas.clientWidth,
+              clientHeight: canvas.clientHeight,
+              style: canvas.style.cssText,
+              parentStyle: canvas.parentElement?.style.cssText,
+              zeroSizeCount,
+              isMobile: PerfFlags.isMobile,
+              timestamp: Date.now()
+            });
+            zeroSizeCount = 0; // Reset counter after logging
+          }
+        } else {
+          zeroSizeCount = 0; // Reset counter when size is normal
         }
-      }, 100);
+      }, monitorInterval);
 
       return () => clearInterval(sizeMonitor);
     }
