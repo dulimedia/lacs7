@@ -42,8 +42,8 @@ export function ProgressiveEnvironmentMesh() {
         if (mesh.material) {
           const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           materials.forEach((mat: any) => {
-            // Disabled texture optimization to restore visual quality
-            // optimizeMaterialTextures(mat, 2048);
+            // Re-enabled texture optimization (user verified this fixes white flash)
+            optimizeMaterialTextures(mat, 2048);
 
             if (mat.normalMap) {
               mat.normalMap.dispose();
