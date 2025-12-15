@@ -64,13 +64,19 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
 }
 
 function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElement, tier: string, isIOS: boolean, isSafari: boolean): THREE.WebGLRenderer {
-  // Mobile safeguard: Ensure canvas has minimum dimensions
-  if (PerfFlags.isMobile && canvas) {
+  // Canvas safeguard: Ensure canvas has minimum dimensions (prevents WebGL context loss)
+  if (canvas) {
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
-      console.warn('⚠️ Canvas has zero dimensions on mobile, setting fallback size');
-      canvas.style.width = '100vw';
-      canvas.style.height = '50vh';
+      console.warn('⚠️ Canvas has zero dimensions, setting fallback size to prevent context loss');
+      if (PerfFlags.isMobile) {
+        canvas.style.width = '100vw';
+        canvas.style.height = '50vh';
+      } else {
+        // Desktop fallback
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+      }
     }
   }
 
@@ -120,9 +126,15 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   renderer.setPixelRatio(DPR);
 
   function resize() {
-    const w = Math.floor(window.innerWidth);
-    const h = Math.floor(window.innerHeight);
-    renderer.setSize(w, h, false);
+    const w = Math.max(1, Math.floor(window.innerWidth));
+    const h = Math.max(1, Math.floor(window.innerHeight));
+    
+    // Ensure we never set size to 0 (prevents context loss)
+    if (w > 0 && h > 0) {
+      renderer.setSize(w, h, false);
+    } else {
+      console.warn('Renderer resize: Skipping setSize with invalid dimensions to prevent context loss');
+    }
   }
   window.addEventListener('resize', () => requestAnimationFrame(resize), { passive: true });
   resize();

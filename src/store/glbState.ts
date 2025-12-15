@@ -93,8 +93,8 @@ const GLB_STRUCTURE = {
 const normalizeFloorKey = (floor: string | null | undefined) =>
   (floor ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
 
-const normalizeUnitKey = (unit: string) =>
-  unit.replace(/\s+/g, ' ').trim().toUpperCase();
+const normalizeUnitKey = (unit: string | null | undefined) =>
+  (unit ?? '').replace(/\s+/g, ' ').trim().toUpperCase();
 
 const buildNodeKey = (building: string, floor: string | null | undefined, unit: string) => {
   const normUnit = normalizeUnitKey(unit);

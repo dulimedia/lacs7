@@ -28,8 +28,16 @@ export function WebGLRecovery() {
       // Force a full scene refresh
       setTimeout(() => {
         if (gl) {
-          gl.setSize(gl.domElement.clientWidth, gl.domElement.clientHeight, false);
-          gl.render(gl.getContext().scene || new THREE.Scene(), gl.getContext().camera || new THREE.PerspectiveCamera());
+          const width = gl.domElement.clientWidth || window.innerWidth;
+          const height = gl.domElement.clientHeight || window.innerHeight;
+          
+          // Ensure we never set size to 0 (prevents context loss)
+          if (width > 0 && height > 0) {
+            gl.setSize(width, height, false);
+            gl.render(gl.getContext().scene || new THREE.Scene(), gl.getContext().camera || new THREE.PerspectiveCamera());
+          } else {
+            console.warn('WebGL Recovery: Skipping setSize with 0 dimensions to prevent context loss');
+          }
         }
       }, 100);
     };
