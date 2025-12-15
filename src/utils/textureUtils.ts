@@ -121,6 +121,13 @@ export function optimizeMaterialTextures(material: THREE.Material, maxSize: numb
             // Check if it is actually a texture
             if (!original.isTexture) return;
 
+            // SKIP compressed textures (KTX2, etc) - they are already optimized and cannot be resized via Canvas
+            // Also skip CubeTextures and DataTextures
+            if (original.isCompressedTexture || original.isCubeTexture || original.isDataTexture) {
+                // console.log(`[SKIP] Skipping compressed/special texture ${mapName} on ${mat.name}`);
+                return;
+            }
+
             // Check if already processed
             if (original.userData?.resized) return;
 
