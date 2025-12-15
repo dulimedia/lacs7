@@ -17,10 +17,10 @@ const towerUnitPath = (floor: string, file: string) => `${PDF_BASE}/tower/${floo
 // Tower units: tower/[floor]/units/LACS_T-[n]_M1_Color.pdf
 export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; individualFloorplan?: string } } = {
   // 1st Floor
-  't100': { floorFloorplan: towerPath('1st-floor', 'LACS_Floor 1_M1_Color.pdf') }, // Assuming filename based on pattern
+  't100': { floorFloorplan: towerPath('1st-floor', 'LACS_Floor 1_M1_Color.pdf') },
   't110': { floorFloorplan: towerPath('1st-floor', 'LACS_Floor 1_M1_Color.pdf') },
 
-  // 2nd Floor
+  // 2nd Floor (Verified Correct)
   't200': {
     floorFloorplan: towerPath('2nd-floor', 'LACS_Floor 2_M1_Color.pdf'),
     individualFloorplan: towerUnitPath('2nd-floor', 'LACS_T-200_M1_Color.pdf')
@@ -38,44 +38,53 @@ export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: strin
     individualFloorplan: towerUnitPath('2nd-floor', 'LACS_T-230_M1_Color.pdf')
   },
 
-  // 3rd Floor
-  't300': { floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_M1_Color.pdf') },
+  // 3rd Floor (Fixed filenames)
+  't300': { floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_Color.pdf') },
   't310': {
-    floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_M1_Color.pdf'),
-    individualFloorplan: towerUnitPath('3rd-floor', 'LACS_T-310_M1_Color.pdf') // check naming later if fails
+    floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_Color.pdf'),
+    individualFloorplan: towerUnitPath('3rd-floor', 'LACS_T-310_M1_Color_Compressed.pdf')
   },
-  't320': { floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_M1_Color.pdf') },
+  't320': { floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_Color.pdf') },
   't340': {
-    floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_M1_Color.pdf'),
-    individualFloorplan: towerUnitPath('3rd-floor', 'LACS_T-340_M1_Color.pdf')
+    floorFloorplan: towerPath('3rd-floor', 'LACS_Floor 3_Color.pdf'),
+    individualFloorplan: towerUnitPath('3rd-floor', 'LACS_T-340_M1_Color_Compressed.pdf')
   },
 
-  // 4th Floor
+  // 4th Floor (Fixed filenames)
   't400': {
-    floorFloorplan: towerPath('4th-floor', 'LACS_Floor 4_M1_Color.pdf'),
-    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-400_M1_Color.pdf')
+    floorFloorplan: towerPath('4th-floor', 'REF_LACS_Floor 4_D14_Color.pdf'),
+    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-400_M1_Color_Compressed.pdf')
   },
   't410': {
-    floorFloorplan: towerPath('4th-floor', 'LACS_Floor 4_M1_Color.pdf'),
-    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-410_M1_Color.pdf')
+    floorFloorplan: towerPath('4th-floor', 'REF_LACS_Floor 4_D14_Color.pdf'),
+    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-410_M1_Color_Compressed.pdf')
   },
   't420': {
-    floorFloorplan: towerPath('4th-floor', 'LACS_Floor 4_M1_Color.pdf'),
-    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-420_M1_Color.pdf')
+    floorFloorplan: towerPath('4th-floor', 'REF_LACS_Floor 4_D14_Color.pdf'),
+    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-420_M1_Color_Compressed.pdf')
   },
   't430': {
-    floorFloorplan: towerPath('4th-floor', 'LACS_Floor 4_M1_Color.pdf'),
-    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-430_M1_Color.pdf')
+    floorFloorplan: towerPath('4th-floor', 'REF_LACS_Floor 4_D14_Color.pdf'),
+    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-430_M1_Color_Compressed.pdf')
   },
   't450': {
-    floorFloorplan: towerPath('4th-floor', 'LACS_Floor 4_M1_Color.pdf'),
-    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-450_M1_Color.pdf')
+    floorFloorplan: towerPath('4th-floor', 'REF_LACS_Floor 4_D14_Color.pdf'),
+    individualFloorplan: towerUnitPath('4th-floor', 'LACS_T-450_M1_Color_Compressed.pdf')
   },
 
-  // 5th Floor
-  't500': { floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf') },
-  't530': { floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf') },
-  't550': { floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf') },
+  // 5th Floor (Fixed filenames)
+  't500': {
+    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf'),
+    individualFloorplan: towerUnitPath('5th-floor', 'LACS_T-500_M1_Color_Compressed.pdf')
+  },
+  't530': {
+    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf'),
+    individualFloorplan: towerUnitPath('5th-floor', 'LACS_T-530_M1_Color_Compressed.pdf')
+  },
+  't550': {
+    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf'),
+    individualFloorplan: towerUnitPath('5th-floor', 'LACS_T-550_M1_Color_Compressed.pdf')
+  },
 
   // 6th Floor
   't600': { floorFloorplan: towerPath('6th-floor', 'LACS_Floor 6_M1_Color.pdf') },
@@ -86,7 +95,7 @@ export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: strin
   // 8th Floor
   't800': { floorFloorplan: towerPath('8th-floor', 'LACS_Floor 8_M1_Color.pdf') },
 
-  // 9th Floor
+  // 9th Floor (No individual units on disk)
   't900': { floorFloorplan: towerPath('9th-floor', 'LACS_Floor 9_M1_Color.pdf') },
   't950': { floorFloorplan: towerPath('9th-floor', 'LACS_Floor 9_M1_Color.pdf') },
 
