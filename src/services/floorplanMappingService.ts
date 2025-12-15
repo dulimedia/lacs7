@@ -273,6 +273,11 @@ export function getFifthStreetUnitIndividualFloorplan(unitName: string): string 
 export function getFloorplanUrl(unitName: string, unitData?: any): string | null {
   if (!unitName) return null;
   const cleanName = cleanUnitName(unitName);
+  
+  // Dev logging for M-20 fallback verification
+  if (cleanName === 'm20') {
+    console.log('M-20 floorplan lookup: using Maryland Ground Floor fallback');
+  }
 
   // 1. Check Specific Mappings (Highest Priority)
 

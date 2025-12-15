@@ -537,6 +537,10 @@ export function SuiteDetailsTab() {
         <div className="pt-4 border-t border-gray-100">
           <button
             onClick={() => {
+              if (!displayUnit) {
+                console.warn('Cannot lease: no unit selected');
+                return;
+              }
               const { setSingleUnitRequestOpen } = useExploreState.getState();
               setSingleUnitRequestOpen(true, {
                 unitKey: displayUnit.unit_key,
