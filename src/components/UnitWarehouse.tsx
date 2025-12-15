@@ -244,7 +244,22 @@ const SingleModelGLB: React.FC<{
           if (child.material) {
             // 1024 is aggressive but needed for 2GB limit
             const maxTextureSize = 1024;
-            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            let materials = Array.isArray(child.material) ? child.material : [child.material];
+            
+            // MOBILE-ONLY: Clone materials first to prevent shared material corruption
+            if (PerfFlags.isMobile) {
+              const clonedMaterials = materials.map(mat => {
+                if (mat && mat.isMaterial) {
+                  const cloned = mat.clone();
+                  console.log(`📱 [MOBILE] Cloned unit material for safe optimization: ${mat.name}`);
+                  return cloned;
+                }
+                return mat;
+              });
+              child.material = Array.isArray(child.material) ? clonedMaterials : clonedMaterials[0];
+              materials = clonedMaterials;
+            }
+            
             materials.forEach((mat: any) => {
               optimizeMaterialTextures(mat, maxTextureSize);
             });
@@ -429,7 +444,22 @@ const SingleModelFBX: React.FC<{
             // Optimize textures for memory
             if (child.material) {
               const maxTextureSize = 1024;
-              const materials = Array.isArray(child.material) ? child.material : [child.material];
+              let materials = Array.isArray(child.material) ? child.material : [child.material];
+              
+              // MOBILE-ONLY: Clone materials first to prevent shared material corruption
+              if (PerfFlags.isMobile) {
+                const clonedMaterials = materials.map(mat => {
+                  if (mat && mat.isMaterial) {
+                    const cloned = mat.clone();
+                    console.log(`📱 [MOBILE] Cloned batch unit material for safe optimization: ${mat.name}`);
+                    return cloned;
+                  }
+                  return mat;
+                });
+                child.material = Array.isArray(child.material) ? clonedMaterials : clonedMaterials[0];
+                materials = clonedMaterials;
+              }
+              
               materials.forEach((mat: any) => {
                 optimizeMaterialTextures(mat, maxTextureSize);
               });
