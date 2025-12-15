@@ -89,74 +89,24 @@ export interface MobileRenderingPreset {
 }
 
 export const getMobileOptimizedSettings = (device: DeviceCapabilities): MobileRenderingPreset => {
-  if (!device.isMobile) {
-    return {
-      pixelRatio: Math.min(window.devicePixelRatio, 2),
-      antialias: true,
-      shadows: true,
-      postProcessing: true,
-      maxLights: 8,
-      textureSize: 2048,
-      modelComplexity: 'high',
-      useSimpleLighting: false,
-      hdriResolution: 1024,
-      disableFog: false,
-      disableBloom: false,
-      disableSSAO: false
-    };
-  }
-
-  // MOBILE SAFE-MODE PRESET
-  // Balanced settings for stability vs quality
-  const safeModeSettings: MobileRenderingPreset = {
-    pixelRatio: 1, // Always 1 on mobile to reduce GPU memory
-    antialias: false, // Expensive on mobile
-    shadows: false, // Very expensive, major GPU memory consumer
-    postProcessing: false, // Can cause context loss
-    maxLights: 1, // Single light only to minimize shader complexity
-    textureSize: 512, // Better balance of quality vs stability
-    modelComplexity: 'low',
-    preserveDrawingBuffer: false, // Can cause memory leaks on iOS
-    powerPreference: 'low-power', // Prioritize battery/stability over performance
-    failIfMajorPerformanceCaveat: false, // Don't fail, just use software rendering if needed
-    useSimpleLighting: true, // Use basic ambient + directional, no fancy lighting
-    hdriResolution: 128, // Small but functional HDRI resolution
-    disableFog: true, // Fog adds shader complexity
-    disableBloom: true, // Post-processing effect
-    disableSSAO: true // Post-processing effect
+  // EXPERIMENT: Use same settings for mobile and desktop to test if texture downsizing is the issue
+  console.log('🧪 EXPERIMENTAL: Using desktop-quality settings on mobile to test texture issues');
+  
+  return {
+    pixelRatio: Math.min(window.devicePixelRatio, 2),
+    antialias: device.isMobile ? false : true, // Keep antialias off on mobile for performance
+    shadows: false, // Keep shadows off on mobile for stability
+    postProcessing: false, // Keep post-processing off on mobile for stability
+    maxLights: device.isMobile ? 2 : 8, // Slightly reduce lights on mobile
+    textureSize: 2048, // FULL DESKTOP QUALITY - no downsizing!
+    modelComplexity: 'high',
+    preserveDrawingBuffer: false,
+    powerPreference: device.isMobile ? 'low-power' : 'high-performance',
+    failIfMajorPerformanceCaveat: false,
+    useSimpleLighting: device.isMobile ? true : false, // Slightly simpler lighting on mobile
+    hdriResolution: 1024, // FULL DESKTOP QUALITY - no downsizing!
+    disableFog: device.isMobile ? true : false,
+    disableBloom: true, // Keep bloom off on mobile
+    disableSSAO: true // Keep SSAO off on mobile
   };
-
-  // Check device capabilities to determine appropriate settings
-  const deviceMemory = (navigator as any).deviceMemory || 4; // fallback to 4GB
-  const maxTextureSize = device.maxTextureSize || 2048;
-  const isLowEndDevice = deviceMemory <= 2 || maxTextureSize < 4096;
-
-  console.log('📱 Mobile device capabilities:', {
-    memory: deviceMemory + 'GB',
-    maxTextureSize,
-    isLowEnd: isLowEndDevice
-  });
-
-  // iOS Safari - conservative but functional settings
-  if (device.isIOS) {
-    console.log('📱 MOBILE SAFE-MODE ACTIVE: iOS optimized settings');
-    return {
-      ...safeModeSettings,
-      // Better balance for modern iOS devices
-      textureSize: isLowEndDevice ? 256 : 512,
-      hdriResolution: isLowEndDevice ? 64 : 128
-    };
-  }
-
-  // Android - similar conservative approach
-  if (device.isAndroid) {
-    return {
-      ...safeModeSettings,
-      textureSize: isLowEndDevice ? 256 : 512,
-      maxLights: 1,
-      hdriResolution: isLowEndDevice ? 64 : 128
-    };
-  }
-
-  return safeModeSettings;
 };

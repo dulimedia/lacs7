@@ -62,15 +62,16 @@ export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
 
 
   if (PerfFlags.isMobile) {
-    // Mobile browsers - use reduced HDRI with fallback to gradient
+    // EXPERIMENT: Use desktop-quality HDRI on mobile to test if downsizing causes texture issues
+    console.log('🧪 EXPERIMENTAL: Using desktop-quality HDRI (1024px) on mobile');
     return (
       <Environment
         files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
         background={true}
-        backgroundIntensity={backgroundIntensity * 0.8}
-        environmentIntensity={environmentIntensity * 0.9}
-        resolution={128} // Conservative resolution for mobile
-        onLoad={() => console.log('✅ Mobile HDRI loaded at 128px resolution')}
+        backgroundIntensity={backgroundIntensity}
+        environmentIntensity={environmentIntensity}
+        resolution={1024} // FULL DESKTOP QUALITY
+        onLoad={() => console.log('✅ Mobile HDRI loaded at desktop quality (1024px)')}
         onError={(error) => {
           console.error('❌ HDRI failed on mobile, using gradient fallback:', error);
         }}
