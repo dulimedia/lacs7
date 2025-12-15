@@ -89,24 +89,41 @@ export interface MobileRenderingPreset {
 }
 
 export const getMobileOptimizedSettings = (device: DeviceCapabilities): MobileRenderingPreset => {
-  // EXPERIMENT: Use same settings for mobile and desktop to test if texture downsizing is the issue
-  console.log('🧪 EXPERIMENTAL: Using desktop-quality settings on mobile to test texture issues');
+  if (!device.isMobile) {
+    return {
+      pixelRatio: Math.min(window.devicePixelRatio, 2),
+      antialias: true,
+      shadows: true,
+      postProcessing: true,
+      maxLights: 8,
+      textureSize: 2048,
+      modelComplexity: 'high',
+      useSimpleLighting: false,
+      hdriResolution: 1024,
+      disableFog: false,
+      disableBloom: false,
+      disableSSAO: false
+    };
+  }
+
+  // RESTORED: Mobile settings that were working at 7797c6f (before we broke them)
+  console.log('📱 RESTORED: Using mobile settings that worked at commit 7797c6f');
   
   return {
-    pixelRatio: Math.min(window.devicePixelRatio, 2),
-    antialias: device.isMobile ? false : true, // Keep antialias off on mobile for performance
-    shadows: false, // Keep shadows off on mobile for stability
-    postProcessing: false, // Keep post-processing off on mobile for stability
-    maxLights: device.isMobile ? 2 : 8, // Slightly reduce lights on mobile
-    textureSize: 2048, // FULL DESKTOP QUALITY - no downsizing!
-    modelComplexity: 'high',
-    preserveDrawingBuffer: false,
-    powerPreference: device.isMobile ? 'low-power' : 'high-performance',
+    pixelRatio: 1, // Keep at 1 for mobile stability
+    antialias: false, // Expensive on mobile
+    shadows: false, // Major GPU memory consumer
+    postProcessing: false, // Can cause context loss
+    maxLights: 1, // Single light only
+    textureSize: 512, // Moderate size - not too small, not too big
+    modelComplexity: 'low',
+    preserveDrawingBuffer: false, // Can cause memory leaks on iOS
+    powerPreference: 'low-power',
     failIfMajorPerformanceCaveat: false,
-    useSimpleLighting: device.isMobile ? true : false, // Slightly simpler lighting on mobile
-    hdriResolution: 1024, // FULL DESKTOP QUALITY - no downsizing!
-    disableFog: device.isMobile ? true : false,
-    disableBloom: true, // Keep bloom off on mobile
-    disableSSAO: true // Keep SSAO off on mobile
+    useSimpleLighting: true,
+    hdriResolution: 256, // Small but functional for non-Safari mobile
+    disableFog: true,
+    disableBloom: true,
+    disableSSAO: true
   };
 };

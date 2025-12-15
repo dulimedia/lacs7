@@ -65,17 +65,11 @@ export function postprocessLoadedScene(
                     material.roughnessMap,
                     material.metalnessMap,
                     material.alphaMap,
-                ].forEach((map, index) => {
+                ].forEach((map) => {
                     if (map) {
                         map.anisotropy = RendererConfig.materials.anisotropy;
-                        // Only set sRGB for color textures (map, emissiveMap), others need linear
-                        const textureTypes = ['map', 'emissiveMap', 'bumpMap', 'normalMap', 'displacementMap', 'roughnessMap', 'metalnessMap', 'alphaMap'];
-                        const currentType = textureTypes[index];
-                        if (currentType === 'map' || currentType === 'emissiveMap') {
-                            map.colorSpace = THREE.SRGBColorSpace;
-                        } else {
-                            map.colorSpace = THREE.LinearSRGBColorSpace;
-                        }
+                        // Let Three.js GLTFLoader handle colorSpace automatically - manual colorSpace setting was causing mobile issues
+                        // map.colorSpace = THREE.SRGBColorSpace; // REMOVED: This was breaking mobile textures
                     }
                 });
 

@@ -61,22 +61,28 @@ export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
   }
 
 
-  if (PerfFlags.isMobile) {
-    // EXPERIMENT: Use desktop-quality HDRI on mobile to test if downsizing causes texture issues
-    console.log('🧪 EXPERIMENTAL: Using desktop-quality HDRI (1024px) on mobile');
+  // Restore working Safari iOS configuration from commit 7797c6f
+  if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
+    // iOS Safari - use solid color background (what was working at 7797c6f)
+    console.log('📱 Safari iOS: Using solid color background (no HDRI)');
     return (
-      <Environment
-        files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
-        background={true}
-        backgroundIntensity={backgroundIntensity}
-        environmentIntensity={environmentIntensity}
-        resolution={1024} // FULL DESKTOP QUALITY
-        onLoad={() => console.log('✅ Mobile HDRI loaded at desktop quality (1024px)')}
-        onError={(error) => {
-          console.error('❌ HDRI failed on mobile, using gradient fallback:', error);
-        }}
-      >
-        {/* Fallback lighting if HDRI fails */}
+      <>
+        <color attach="background" args={['#87CEEB']} />
+        <ambientLight intensity={0.6} />
+        <directionalLight 
+          position={[10, 10, 5]} 
+          intensity={2.0} 
+          castShadow={false}
+        />
+      </>
+    );
+  }
+
+  if (PerfFlags.isMobile) {
+    // Other mobile browsers - use simple gradient (what was working)
+    console.log('📱 Mobile (non-Safari): Using ultra-lightweight gradient');
+    return (
+      <>
         {gradientTexture && <primitive attach="background" object={gradientTexture} />}
         <ambientLight intensity={0.6} />
         <directionalLight 
@@ -84,7 +90,7 @@ export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
           intensity={2.0} 
           castShadow={false}
         />
-      </Environment>
+      </>
     );
   }
 
