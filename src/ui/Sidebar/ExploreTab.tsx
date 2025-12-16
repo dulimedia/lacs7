@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useExploreState, isUnitExcluded } from '../../store/exploreState';
+import { useExploreState } from '../../store/exploreState';
 import { useSidebarState } from './useSidebarState';
 import { useGLBState } from '../../store/glbState';
 import { useFilterStore } from '../../stores/useFilterStore';
@@ -115,10 +115,6 @@ export function ExploreTab() {
             const unit = unitsData.get(unitKey);
             if (!unit) return;
 
-            // Skip excluded/unavailable suites
-            if (isUnitExcluded(unit.unit_name)) {
-              return;
-            }
 
             let passes = true;
 
@@ -213,10 +209,6 @@ export function ExploreTab() {
             const unit = unitsData.get(unitKey);
             if (!unit) return;
 
-            // Skip excluded/unavailable suites
-            if (isUnitExcluded(unit.unit_name)) {
-              return;
-            }
 
             let passes = true;
 

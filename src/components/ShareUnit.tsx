@@ -18,7 +18,7 @@ export const ShareUnit: React.FC<ShareUnitProps> = ({
   unitName
 }) => {
   // Get unit data from Google Sheets
-  const CSV_URL = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv';
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeevbF2MkJT1nwQWjtv69cGMSELhP8kO61aTI1BHT29rKNImpQXIqJ3NjdIfewPwYW1JKmZ1TKdVkU/pub?output=csv';
   const { data: csvUnitData } = useCsvUnitData(CSV_URL);
   const unitData = csvUnitData[unitKey.toLowerCase()];
 

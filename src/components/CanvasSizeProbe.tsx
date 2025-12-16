@@ -9,8 +9,7 @@ export function CanvasSizeProbe() {
     const canvas = gl.domElement;
     if (!canvas) return;
 
-    // TEMPORARILY DISABLED TO STOP SPAM
-    return;
+    // RE-ENABLED FOR INVESTIGATION
 
     const logSizes = (eventType: string) => {
       const canvasRect = canvas.getBoundingClientRect();
@@ -24,11 +23,13 @@ export function CanvasSizeProbe() {
       const sceneShell = document.querySelector('.scene-shell');
       const appViewport = document.querySelector('.app-viewport');
       const canvasParent = canvas.parentElement;
+      const sceneCanvasDiv = document.querySelector('.scene-canvas');
       
       const containerRects = {
         sceneShell: sceneShell ? sceneShell.getBoundingClientRect() : null,
         appViewport: appViewport ? appViewport.getBoundingClientRect() : null,
-        canvasParent: canvasParent ? canvasParent.getBoundingClientRect() : null
+        canvasParent: canvasParent ? canvasParent.getBoundingClientRect() : null,
+        sceneCanvasDiv: sceneCanvasDiv ? sceneCanvasDiv.getBoundingClientRect() : null
       };
 
       const logData = {
@@ -41,6 +42,25 @@ export function CanvasSizeProbe() {
           (containerRects.sceneShell.height > canvasRect.height + 50) : false,
         heightDiff: containerRects.sceneShell ? 
           (containerRects.sceneShell.height - canvasRect.height) : 0,
+        canvasStyle: {
+          width: canvas.style.width,
+          height: canvas.style.height,
+          position: canvas.style.position,
+          top: canvas.style.top,
+          left: canvas.style.left
+        },
+        canvasAttributes: {
+          width: canvas.width,
+          height: canvas.height
+        },
+        domHierarchy: {
+          canvasTagName: canvas.tagName,
+          canvasClassName: canvas.className,
+          parentTagName: canvasParent?.tagName,
+          parentClassName: canvasParent?.className,
+          grandparentTagName: canvasParent?.parentElement?.tagName,
+          grandparentClassName: canvasParent?.parentElement?.className
+        },
         timestamp: new Date().toISOString()
       };
 

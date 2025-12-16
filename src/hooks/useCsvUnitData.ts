@@ -82,56 +82,57 @@ class CsvDataCache {
 
             if (Array.isArray(results.data)) {
               results.data.forEach((row: any) => {
-                // Updated for new CSV format: "Unit_Name" instead of "Product" 
-                // CSV Header: Unit_Name,Available,Size,Amenities,Suite_Floorplan_Url,Building,Floor,Unit_Type,Is_Production_Office,Has_Kitchen,Full_Floor_Floorplan_Url,Tour_3D_Url,Private_Offices,Contact_Email_ID,Secondary_Email
-
-                const unitName = (row.Unit_Name || row.Product || row['Unit Name'] || row.Unit)?.trim();
+                // Parse data from Google Sheets CSV
+                // Expected columns: Unit, Size, Offices, Kitchen, Status, Production Office
+                
+                const unitName = (row.Unit || row.Unit_Name || row.Product || row['Unit Name'])?.trim();
                 const unitNameLower = unitName?.toLowerCase();
 
                 if (unitName) {
                   // Legacy fallback for old column name
                   const floorplanUrl = row.Suite_Floorplan_Url || row.Floorplan || row['Column 1'];
 
-                  // Availability
-                  const isAvailable = row.Available === '1' || row.Available === 1 ||
-                    String(row.Available).toLowerCase() === 'true';
+                  // Parse size as number (remove commas and text)
+                  const rawSize = row.Size || row['Square Feet'] || '';
+                  const cleanSize = String(rawSize).replace(/,/g, '').replace(/\s/g, '').replace(/RSF/gi, '').replace(/sf/gi, '').replace(/[A-Za-z]/g, '');
+                  const parsedSize = parseInt(cleanSize) || 0;
+
+                  // Parse offices count
+                  const rawOffices = row.Offices || row['# of Offices'] || row.Private_Offices || '0';
+                  const parsedOffices = parseInt(String(rawOffices)) || 0;
+
+                  // Parse kitchen flag
+                  const hasKitchen = row.Kitchen === '1' || String(row.Kitchen).toLowerCase() === 'yes' || String(row.Has_Kitchen).toLowerCase() === 'true';
+
+                  // Parse status
+                  const status = row.Status || 'Available';
+                  const isAvailable = status.toLowerCase() === 'available' || row.Available === '1' || row.Available === 1;
+
+                  // Parse production office flag
+                  const isProductionOffice = row['Production Office'] === '1' || String(row.Is_Production_Office).toLowerCase() === 'true';
 
                   const unitDataEntry: UnitData = {
                     name: unitName,
                     availability: isAvailable,
-                    size: row.Size || row['Square Feet'] || '',
-                    floorPlanUrl: floorplanUrl, // keep for compat
+                    size: String(parsedSize), // Keep as string for display
+                    floorPlanUrl: floorplanUrl,
 
                     // Standard Fields
                     unit_name: unitName,
                     unit_key: unitNameLower,
-                    building: row.Building,
+                    building: row.Building || unitName.charAt(0), // Extract building from unit name if not provided
                     floor: row.Floor || '',
                     status: isAvailable,
                     unit_type: row.Unit_Type || row.Type || 'Commercial',
                     amenities: row.Amenities || 'Central Air',
 
-                    // Parsed Number Fields
-                    area_sqft: (() => {
-                      const rawSize = row.Size || row['Square Feet'] || '';
-                      const cleanSize = String(rawSize).replace(/[,\s]/g, '').replace(/RSF/gi, '').replace(/sf/gi, '').replace(/[A-Za-z]/g, '');
-                      const parsed = parseInt(cleanSize);
-                      return parsed > 0 ? parsed : undefined;
-                    })(),
-
-                    private_offices: (() => {
-                      // Parse private offices count from new CSV format
-                      const rawOffices = row.Private_Offices || row['Private Offices'];
-                      if (rawOffices !== undefined && rawOffices !== '') {
-                        const parsed = parseInt(String(rawOffices));
-                        return parsed >= 0 ? parsed : undefined;
-                      }
-                      return undefined;
-                    })(),
+                    // Parsed Number Fields (critical for filtering)
+                    area_sqft: parsedSize,
+                    private_offices: parsedOffices,
 
                     // NEW FIELDS
-                    is_production_office: (String(row.Is_Production_Office).toUpperCase() === 'TRUE') || ['T-700', 'T-200'].includes(unitName),
-                    has_kitchen: String(row.Has_Kitchen).toUpperCase() === 'TRUE',
+                    is_production_office: isProductionOffice,
+                    has_kitchen: hasKitchen,
 
                     // URLS
                     floorplan_url: floorplanUrl,
@@ -143,7 +144,7 @@ class CsvDataCache {
                     secondary_email: row.Secondary_Email || 'dwyatt@lacenterstudios.com',
 
                     // Legacy Support
-                    plug_and_play: (String(row.Is_Production_Office).toUpperCase() === 'TRUE') || ['T-700', 'T-200'].includes(unitName),
+                    plug_and_play: isProductionOffice,
                     build_to_suit: false
                   };
 
@@ -161,6 +162,35 @@ class CsvDataCache {
             }
 
             console.log(`✅ CSV: Loaded ${Object.keys(unitData).length} unit records`);
+            
+            // Debug logging for T-1200 specifically
+            const t1200Unit = unitData['t-1200'] || unitData['T-1200'];
+            if (t1200Unit) {
+              console.log('🎯 DEBUG: T-1200 unit found:', {
+                name: t1200Unit.unit_name,
+                area_sqft: t1200Unit.area_sqft,
+                size_raw: t1200Unit.size,
+                private_offices: t1200Unit.private_offices,
+                is_production_office: t1200Unit.is_production_office,
+                status: t1200Unit.status
+              });
+            } else {
+              console.log('❌ DEBUG: T-1200 unit NOT found in parsed data');
+              console.log('Available units:', Object.keys(unitData).filter(k => k.includes('1200')));
+            }
+            
+            // Debug logging for units with high square footage
+            const largeUnits = Object.values(unitData)
+              .filter(unit => unit.area_sqft && unit.area_sqft > 15000)
+              .map(unit => ({ name: unit.unit_name, sqft: unit.area_sqft }));
+            console.log('🏢 DEBUG: Large units (>15k sq ft):', largeUnits);
+            
+            // Debug logging for Tower units that should now be visible
+            const towerUnits = Object.values(unitData)
+              .filter(unit => unit.unit_name?.match(/^T-?(100|110|600|800|900|950|1100)$/i))
+              .map(unit => ({ name: unit.unit_name, available: unit.status, sqft: unit.area_sqft }));
+            console.log('🗼 DEBUG: Previously excluded Tower units (should now appear):', towerUnits);
+            
             resolve(unitData);
           },
           error: (err: any) => {
@@ -191,7 +221,7 @@ function debounce(func: (...args: any[]) => void, delay: number) {
 }
 
 // Use Google Sheets as master data source
-export function useCsvUnitData(url: string = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv') {
+export function useCsvUnitData(url: string = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeevbF2MkJT1nwQWjtv69cGMSELhP8kO61aTI1BHT29rKNImpQXIqJ3NjdIfewPwYW1JKmZ1TKdVkU/pub?output=csv') {
   const [data, setData] = useState<Record<string, UnitData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

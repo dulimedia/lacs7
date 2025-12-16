@@ -48,7 +48,7 @@ import { useFaceDebugHotkey } from './hooks/useFaceDebugHotkey';
 import { useUnitStore } from './stores/useUnitStore';
 import { useSidebarState } from './ui/Sidebar/useSidebarState';
 import { useFlashPrevention } from './hooks/useFlashPrevention';
-import { useExploreState, buildUnitsIndex, isUnitExcluded, type UnitRecord } from './store/exploreState';
+import { useExploreState, buildUnitsIndex, type UnitRecord } from './store/exploreState';
 import { useGLBState } from './store/glbState';
 import { useCsvUnitData } from './hooks/useCsvUnitData';
 import { emitEvent, getTimestamp } from './lib/events';
@@ -114,7 +114,7 @@ function AdaptivePixelRatio() {
 }
 
 // Google Sheets CSV export URL - live data source
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv';
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeevbF2MkJT1nwQWjtv69cGMSELhP8kO61aTI1BHT29rKNImpQXIqJ3NjdIfewPwYW1JKmZ1TKdVkU/pub?output=csv';
 
 // Legacy HDRI Environment component - kept for fallback but not used by default
 const LegacyHDRIEnvironment = React.memo(() => {
@@ -991,10 +991,6 @@ function App() {
           return;
         }
 
-        // Skip excluded/unavailable suites at the data level
-        if (isUnitExcluded(unitData.unit_name || unitData.name || unitKey)) {
-          return;
-        }
 
         // Skip duplicate entries (we store multiple keys for same unit)
         const primaryKey = unitData.unit_key || unitKey;

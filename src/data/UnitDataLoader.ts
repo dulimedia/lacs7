@@ -8,7 +8,7 @@ export interface UnitDataItem {
 }
 
 export async function loadUnitData(): Promise<Record<string, UnitDataItem>> {
-  const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv';
+  const sheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeevbF2MkJT1nwQWjtv69cGMSELhP8kO61aTI1BHT29rKNImpQXIqJ3NjdIfewPwYW1JKmZ1TKdVkU/pub?output=csv';
 
   return new Promise((resolve, reject) => {
     Papa.parse(sheetCsvUrl, {
