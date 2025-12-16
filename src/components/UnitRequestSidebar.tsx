@@ -41,7 +41,9 @@ export function UnitRequestSidebar() {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
       script.onload = () => {
-        window.emailjs?.init('M1SsqAm-ePvANc2hG82Vy');
+        console.log('🔧 EmailJS script loaded, initializing with PUBLIC key: 7v5wJOSuv1p_PkcU5');
+        window.emailjs?.init('7v5wJOSuv1p_PkcU5');
+        console.log('✅ EmailJS initialized');
       };
       document.head.appendChild(script);
     }
@@ -82,6 +84,12 @@ export function UnitRequestSidebar() {
       const primaryEmail = 'lacenterstudios3d@gmail.com';
       const secondaryEmail = 'dwyatt@lacenterstudios.com';
 
+      console.log('📧 Attempting to send emails with:');
+      console.log('  Service ID: service_q47lbr7');
+      console.log('  Template ID: template_0zeil8m');
+      console.log('  To emails:', primaryEmail, secondaryEmail);
+      console.log('  Template params:', templateParams);
+
       await Promise.all([
         window.emailjs.send('service_q47lbr7', 'template_0zeil8m', {
           ...templateParams,
@@ -102,7 +110,13 @@ export function UnitRequestSidebar() {
       }, 2000);
 
     } catch (error) {
-      console.error('Failed to send unit request:', error);
+      console.error('❌ Failed to send unit request:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.status,
+        text: error.text,
+        name: error.name
+      });
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);

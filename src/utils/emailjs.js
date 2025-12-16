@@ -2,8 +2,8 @@
 
 // EmailJS configuration with your actual credentials
 export const EMAILJS_CONFIG = {
-  // Your working private key from EmailJS dashboard
-  PUBLIC_KEY: 'M1SsqAm-ePvANc2hG82Vy',
+  // Your actual public key from EmailJS dashboard
+  PUBLIC_KEY: '7v5wJOSuv1p_PkcU5',
   
   // Your confirmed service ID  
   SERVICE_ID: 'service_q47lbr7',
