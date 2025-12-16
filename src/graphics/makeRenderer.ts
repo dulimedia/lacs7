@@ -23,9 +23,9 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
   const config: any = {
     canvas,
     alpha: !RENDER_FLAGS.OPAQUE_CANVAS,
-    antialias: false,
+    antialias: isMobile, // PHASE 3 FIX: Enable antialiasing on mobile to reduce pixelation
     powerPreference: 'default',
-    logarithmicDepthBuffer: false,
+    logarithmicDepthBuffer: isMobile, // PHASE 2 FIX: Enable log depth buffer on mobile to prevent Z-fighting
     preserveDrawingBuffer: true, // FIXED: Align with App.tsx to prevent white flashing
     failIfMajorPerformanceCaveat: false,
     stencil: false,
@@ -104,9 +104,10 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   renderer.shadowMap.autoUpdate = true; // Ensure shadows update
 
   let DPR = 1.0;
-  if (tier === 'mobile-high') DPR = Math.min(1.25, window.devicePixelRatio);
-  else if (tier === 'mobile-low') DPR = 1.0;
-  else DPR = Math.min(2.0, window.devicePixelRatio); // Will be clamped to 1.5 by PerfFlags later usually, but this is initial
+  // PHASE 3 FIX: Improved DPR settings for better mobile clarity while maintaining performance
+  if (tier === 'mobile-high') DPR = Math.min(1.75, window.devicePixelRatio);
+  else if (tier === 'mobile-low') DPR = Math.min(1.5, window.devicePixelRatio);
+  else DPR = Math.min(2.0, window.devicePixelRatio);
 
   renderer.setPixelRatio(DPR);
 

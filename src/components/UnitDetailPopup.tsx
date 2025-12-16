@@ -96,18 +96,17 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
   const shouldUseIframe = useIframe && isGoogleDriveUrl;
   const iframeUrl = shouldUseIframe ? getIframeUrl(floorPlanUrl) : '';
 
-  // Handle sharing functionality
+  // SIMPLIFIED SHARE: Generate full app link with unit parameter
   const handleShare = async () => {
-    const currentUrl = new URL(window.location.href);
-    currentUrl.searchParams.set('unit', selectedUnit);
-    const shareUrl = currentUrl.toString();
+    // Always use the main app domain with unit parameter
+    const shareUrl = `https://lacs7.vercel.app/?unit=${selectedUnit}`;
 
     try {
       if (navigator.share) {
         // Use native share API if available (mobile)
         await navigator.share({
-          title: `Unit ${selectedUnit.toUpperCase()} - Warehouse Visualization`,
-          text: `Check out Unit ${selectedUnit.toUpperCase()} in our 3D warehouse!`,
+          title: `Unit ${selectedUnit.toUpperCase()} - LA Center Studios`,
+          text: `Check out Unit ${selectedUnit.toUpperCase()} in our 3D virtual tour!`,
           url: shareUrl
         });
       } else {
@@ -125,6 +124,8 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
         setTimeout(() => setShareSuccess(false), 2000);
       } catch (clipboardError) {
         console.error('Clipboard copy failed:', clipboardError);
+        // Show fallback message
+        alert(`Copy this link: ${shareUrl}`);
       }
     }
   };

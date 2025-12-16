@@ -1615,7 +1615,8 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
                   <button
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-150 flex items-center justify-center space-x-2"
                     onClick={() => {
-                      const shareUrl = `${window.location.origin}${window.location.pathname}?sel=${selectedUnitDetails?.unit_key}`;
+                      // SIMPLIFIED: Use main app domain with unit parameter
+                      const shareUrl = `https://lacs7.vercel.app/?unit=${selectedUnitDetails?.unit_key}`;
                       const shareData = {
                         title: `Unit ${selectedUnitDetails?.unit_name} - ${selectedUnitDetails?.building}`,
                         text: `Check out this unit: ${selectedUnitDetails?.unit_name} in ${selectedUnitDetails?.building}`,

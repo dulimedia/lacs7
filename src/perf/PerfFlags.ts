@@ -57,8 +57,8 @@ export const PerfFlags = (() => {
     isFirefoxMobile,
     isTouch: isTouchDevice,
 
-    DPR_MAX: isLow ? 1.25 : isBalanced ? 1.3 : 1.5,
-    pixelRatio: isLow ? 1.25 : isBalanced ? 1.3 : 1.5,
+    DPR_MAX: isLow ? 1.5 : isBalanced ? 1.75 : 1.5, // PHASE 3 FIX: Increased DPR for better mobile clarity
+    pixelRatio: isLow ? 1.5 : isBalanced ? 1.75 : 1.5, // PHASE 3 FIX: Improved mobile pixelRatio
 
     // 🔥 Texture & shadow caps - no shadows at all on mobile
     maxTextureSize: isLow ? 1024 : 4096, // Reverted to 4K for stability
@@ -67,8 +67,8 @@ export const PerfFlags = (() => {
     SHADOWS_ENABLED: true,
     SHADOW_MAX_EXTENT: isLow ? 60 : isBalanced ? 80 : 80, // ULTRA-TIGHT: 80m extent for 50px/m resolution
     SHADOW_MARGIN: isLow ? 4 : isBalanced ? 5.5 : 6,
-    SHADOW_BIAS: -0.0001, // Almost zero bias (CustomShadowMaterial handles acne)
-    SHADOW_NORMAL_BIAS: 0.01, // Minimal normal bias for maximum accuracy
+    SHADOW_BIAS: isLow ? -0.001 : -0.0001, // PHASE 1 FIX: Increased bias on mobile to prevent black roof artifacts
+    SHADOW_NORMAL_BIAS: isLow ? 0.02 : 0.01, // PHASE 1 FIX: Increased normal bias on mobile for roof distance viewing
 
     // 🔥 Post FX flags - none on mobile
     dynamicShadows: !isLow && isHigh,
@@ -78,11 +78,11 @@ export const PerfFlags = (() => {
     bloom: !isLow && isHigh,
 
     // 🔥 Renderer knobs
-    antialiasing: !isLow && !isMobile,
+    antialiasing: true, // PHASE 3 FIX: Enable antialiasing on all devices for better visual quality
     anisotropy: isLow ? 1 : isBalanced ? 2 : 8,
     powerPreference: isMobile ? 'low-power' : 'high-performance',
 
-    useLogDepth: false,
+    useLogDepth: isMobile, // PHASE 2 FIX: Enable log depth on mobile to prevent Z-fighting on coplanar surfaces
     originRebase: false,
     useDracoCompressed: false,
 

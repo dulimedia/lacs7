@@ -747,10 +747,13 @@ function App() {
     );
   }, []);
 
-  // Deep link handling - select unit from URL parameter
+  // ENHANCED: Deep link handling for both ?unit= and ?sel= parameters
   useEffect(() => {
     if (!deepLinkHandled && csvUnitData && Object.keys(csvUnitData).length > 0 && !isUnitDataLoading) {
-      const selectedUnitParam = Q.get('sel');
+      // Support both ?unit= and ?sel= parameters - use dynamic URLSearchParams
+      const urlParams = new URLSearchParams(window.location.search);
+      const selectedUnitParam = urlParams.get('unit') || urlParams.get('sel');
+      
       if (selectedUnitParam) {
         console.log('🔗 Processing deep link for unit:', selectedUnitParam);
 
@@ -759,21 +762,25 @@ function App() {
         const unitData = csvUnitData[unitKey];
 
         if (unitData) {
-          console.log('✅ Deep link unit found:', unitData);
+          console.log('✅ Deep link unit found, triggering proper sidebar selection:', unitData);
 
-          // Set the unit as selected in the explore state
-          // Use the explore state's selection function instead
+          // FIXED: Use exploreState.setSelected for proper sidebar integration
+          // This triggers: sidebar expand → scroll to unit → highlight → 3D glow → full details
           const exploreSetSelected = useExploreState.getState().setSelected;
           exploreSetSelected(selectedUnitParam);
           setDrawerOpen(true);
-          setUnitDetailsOpen(true);
+          // REMOVED: setUnitDetailsOpen(true) - This was causing the unwanted popup modal
 
-          // Wait a bit then mark as handled
+          // Clean URL after successful selection (optional)
           setTimeout(() => {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('unit');
+            cleanUrl.searchParams.delete('sel');
+            window.history.replaceState({}, '', cleanUrl.toString());
             setDeepLinkHandled(true);
-          }, 1000);
+          }, 1500);
         } else {
-          console.warn('⚠️ Deep link unit not found:', selectedUnitParam);
+          console.warn('⚠️ Deep link unit not found in CSV:', selectedUnitParam);
           setDeepLinkHandled(true);
         }
       } else {
@@ -951,18 +958,8 @@ function App() {
     return hasValidUnitData ? csvUnitData : {};
   }, [hasValidUnitData, csvUnitData]);
 
-  // Read URL parameters on initial load to set selected unit
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const unitParam = urlParams.get('unit') || urlParams.get('sel');
-
-    if (unitParam) {
-      const unitKey = unitParam.toLowerCase();
-      if (unitKey in effectiveUnitData) {
-        setSelectedUnit(unitKey);
-      }
-    }
-  }, [effectiveUnitData]);
+  // REMOVED: This was causing the mini popup issue
+  // The proper deep link handling is done below using exploreState.setSelected
 
   // Log unit data for debugging
   useEffect(() => {
@@ -1680,13 +1677,14 @@ function App() {
 
 
 
-            {/* Dynamic Details Sidebar */}
-            <DetailsSidebar
+            {/* Dynamic Details Sidebar - DISABLED: Causes mini popup conflicts with deep links */}
+            {/* Use full sidebar instead of this mini floating popup */}
+            {/* <DetailsSidebar
               selectedUnit={selectedUnit}
               unitData={effectiveUnitData}
               onDetailsClick={handleDetailsClick}
               onClose={handleCloseSidebar}
-            />
+            /> */}
 
 
 

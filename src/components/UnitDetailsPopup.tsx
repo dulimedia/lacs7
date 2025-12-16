@@ -97,7 +97,8 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
   };
 
   const handleShareClick = async () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?sel=${displayUnit.unit_key}`;
+    // SIMPLIFIED: Use main app domain with unit parameter
+    const shareUrl = `https://lacs7.vercel.app/?unit=${displayUnit.unit_key}`;
     
     try {
       await navigator.clipboard.writeText(shareUrl);

@@ -33,9 +33,9 @@ export const ShareUnit: React.FC<ShareUnitProps> = ({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Generate deep link
+  // SIMPLIFIED: Generate direct app link
   const generateDeepLink = () => {
-    return `https://lacenterstudios.com/office-space/?sel=${unitName}`;
+    return `https://lacs7.vercel.app/?unit=${unitKey.toLowerCase()}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,6 +144,9 @@ View this unit in 3D: ${deepLink}
     const deepLink = generateDeepLink();
     navigator.clipboard.writeText(deepLink).then(() => {
       alert('Link copied to clipboard!');
+    }).catch(() => {
+      // Fallback for older browsers
+      alert(`Copy this link: ${deepLink}`);
     });
   };
 

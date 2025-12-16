@@ -220,18 +220,22 @@ export const UnitGlowHighlightFixed = () => {
       return;
     }
     
-    // CRITICAL FIX: Defer glow mesh cleanup to next frame to prevent race conditions
-    console.log('[SELECTIVE GLOW] 🕐 Deferring glow cleanup to next frame...');
-    requestAnimationFrame(() => {
-      console.log('[SELECTIVE GLOW] 🕐 Executing deferred glow cleanup');
-      clearGlowMeshes();
-      
-      // Also defer the glow creation to ensure cleanup is complete
-      requestAnimationFrame(() => {
-        console.log('[SELECTIVE GLOW] 🕐 Executing deferred glow creation');
+    // ANTI-FLASH FIX: Clear glow immediately, then delay creation to let camera settle
+    clearGlowMeshes();
+    
+    if (selectedUnit) {
+      // Delay glow creation by 300ms to prevent white flash during camera animation
+      console.log('[SELECTIVE GLOW] ⏰ Delaying glow creation 300ms to prevent white flash...');
+      const glowTimer = setTimeout(() => {
+        console.log('[SELECTIVE GLOW] ⏰ Creating glow after camera settle delay');
         performGlowUpdate();
-      });
-    });
+      }, 300);
+      
+      return () => clearTimeout(glowTimer);
+    } else {
+      // No unit selected, cleanup only (already done above)
+      console.log('[SELECTIVE GLOW] 🧹 No unit selected, glow cleanup complete');
+    }
   }, [selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, performGlowUpdate]);
 
   // Cleanup on unmount
