@@ -35,26 +35,52 @@ export default function Sidebar() {
     setExploreHovered(null);
     setGlobalSelectedUnit(null);
     setGlobalHoveredUnit(null);
-    
+
     // Reset camera to home position like home button
     if (cameraControlsRef?.current) {
       cameraControlsRef.current.reset(true); // smooth animation
     }
-    
+
     // Clear GLB selection and reset camera animation state
     clearSelection();
     resetCameraAnimation();
-    
+
     // Aggressive memory cleanup to prevent memory leaks on Back to Explore
     const memoryManager = MobileMemoryManager.getInstance();
     memoryManager.aggressiveCleanup();
     console.log('🧹 Memory cleanup triggered on Back to Explore');
-    
+
     setView('explore');
     setFloorPlanExpanded(false);
   };
 
   // Sidebar width is now static - no dynamic updates needed
+
+  // Dynamic Sidebar Height Measurement for Camera Controls
+  useEffect(() => {
+    if (!asideRef.current) return;
+
+    const updateHeight = () => {
+      if (asideRef.current) {
+        const height = asideRef.current.offsetHeight;
+        // Set CSS variable on the app-layout or root
+        document.documentElement.style.setProperty('--mobile-bottom-ui-h', `${height}px`);
+        MobileDiagnostics.log('sidebar', 'Height updated', { height });
+      }
+    };
+
+    // Initial check
+    updateHeight();
+
+    // Use ResizeObserver for live updates
+    const observer = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    observer.observe(asideRef.current);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     MobileDiagnostics.log('sidebar', 'state update', {

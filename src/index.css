@@ -13,20 +13,29 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-button, .button {
+button,
+.button {
   font-family: 'Oswald', 'Arial Narrow', 'Helvetica Neue Condensed', sans-serif;
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-h1, h2, h3, h4, h5, h6, .header, .title {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.header,
+.title {
   font-family: 'Oswald', 'Arial Narrow', 'Helvetica Neue Condensed', sans-serif;
   font-weight: 600;
   letter-spacing: 0.01em;
 }
 
-.loading-text, .loading-screen {
+.loading-text,
+.loading-screen {
   font-family: 'Oswald', 'Arial Narrow', 'Helvetica Neue Condensed', sans-serif;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -84,7 +93,8 @@ body {
   min-width: 320px;
   height: 100%;
   min-height: 100vh;
-  min-height: 100dvh; /* Dynamic viewport height for mobile */
+  min-height: 100dvh;
+  /* Dynamic viewport height for mobile */
   overflow: hidden;
   color: #0f172a;
   background: #ffffff;
@@ -98,7 +108,8 @@ body {
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  min-height: 100dvh; /* Dynamic viewport height for mobile */
+  min-height: 100dvh;
+  /* Dynamic viewport height for mobile */
 }
 
 /* Custom scrollbar */
@@ -128,51 +139,66 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: transparent; /* Prevent background bleed-through during canvas transitions */
+  background: transparent;
+  /* Prevent background bleed-through during canvas transitions */
 }
 
 .app-layout {
   flex: 1;
   max-width: 100%;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  /* OPTION A: CSS Grid */
   width: 100%;
   height: 100%;
   position: relative;
+  /* Desktop Default: Sidebar (Left) | Scene (Right) */
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: 100vh;
 }
 
 .scene-shell {
-  position: fixed;
-  /* STATIC LAYOUT: Position canvas to the right of sidebar */
-  left: var(--sidebar-w);
-  top: 0;
-  right: 0;
-  bottom: 0;
+  /* position: fixed; REMOVED fixed positioning */
+  position: relative;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   z-index: 0;
   /* CRITICAL FIX: No transforms or transitions */
   transform: none !important;
   transition: none !important;
+  grid-column: 2;
+  /* Desktop: Right slot */
+}
+
+/* Sidebar styling handling */
+.sidebar {
+  grid-column: 1;
+  /* Desktop: Left slot */
+  height: 100%;
+  z-index: 10;
+  background: white;
+  /* Ensure bg */
 }
 
 /* Desktop - add border radius and shadow without reducing height */
 @media (min-width: 769px) {
   .app-viewport {
     padding: 20px;
-    background: transparent; /* Prevent background bleed-through during canvas transitions */
-    /* FIXED: Ensure padding doesn't reduce canvas height */
+    background: transparent;
     box-sizing: border-box;
     height: 100vh;
     height: 100dvh;
   }
-  
+
+  .app-layout {
+    /* Ensure grid fills the padded viewport */
+    height: 100%;
+  }
+
   .scene-shell {
     border-radius: 24px;
     box-shadow: 0 20px 48px rgba(15, 23, 42, 0.22);
-    /* FIXED: Account for viewport padding in canvas positioning */
-    top: 20px !important;
-    bottom: 20px !important;
-    right: 20px !important;
+    /* No manual positioning needed - Grid handles it */
   }
 }
 
@@ -183,41 +209,60 @@ body {
   touch-action: pan-x pan-y pinch-zoom;
   position: relative;
   z-index: 1;
-  /* Prevent canvas from collapsing on mobile */
   min-width: 1px !important;
   min-height: 1px !important;
 }
 
-/* Mobile: Vertical split layout - 3D scene top, sidebar bottom */
+/* Mobile: Vertical split layout - Scene (Top) | Sidebar (Bottom) */
 @media (max-width: 768px) {
-  body {
-    background: transparent; /* Remove blue background to prevent flash */
+  .app-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+    /* Scene takes space, Sidebar takes content */
+    height: 100dvh;
+    /* Force full height on mobile */
   }
-  
+
+  body {
+    background: transparent;
+  }
+
   /* CRITICAL FIX: Let touches pass through canvas to HTML UI on mobile */
   .scene-shell canvas {
     pointer-events: none !important;
   }
-  
+
   .app-viewport {
     background: transparent;
     padding: 0;
   }
-  
+
   .scene-shell {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important; /* FIXED: Use full height instead of 50vh */
-    z-index: 1;
-    /* Mobile: Full viewport canvas with safe areas */
-    min-width: 100vw !important;
-    min-height: 100vh !important;
-    min-height: 100dvh !important; /* Dynamic viewport height */
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important; /* Dynamic viewport height */
+    grid-column: 1;
+    grid-row: 1;
+    /* Top slot */
+    border-radius: 0;
+    /* Reset radius */
+    box-shadow: none;
+    min-width: 0;
+    /* Prevent grid blowout */
+    min-height: 0;
+  }
+
+  .sidebar {
+    grid-column: 1;
+    grid-row: 2;
+    /* Bottom slot */
+    width: 100%;
+    z-index: 20;
+    /* Ensure sidebar sits on top of scene if they overlap, but grid keeps them apart */
+  }
+
+  /* Update Camera Controls Overlay for Mobile Grid */
+  .camera-controls-overlay {
+    /* Dynamic bottom offset from Sidebar height + padding */
+    bottom: calc(var(--mobile-bottom-ui-h, 0px) + 16px) !important;
+    transition: bottom 0.2s ease-out;
   }
 }
 
@@ -231,6 +276,7 @@ body {
 }
 
 @supports (-webkit-touch-callout: none) {
+
   /* ensure older Safari expands to the dynamic viewport */
   .app-viewport {
     min-height: -webkit-fill-available;

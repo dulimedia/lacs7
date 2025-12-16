@@ -63,6 +63,7 @@ import { WebGLContextRecovery } from './components/WebGLContextRecovery';
 import { log as debugLog, SAFE, Q } from './lib/debug';
 import { UNIT_CAMERA_CONFIG } from './config/cameraConfig';
 import { MobileDiagnostics } from './debug/mobileDiagnostics';
+import { LayoutDebugger } from './debug/LayoutDebugger';
 
 
 // Component to capture scene and gl refs + setup safety
@@ -410,7 +411,7 @@ function App() {
     MobileDiagnostics.log('scene', 'Scene policy resolved', { param, enabled, reason, isMobile: PerfFlags.isMobile });
     return { enabled, reason, param };
   });
-  
+
   // Deep link handling for unit selection
   const [deepLinkHandled, setDeepLinkHandled] = useState(false);
   const { enabled: sceneEnabled, reason: sceneDisableReason, param: sceneParam } = scenePolicy;
@@ -741,21 +742,21 @@ function App() {
       const selectedUnitParam = Q.get('sel');
       if (selectedUnitParam) {
         console.log('🔗 Processing deep link for unit:', selectedUnitParam);
-        
+
         // Find unit in CSV data
         const unitKey = selectedUnitParam.toLowerCase();
         const unitData = csvUnitData[unitKey];
-        
+
         if (unitData) {
           console.log('✅ Deep link unit found:', unitData);
-          
+
           // Set the unit as selected in the explore state
           // Use the explore state's selection function instead
           const exploreSetSelected = useExploreState.getState().setSelected;
           exploreSetSelected(selectedUnitParam);
           setDrawerOpen(true);
           setUnitDetailsOpen(true);
-          
+
           // Wait a bit then mark as handled
           setTimeout(() => {
             setDeepLinkHandled(true);
@@ -812,11 +813,11 @@ function App() {
     const handleContextLost = (event: Event) => {
       event.preventDefault();
       logger.warn('WebGL context lost - cleaning up for recovery', event);
-      
+
       // Clear all GLB objects to free memory
       const glbState = useGLBState.getState();
       glbState.clearSelection();
-      
+
       // Force garbage collection if available
       if ('gc' in window && typeof (window as any).gc === 'function') {
         (window as any).gc();
@@ -826,7 +827,7 @@ function App() {
     // Mobile memory monitoring
     if (deviceCapabilities.isMobile) {
       let lastMemoryWarning = 0;
-      
+
       memoryCheckInterval = setInterval(() => {
         // Check memory usage if available
         if ('memory' in performance && (performance as any).memory) {
@@ -834,22 +835,22 @@ function App() {
           const usedMB = memory.usedJSHeapSize / (1024 * 1024);
           const limitMB = memory.jsHeapSizeLimit / (1024 * 1024);
           const usagePercent = (usedMB / limitMB) * 100;
-          
+
           // Aggressive cleanup when memory usage is high
           if (usagePercent > 70 && Date.now() - lastMemoryWarning > 5000) {
             console.warn(`📱 High memory usage: ${usedMB.toFixed(1)}MB (${usagePercent.toFixed(1)}%)`);
             lastMemoryWarning = Date.now();
-            
+
             // Trigger aggressive cleanup
             const glbState = useGLBState.getState();
             glbState.clearSelection();
-            
+
             // Clear selections through explore state instead
             const exploreState = useExploreState.getState();
             if (exploreState.setSelected) {
               exploreState.setSelected(null);
             }
-            
+
             // Force garbage collection
             if ('gc' in window && typeof (window as any).gc === 'function') {
               (window as any).gc();
@@ -860,7 +861,7 @@ function App() {
     }
 
     canvas.addEventListener('webglcontextlost', handleContextLost);
-    
+
     return () => {
       canvas.removeEventListener('webglcontextlost', handleContextLost);
       if (memoryCheckInterval) {
@@ -1413,6 +1414,11 @@ function App() {
 
         <div className="app-viewport">
           <div className="app-layout">
+            {/* Sidebar - Moved to top for CSS Grid Layout (Left/Top slot) */}
+            {!modelsLoading && (
+              <Sidebar />
+            )}
+
             <div
               className="scene-shell"
             >
@@ -1452,134 +1458,137 @@ function App() {
                       frameloop={PerfFlags.isIOS && showFloorplanPopup ? "demand" : "always"}
                       onTierChange={setRenderTier}
                       onCreated={({ camera }) => {
-                      console.log('🎨 Canvas created - Mobile safe-mode:', deviceCapabilities.isMobile);
-                      console.log('  - DPR:', mobileSettings.pixelRatio);
-                      console.log('  - Shadows:', mobileSettings.shadows);
-                      console.log('  - HDRI res:', mobileSettings.hdriResolution);
-                      console.log('  - Texture max:', mobileSettings.textureSize);
-                      camera.lookAt(0, 0, 0);
-                    }}
-                  >
-                    {(tier) => (
-                      <>
-                        {/* MOBILE-OPTIMIZED Environment - Prevents context loss on mobile */}
-                        <MobileEnvironment
-                          backgroundIntensity={deviceCapabilities.isMobile ? 1.0 : 1.6}
-                          environmentIntensity={deviceCapabilities.isMobile ? 0.8 : 1.2}
-                        />
+                        console.log('🎨 Canvas created - Mobile safe-mode:', deviceCapabilities.isMobile);
+                        console.log('  - DPR:', mobileSettings.pixelRatio);
+                        console.log('  - Shadows:', mobileSettings.shadows);
+                        console.log('  - HDRI res:', mobileSettings.hdriResolution);
+                        console.log('  - Texture max:', mobileSettings.textureSize);
+                        camera.lookAt(0, 0, 0);
+                      }}
+                    >
+                      {(tier) => (
+                        <>
+                          {/* MOBILE-OPTIMIZED Environment - Prevents context loss on mobile */}
+                          <MobileEnvironment
+                            backgroundIntensity={deviceCapabilities.isMobile ? 1.0 : 1.6}
+                            environmentIntensity={deviceCapabilities.isMobile ? 0.8 : 1.2}
+                          />
 
-                        {/* Lighting System - Mobile-safe preset uses simple lighting */}
-                        {mobileSettings.useSimpleLighting ? (
-                          <>
-                            {/* MOBILE SAFE-MODE: Basic ambient + directional only */}
-                            <ambientLight intensity={0.4} />
-                            <directionalLight
-                              position={[-34, 78, 28]}
-                              intensity={4.0}
-                              castShadow={false}
-                            />
-                            {console.log('💡 Using SIMPLE LIGHTING (mobile safe-mode)')}
-                          </>
-                        ) : (
-                          <>
-                            {/* DESKTOP: Adaptive lighting with shadows */}
-                            {sceneRef.current && (
-                              <>
-                                <AdaptiveLighting scene={sceneRef.current} tier={tier} />
-                                <SoftShadowsController tier={tier} />
-                              </>
-                            )}
-                          </>
-                        )}
+                          {/* Lighting System - Mobile-safe preset uses simple lighting */}
+                          {mobileSettings.useSimpleLighting ? (
+                            <>
+                              {/* MOBILE SAFE-MODE: Basic ambient + directional only */}
+                              <ambientLight intensity={0.4} />
+                              <directionalLight
+                                position={[-34, 78, 28]}
+                                intensity={4.0}
+                                castShadow={false}
+                              />
+                              {console.log('💡 Using SIMPLE LIGHTING (mobile safe-mode)')}
+                            </>
+                          ) : (
+                            <>
+                              {/* DESKTOP: Adaptive lighting with shadows */}
+                              {sceneRef.current && (
+                                <>
+                                  <AdaptiveLighting scene={sceneRef.current} tier={tier} />
+                                  <SoftShadowsController tier={tier} />
+                                </>
+                              )}
+                            </>
+                          )}
 
-                        {/* Shadow Debug Helper */}
-                        <ShadowHelper enabled={debugState.showShadowHelper} />
+                          {/* Shadow Debug Helper */}
+                          <ShadowHelper enabled={debugState.showShadowHelper} />
 
-                        {/* Fog - Lightweight Volumetric Fog (replaces God Rays) */}
-                        {!mobileSettings.disableFog && (
-                          <>
-                            <fogExp2 attach="fog" args={['#d0e0f0', 0.0025]} />
-                          </>
-                        )}
+                          {/* Fog - Lightweight Volumetric Fog (replaces God Rays) */}
+                          {!mobileSettings.disableFog && (
+                            <>
+                              <fogExp2 attach="fog" args={['#d0e0f0', 0.0025]} />
+                            </>
+                          )}
 
-                        {/* Capture scene and gl for external callbacks */}
-                        <SceneCapture sceneRef={sceneRef} glRef={glRef} />
+                          {/* Capture scene and gl for external callbacks */}
+                          <SceneCapture sceneRef={sceneRef} glRef={glRef} />
 
-                        {/* 3D Scene - Testing Single Environment Mesh */}
-                        <SingleEnvironmentMesh tier={renderTier} />
+                          {/* 3D Scene - Testing Single Environment Mesh */}
+                          <SingleEnvironmentMesh tier={renderTier} />
 
-                        {/* GLB Manager for unit highlighting and interaction */}
-                        <Suspense fallback={null}>
-                          <GLBManager />
-                        </Suspense>
-
-                        {/* Frustum Culling for performance - only render visible objects */}
-                        <FrustumCuller />
-
-                        {/* Unit Glow Highlight - FIXED: Only glows selected unit, no mass mesh creation */}
-                        <UnitGlowHighlightFixed />
-                        {/* OLD BROKEN VERSION: <UnitGlowHighlight /> */}
-
-                        {/* Canvas Click Handler for clearing selection */}
-                        <CanvasClickHandler />
-
-                        {/* Canvas Resize Handler for smooth sidebar transitions */}
-                        <CanvasResizeHandler />
-
-                        {/* God Rays Effect - REMOVED per user request (bandwidth/performance) */}
-                        {/* {effectsReady && <GodRays />} */}
-
-                        {/* Enhanced Camera Controls with proper object framing */}
-                        <CameraController selectedUnit={selectedUnit} controlsRef={orbitControlsRef} />
-
-
-
-                        {/* Performance Governor - mobile FPS enforcement */}
-                        <PerformanceGovernorComponent />
-
-                        {/* WebGL Context Recovery */}
-                        <WebGLRecovery />
-
-                        {/* Enhanced Context Recovery for Mobile */}
-                        <WebGLContextRecovery />
-
-                        {/* Post-processing - Disabled on mobile per safe-mode preset */}
-                        {!mobileSettings.postProcessing && !SAFE && effectsReady && debugState.ao && !debugState.pathtracer && (
-                          <AdaptiveEffects tier={tier} />
-                        )}
-                        {mobileSettings.postProcessing && console.log('⚠️ Post-processing DISABLED (mobile safe-mode)')}
-
-                        {/* GPU Path Tracer - DISABLED for production to prevent Suspense fallbacks */}
-                        {false && effectsReady && debugState.pathtracer && (
+                          {/* GLB Manager for unit highlighting and interaction */}
                           <Suspense fallback={null}>
-                            <PathTracer
-                              enabled={debugState.pathtracer}
-                              tier={renderTier}
-                              bounces={debugState.ptBounces}
-                              renderScale={0.5}
-                              tiles={{ x: 2, y: 2 }}
-                            />
+                            <GLBManager />
                           </Suspense>
-                        )}
 
-                        {/* 3D Scene Popup */}
-                        <Unit3DPopupOverlay
-                          onExpand={() => {
-                            setShow3DPopup(false);
-                            setUnitDetailsOpen(true);
-                          }}
-                          onRequest={(unitKey) => {
-                            const unitData = getUnitData(unitKey);
-                            setSingleUnitRequestOpen(true, {
-                              unitKey,
-                              unitName: unitData?.unit_name || unitKey
-                            });
-                          }}
-                          onClose={() => setShow3DPopup(false)}
-                        />
-                      </>
-                    )}
-                  </RootCanvas>
+                          {/* Frustum Culling for performance - only render visible objects */}
+                          <FrustumCuller />
+
+                          {/* Unit Glow Highlight - FIXED: Only glows selected unit, no mass mesh creation */}
+                          <UnitGlowHighlightFixed />
+                          {/* OLD BROKEN VERSION: <UnitGlowHighlight /> */}
+
+                          {/* Canvas Click Handler for clearing selection */}
+                          <CanvasClickHandler />
+
+                          {/* Canvas Resize Handler for smooth sidebar transitions */}
+                          <CanvasResizeHandler />
+
+                          {/* DEBUG: Layout Diagnosis */}
+                          <LayoutDebugger />
+
+                          {/* God Rays Effect - REMOVED per user request (bandwidth/performance) */}
+                          {/* {effectsReady && <GodRays />} */}
+
+                          {/* Enhanced Camera Controls with proper object framing */}
+                          <CameraController selectedUnit={selectedUnit} controlsRef={orbitControlsRef} />
+
+
+
+                          {/* Performance Governor - mobile FPS enforcement */}
+                          <PerformanceGovernorComponent />
+
+                          {/* WebGL Context Recovery */}
+                          <WebGLRecovery />
+
+                          {/* Enhanced Context Recovery for Mobile */}
+                          <WebGLContextRecovery />
+
+                          {/* Post-processing - Disabled on mobile per safe-mode preset */}
+                          {!mobileSettings.postProcessing && !SAFE && effectsReady && debugState.ao && !debugState.pathtracer && (
+                            <AdaptiveEffects tier={tier} />
+                          )}
+                          {mobileSettings.postProcessing && console.log('⚠️ Post-processing DISABLED (mobile safe-mode)')}
+
+                          {/* GPU Path Tracer - DISABLED for production to prevent Suspense fallbacks */}
+                          {false && effectsReady && debugState.pathtracer && (
+                            <Suspense fallback={null}>
+                              <PathTracer
+                                enabled={debugState.pathtracer}
+                                tier={renderTier}
+                                bounces={debugState.ptBounces}
+                                renderScale={0.5}
+                                tiles={{ x: 2, y: 2 }}
+                              />
+                            </Suspense>
+                          )}
+
+                          {/* 3D Scene Popup */}
+                          <Unit3DPopupOverlay
+                            onExpand={() => {
+                              setShow3DPopup(false);
+                              setUnitDetailsOpen(true);
+                            }}
+                            onRequest={(unitKey) => {
+                              const unitData = getUnitData(unitKey);
+                              setSingleUnitRequestOpen(true, {
+                                unitKey,
+                                unitName: unitData?.unit_name || unitKey
+                              });
+                            }}
+                            onClose={() => setShow3DPopup(false)}
+                          />
+                        </>
+                      )}
+                    </RootCanvas>
                   </div>
 
                   {/* Flash Prevention System - OUTSIDE Canvas but overlays entire screen */}
@@ -1658,10 +1667,7 @@ function App() {
               </div>
             )}
 
-            {/* New Sidebar - All devices */}
-            {!modelsLoading && (
-              <Sidebar />
-            )}
+
 
 
             {/* Dynamic Details Sidebar */}

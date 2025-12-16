@@ -109,27 +109,28 @@ function EnvironmentFragment({ filename, tier }: { filename: string, tier: strin
 // Mobile-specific component using the optimized single GLB file
 function MobileEnvironmentMesh({ tier }: { tier: string }) {
   const { gl } = useThree();
-  const glTF = useDracoGLTF(assetUrl('models/environment/mobile/palms mobile.glb'));
+  // SURGICAL FIX: Load specific mobile GLB
+  const glTF = useDracoGLTF(assetUrl('models/environment/mobile/entirescenemobile.glb'));
   const shadowsEnabled = gl && (gl as any).shadowMap?.enabled !== false;
 
   useEffect(() => {
     if (glTF.scene) {
       const scene = glTF.scene;
-      console.log('📱 Processing Mobile Environment: palms mobile.glb');
+      console.log('📱 Processing Mobile Environment: entirescenemobile.glb');
 
-      // Apply mobile optimizations
-      makeFacesBehave(scene, true);
-      
+      // SURGICAL FIX: NO runtime mutations (geometry/texture)
+      // Only applying necessary rendering flags for shadows/z-fighting
+
       const customShadowMat = createCustomShadowMaterial({ offset: 0.0008 });
 
       scene.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) {
           const mesh = child as THREE.Mesh;
-          
-          // Mobile geometry optimization
-          if (mesh.geometry && mesh.geometry.attributes.position) {
-            optimizeMeshForMobile(mesh);
-          }
+
+          // Mobile geometry optimization - REMOVED for SURGICAL FIX
+          // if (mesh.geometry && mesh.geometry.attributes.position) {
+          //   optimizeMeshForMobile(mesh);
+          // }
 
           const mat = mesh.material as THREE.MeshStandardMaterial;
 
@@ -183,7 +184,7 @@ export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
   if (PerfFlags.isMobile) {
     return <MobileEnvironmentMesh tier={tier} />;
   }
-  
+
   return (
     <group>
       {FRAGMENTS.map((file) => (
