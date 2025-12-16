@@ -467,7 +467,8 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
     { label: '<1,500 sf', minSqft: 0, maxSqft: 1500 },
     { label: '1,500-4,000 sf', minSqft: 1500, maxSqft: 4000 },
     { label: '5,000-9,000 sf', minSqft: 5000, maxSqft: 9000 },
-    { label: '9,001-18,000 sf', minSqft: 9001, maxSqft: 18000 }
+    { label: '9,001-18,000 sf', minSqft: 9001, maxSqft: 18000 },
+    { label: '18,000+ sf', minSqft: 18000, maxSqft: 999999 }
   ];
   const [hoveredUnit, setHoveredUnit] = useState<{
     unitName: string;

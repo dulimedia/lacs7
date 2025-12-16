@@ -11,7 +11,8 @@ const SIZE_OPTIONS = [
   { value: '<1500', label: '<1,500 sf', min: 0, max: 1499 },
   { value: '1500-4000', label: '1,500-4,000 sf', min: 1500, max: 4000 },
   { value: '5000-9000', label: '5,000-9,000 sf', min: 5000, max: 9000 },
-  { value: '9001-18500', label: '9,001-18,500 sf', min: 9001, max: 18500 },
+  { value: '9001-18000', label: '9,001-18,000 sf', min: 9001, max: 18000 },
+  { value: '18000+', label: '18,000+ sf', min: 18000, max: 999999 },
 ];
 
 const STATUS_OPTIONS = [
