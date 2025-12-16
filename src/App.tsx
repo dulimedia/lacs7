@@ -19,6 +19,7 @@ import { UnitDetailsPopup } from './components/UnitDetailsPopup';
 import { Unit3DPopup } from './components/Unit3DPopup';
 import { Unit3DPopupOverlay } from './components/Unit3DPopupOverlay';
 import { UnitRequestSidebar } from './components/UnitRequestSidebar';
+import { MobileCameraControls } from './components/MobileCameraControls';
 import { ShareFloorplanModal } from './components/ShareFloorplanModal';
 import { FloorplanPopup } from './components/FloorplanPopup';
 import { UnitRequestForm } from './components/UnitRequestForm';
@@ -1741,6 +1742,9 @@ function App() {
 
             {/* Unit Request Sidebar - Replaces modal to prevent WebGL context loss */}
             <UnitRequestSidebar />
+
+            {/* Mobile Camera Controls Joystick */}
+            <MobileCameraControls />
           </div>  {/* Close app-layout */}
         </div>  {/* Close app-viewport */}
       </SafariErrorBoundary>

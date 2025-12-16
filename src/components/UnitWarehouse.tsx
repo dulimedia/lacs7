@@ -246,23 +246,13 @@ const SingleModelGLB: React.FC<{
             const maxTextureSize = 1024;
             let materials = Array.isArray(child.material) ? child.material : [child.material];
             
-            // MOBILE-ONLY: Clone materials first to prevent shared material corruption
-            if (PerfFlags.isMobile) {
-              const clonedMaterials = materials.map(mat => {
-                if (mat && mat.isMaterial) {
-                  const cloned = mat.clone();
-                  console.log(`📱 [MOBILE] Cloned unit material for safe optimization: ${mat.name}`);
-                  return cloned;
-                }
-                return mat;
+            // MOBILE FIX: Skip texture optimization to prevent PBR corruption
+            if (!PerfFlags.isMobile) {
+              // Desktop-only texture optimization
+              materials.forEach((mat: any) => {
+                optimizeMaterialTextures(mat, maxTextureSize);
               });
-              child.material = Array.isArray(child.material) ? clonedMaterials : clonedMaterials[0];
-              materials = clonedMaterials;
             }
-            
-            materials.forEach((mat: any) => {
-              optimizeMaterialTextures(mat, maxTextureSize);
-            });
           }
         }
       });
@@ -446,23 +436,13 @@ const SingleModelFBX: React.FC<{
               const maxTextureSize = 1024;
               let materials = Array.isArray(child.material) ? child.material : [child.material];
               
-              // MOBILE-ONLY: Clone materials first to prevent shared material corruption
-              if (PerfFlags.isMobile) {
-                const clonedMaterials = materials.map(mat => {
-                  if (mat && mat.isMaterial) {
-                    const cloned = mat.clone();
-                    console.log(`📱 [MOBILE] Cloned batch unit material for safe optimization: ${mat.name}`);
-                    return cloned;
-                  }
-                  return mat;
+              // MOBILE FIX: Skip texture optimization to prevent PBR corruption  
+              if (!PerfFlags.isMobile) {
+                // Desktop-only texture optimization
+                materials.forEach((mat: any) => {
+                  optimizeMaterialTextures(mat, maxTextureSize);
                 });
-                child.material = Array.isArray(child.material) ? clonedMaterials : clonedMaterials[0];
-                materials = clonedMaterials;
               }
-              
-              materials.forEach((mat: any) => {
-                optimizeMaterialTextures(mat, maxTextureSize);
-              });
             }
           });
 
