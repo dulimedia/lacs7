@@ -181,6 +181,14 @@ body {
   z-index: 1;
 }
 
+/* Strong override for R3F Canvas and all nested elements */
+.scene-shell, .scene-shell > div, .scene-shell canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
 /* Mobile: Vertical split layout - 3D scene top, sidebar bottom */
 @media (max-width: 768px) {
   body {
