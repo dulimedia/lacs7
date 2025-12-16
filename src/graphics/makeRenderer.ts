@@ -128,7 +128,7 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
       // Let CSS/R3F handle DOM size (width/height: 100%)
     }
   }
-  window.addEventListener('resize', () => requestAnimationFrame(resize), { passive: true });
+  window.addEventListener('resize', () => requestAnimationFrame(resize));
   resize();
 
   // Context loss handling

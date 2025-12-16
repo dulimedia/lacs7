@@ -176,8 +176,8 @@ body {
   display: block !important;
   width: 100% !important;
   height: 100% !important;
+  position: relative !important;
   touch-action: pan-x pan-y pinch-zoom;
-  position: relative;
   z-index: 1;
 }
 
