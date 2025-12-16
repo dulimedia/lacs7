@@ -19,7 +19,6 @@ import { UnitDetailsPopup } from './components/UnitDetailsPopup';
 import { Unit3DPopup } from './components/Unit3DPopup';
 import { Unit3DPopupOverlay } from './components/Unit3DPopupOverlay';
 import { UnitRequestSidebar } from './components/UnitRequestSidebar';
-import { MobileCameraControls } from './components/MobileCameraControls';
 import { ShareFloorplanModal } from './components/ShareFloorplanModal';
 import { FloorplanPopup } from './components/FloorplanPopup';
 import { UnitRequestForm } from './components/UnitRequestForm';
@@ -341,9 +340,9 @@ const CameraController: React.FC<{
       smoothTime={isMobile ? 0.25 : 0.4}
       enablePan={true}
       touches={{
-        one: 1,
-        two: 2,
-        three: 0
+        one: 1,  // Single touch for orbit
+        two: 2,  // Two-finger touch for dolly (zoom) and truck (pan)
+        three: 0 // Three-finger disabled
       }}
     />
   );
@@ -1437,20 +1436,22 @@ function App() {
                     setModelsLoading(false);
                   }}
                 >
-                  {console.log('🎬 Rendering RootCanvas - canvasReady:', canvasReady, 'sceneEnabled:', sceneEnabled)}
-                  <RootCanvas
-                    shadows={mobileSettings.shadows}
-                    camera={{ position: [-10, 10, -14], fov: 45, near: 0.5, far: 2000 }}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      filter: "none",
-                      backgroundColor: 'transparent' // Prevent white canvas background
-                    }}
-                    gl={glConfig}
-                    frameloop={PerfFlags.isIOS && showFloorplanPopup ? "demand" : "always"}
-                    onTierChange={setRenderTier}
-                    onCreated={({ camera }) => {
+                  {/* Mobile pointer-events wrapper - prevents canvas from blocking HTML UI */}
+                  <div style={deviceCapabilities.isMobile ? { pointerEvents: 'none' } : {}}>
+                    {console.log('🎬 Rendering RootCanvas - canvasReady:', canvasReady, 'sceneEnabled:', sceneEnabled)}
+                    <RootCanvas
+                      shadows={mobileSettings.shadows}
+                      camera={{ position: [-10, 10, -14], fov: 45, near: 0.5, far: 2000 }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        filter: "none",
+                        backgroundColor: 'transparent' // Prevent white canvas background
+                      }}
+                      gl={glConfig}
+                      frameloop={PerfFlags.isIOS && showFloorplanPopup ? "demand" : "always"}
+                      onTierChange={setRenderTier}
+                      onCreated={({ camera }) => {
                       console.log('🎨 Canvas created - Mobile safe-mode:', deviceCapabilities.isMobile);
                       console.log('  - DPR:', mobileSettings.pixelRatio);
                       console.log('  - Shadows:', mobileSettings.shadows);
@@ -1579,6 +1580,7 @@ function App() {
                       </>
                     )}
                   </RootCanvas>
+                  </div>
 
                   {/* Flash Prevention System - OUTSIDE Canvas but overlays entire screen */}
                   {/* Enabled: FlashKiller freezes frame during heavy state changes to prevent white flashes */}
@@ -1609,8 +1611,8 @@ function App() {
 
 
 
-            {/* Camera Controls - Overlay for both Desktop and Mobile */}
-            {sceneEnabled && !modelsLoading && (
+            {/* Camera Controls - Desktop Only (Mobile uses pointer-events CSS pattern) */}
+            {sceneEnabled && !modelsLoading && !deviceCapabilities.isMobile && (
               <div
                 className="fixed bottom-6 left-1/2 z-40 camera-controls-overlay -translate-x-1/2"
               >
@@ -1743,8 +1745,6 @@ function App() {
             {/* Unit Request Sidebar - Replaces modal to prevent WebGL context loss */}
             <UnitRequestSidebar />
 
-            {/* Mobile Camera Controls Joystick */}
-            <MobileCameraControls />
           </div>  {/* Close app-layout */}
         </div>  {/* Close app-viewport */}
       </SafariErrorBoundary>

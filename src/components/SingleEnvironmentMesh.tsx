@@ -9,6 +9,7 @@ import { optimizeMeshForMobile } from '../utils/simplifyGeometry';
 import { applyPolygonOffset } from '../materials/applyPolygonOffset';
 import { assetUrl } from '../lib/assets';
 import { createCustomShadowMaterial } from '../materials/CustomShadowMaterial';
+import { PerfFlags } from '../perf/PerfFlags';
 
 interface SingleEnvironmentMeshProps {
   tier: string;
@@ -105,7 +106,84 @@ function EnvironmentFragment({ filename, tier }: { filename: string, tier: strin
   return <primitive object={glTF.scene} />;
 }
 
+// Mobile-specific component using the optimized single GLB file
+function MobileEnvironmentMesh({ tier }: { tier: string }) {
+  const { gl } = useThree();
+  const glTF = useDracoGLTF(assetUrl('models/environment/mobile/palms mobile.glb'));
+  const shadowsEnabled = gl && (gl as any).shadowMap?.enabled !== false;
+
+  useEffect(() => {
+    if (glTF.scene) {
+      const scene = glTF.scene;
+      console.log('📱 Processing Mobile Environment: palms mobile.glb');
+
+      // Apply mobile optimizations
+      makeFacesBehave(scene, true);
+      
+      const customShadowMat = createCustomShadowMaterial({ offset: 0.0008 });
+
+      scene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          
+          // Mobile geometry optimization
+          if (mesh.geometry && mesh.geometry.attributes.position) {
+            optimizeMeshForMobile(mesh);
+          }
+
+          const mat = mesh.material as THREE.MeshStandardMaterial;
+
+          if (mat && mat.isMeshStandardMaterial) {
+            // Texture setup for mobile
+            if (mat.map) {
+              mat.map.minFilter = THREE.LinearMipMapLinearFilter;
+              mat.map.anisotropy = Math.min(2, gl.capabilities.getMaxAnisotropy()); // Limit anisotropy on mobile
+            }
+
+            // Shadow setup - more conservative on mobile
+            if (shadowsEnabled) {
+              const isTransparent = mat.transparent && mat.opacity < 0.95;
+              if (isTransparent) {
+                mesh.castShadow = false;
+                mesh.receiveShadow = false;
+              } else {
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.customDepthMaterial = customShadowMat;
+              }
+            }
+
+            // Check for road/sidewalk materials by name or properties
+            const meshName = mesh.name.toLowerCase();
+            if (meshName.includes('road') || meshName.includes('sidewalk') || meshName.includes('concrete')) {
+              mat.polygonOffset = true;
+              mat.polygonOffsetFactor = -1;
+              mat.polygonOffsetUnits = -1;
+            }
+
+            mat.needsUpdate = true;
+          }
+        }
+      });
+
+      // Aggressive garbage collection on mobile after processing
+      if ((window as any).gc) {
+        (window as any).gc();
+      }
+
+      console.log('✅ Mobile environment loaded and optimized');
+    }
+  }, [glTF.scene, shadowsEnabled, gl]);
+
+  return <primitive object={glTF.scene} />;
+}
+
 export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
+  // Use mobile-optimized single GLB on mobile devices, desktop fragments otherwise
+  if (PerfFlags.isMobile) {
+    return <MobileEnvironmentMesh tier={tier} />;
+  }
+  
   return (
     <group>
       {FRAGMENTS.map((file) => (
