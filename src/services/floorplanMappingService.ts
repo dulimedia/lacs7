@@ -111,10 +111,14 @@ export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: strin
 
 // Maryland Building unit to floor mapping
 export const MARYLAND_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; individualFloorplan?: string } } = {
-  // Ground Floor
-  'm20': { floorFloorplan: marylandPath('ground-floor', 'MG_Full_LACS.pdf') }, // Guessing 'MG_Full' equivalent? Let's check or map to what we know exists
-  // Wait, I didn't verify Maryland Ground Floor filenames. Let's assume standard 'M[num]_LACS.pdf' or fallback.
-  // Actually, I should use the fallback for MG if unsure, but user said "rely on full floorplan".
+  // Ground Floor - all units use single floorplan (MG Floorplan.pdf)
+  'm20': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
+  'm40': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
+  'm45': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
+  'm50': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
+  'etlab': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
+  'mgstage7': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
+  'studioom': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
 
   // First Floor (M1xx) -> maryland/1st-floor/M1xx_LACS.pdf
   'm120': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M120_LACS.pdf') },

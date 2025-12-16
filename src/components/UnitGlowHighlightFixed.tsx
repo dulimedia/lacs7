@@ -27,14 +27,37 @@ export const UnitGlowHighlightFixed = () => {
       return glowMeshes;
     }
 
+    // DEBUG: Special logging for T-310
+    const isT310 = unitGLB.key.includes('T-310');
+    if (isT310) {
+      console.log('🔍 [T-310 DEBUG] Starting glow creation for:', unitGLB.key);
+      console.log('🔍 [T-310 DEBUG] GLB object structure:', unitGLB.object);
+    }
+
     let meshCount = 0;
     unitGLB.object.traverse((child: THREE.Object3D) => {
       if (child instanceof THREE.Mesh && child.geometry) {
         try {
           // Safety check: skip if geometry is too large (likely environment mesh)
           const vertexCount = child.geometry.attributes.position?.count || 0;
+          
+          // DEBUG: Log all meshes for T-310
+          if (isT310) {
+            console.log(`🔍 [T-310 DEBUG] Found mesh:`, {
+              name: child.name,
+              vertices: vertexCount,
+              material: child.material,
+              userData: child.userData,
+              parent: child.parent?.name
+            });
+          }
+          
           if (vertexCount > 10000) {
-            console.warn(`⚠️ Skipping large mesh with ${vertexCount} vertices (likely environment)`);
+            if (isT310) {
+              console.warn(`🔍 [T-310 DEBUG] Skipping large mesh "${child.name}" with ${vertexCount} vertices (likely environment)`);
+            } else {
+              console.warn(`⚠️ Skipping large mesh with ${vertexCount} vertices (likely environment)`);
+            }
             return;
           }
 
@@ -65,6 +88,11 @@ export const UnitGlowHighlightFixed = () => {
       }
     });
 
+    if (isT310) {
+      console.log(`🔍 [T-310 DEBUG] Final summary: Created ${meshCount} glow meshes for ${unitGLB.key}`);
+      console.log(`🔍 [T-310 DEBUG] Glow meshes:`, glowMeshes);
+    }
+    
     console.log(`✅ Created ${meshCount} glow meshes for unit ${unitGLB.key}`);
     return glowMeshes;
   };

@@ -11,8 +11,7 @@ const SIZE_OPTIONS = [
   { value: '<1500', label: '<1,500 sf', min: 0, max: 1499 },
   { value: '1500-4000', label: '1,500-4,000 sf', min: 1500, max: 4000 },
   { value: '5000-9000', label: '5,000-9,000 sf', min: 5000, max: 9000 },
-  { value: '9001-18000', label: '9,001-18,000 sf', min: 9001, max: 18000 },
-  { value: '18000+', label: '18,000+ sf', min: 18000, max: 999999 },
+  { value: '9001-19000', label: '9,001-19,000 sf', min: 9001, max: 19000 },
 ];
 
 const STATUS_OPTIONS = [
@@ -498,37 +497,39 @@ export function ExploreTab() {
                   const isFloorExpanded = expandedFloors.has(floorKey);
                   const isTowerBuilding = b.name === 'Tower Building';
 
-                  // For Tower Building, render units directly without floor grouping
+                  // For Tower Building, render units directly without floor grouping in a grid
                   if (isTowerBuilding) {
                     return (
-                      <div key={floor.floorName} className={isMobile ? "px-2 pb-2 space-y-2" : "px-2 pb-1 space-y-1"}>
-                        {floor.units.map(({ unitKey, unit }) => (
-                          <button
-                            key={unitKey}
-                            className={isMobile
-                              ? "w-full text-left px-3 py-3 rounded hover:bg-black/5 transition text-sm flex items-center justify-between min-h-[44px] bg-white border border-black/5"
-                              : "w-full text-left px-2 py-1.5 rounded hover:bg-black/5 transition text-sm flex items-center justify-between"}
-                            onClick={() => {
-                              setSelected(unitKey);
-                              setView('details');
+                      <div key={floor.floorName} className={isMobile ? "px-2 pb-2" : "px-2 pb-1"}>
+                        <div className={isMobile ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 md:grid-cols-3 gap-1"}>
+                          {floor.units.map(({ unitKey, unit }) => (
+                            <button
+                              key={unitKey}
+                              className={isMobile
+                                ? "w-full text-left px-2 py-2 rounded hover:bg-black/5 transition text-xs flex flex-col items-start min-h-[60px] bg-white border border-black/5"
+                                : "w-full text-left px-2 py-1.5 rounded hover:bg-black/5 transition text-xs flex flex-col items-start min-h-[50px]"}
+                              onClick={() => {
+                                setSelected(unitKey);
+                                setView('details');
 
-                              const unitData = unitsData.get(unitKey);
-                              if (unitData) {
-                                const normalizedUnit = unitData.unit_name.trim().toUpperCase();
-                                selectUnit('Tower Building', 'Main Floor', normalizedUnit);
-                              }
-                            }}
-                            onMouseEnter={() => setHovered(unitKey)}
-                            onMouseLeave={() => setHovered(null)}
-                          >
-                            <span className={isMobile ? "font-medium text-sm" : ""}>{unit.unit_name}</span>
-                            <span className={isMobile
-                              ? `text-xs px-2 py-1 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
-                              : `text-xs px-2 py-0.5 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                              {unit.status ? 'Available' : 'Occupied'}
-                            </span>
-                          </button>
-                        ))}
+                                const unitData = unitsData.get(unitKey);
+                                if (unitData) {
+                                  const normalizedUnit = unitData.unit_name.trim().toUpperCase();
+                                  selectUnit('Tower Building', 'Main Floor', normalizedUnit);
+                                }
+                              }}
+                              onMouseEnter={() => setHovered(unitKey)}
+                              onMouseLeave={() => setHovered(null)}
+                            >
+                              <span className={isMobile ? "font-medium text-xs" : "font-medium text-xs"}>{unit.unit_name}</span>
+                              <span className={isMobile
+                                ? `text-xs px-1 py-0.5 rounded mt-1 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
+                                : `text-xs px-1 py-0.5 rounded mt-0.5 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                {unit.status ? 'Available' : 'Occupied'}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     );
                   }
@@ -548,33 +549,35 @@ export function ExploreTab() {
                       </button>
 
                       {isFloorExpanded && (
-                        <div className={isMobile ? "px-2 pb-2 space-y-2" : "px-2 pb-1 space-y-1"}>
-                          {floor.units.map(({ unitKey, unit }) => (
-                            <button
-                              key={unitKey}
-                              className={isMobile
-                                ? "w-full text-left px-3 py-3 rounded hover:bg-black/5 transition text-sm flex items-center justify-between min-h-[44px] bg-white border border-black/5"
-                                : "w-full text-left px-2 py-1.5 rounded hover:bg-black/5 transition text-sm flex items-center justify-between"}
-                              onClick={() => {
-                                setSelected(unitKey);
-                                setView('details');
+                        <div className={isMobile ? "px-2 pb-2" : "px-2 pb-1"}>
+                          <div className={isMobile ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-1"}>
+                            {floor.units.map(({ unitKey, unit }) => (
+                              <button
+                                key={unitKey}
+                                className={isMobile
+                                  ? "w-full text-left px-2 py-2 rounded hover:bg-black/5 transition text-xs flex flex-col items-start min-h-[60px] bg-white border border-black/5"
+                                  : "w-full text-left px-2 py-1.5 rounded hover:bg-black/5 transition text-xs flex flex-col items-start min-h-[50px]"}
+                                onClick={() => {
+                                  setSelected(unitKey);
+                                  setView('details');
 
-                                const unitData = unitsData.get(unitKey);
-                                if (unitData) {
-                                  selectUnit(unitData.building, unitData.floor, unitData.unit_name);
-                                }
-                              }}
-                              onMouseEnter={() => setHovered(unitKey)}
-                              onMouseLeave={() => setHovered(null)}
-                            >
-                              <span className={isMobile ? "font-medium text-sm" : ""}>{unit.unit_name}</span>
-                              <span className={isMobile
-                                ? `text-xs px-2 py-1 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
-                                : `text-xs px-2 py-0.5 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                {unit.status ? 'Available' : 'Occupied'}
-                              </span>
-                            </button>
-                          ))}
+                                  const unitData = unitsData.get(unitKey);
+                                  if (unitData) {
+                                    selectUnit(unitData.building, unitData.floor, unitData.unit_name);
+                                  }
+                                }}
+                                onMouseEnter={() => setHovered(unitKey)}
+                                onMouseLeave={() => setHovered(null)}
+                              >
+                                <span className={isMobile ? "font-medium text-xs" : "font-medium text-xs"}>{unit.unit_name}</span>
+                                <span className={isMobile
+                                  ? `text-xs px-1 py-0.5 rounded mt-1 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
+                                  : `text-xs px-1 py-0.5 rounded mt-0.5 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                  {unit.status ? 'Available' : 'Occupied'}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>

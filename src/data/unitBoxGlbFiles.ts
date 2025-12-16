@@ -82,6 +82,7 @@ export const UNIT_BOX_GLB_FILES = [
   'boxes/Tower Building/T-220.glb',
   'boxes/Tower Building/T-230.glb',
   'boxes/Tower Building/T-300.glb',
+  'boxes/Tower Building/T-310.glb',
   'boxes/Tower Building/T-320.glb',
   'boxes/Tower Building/T-400.glb',
   'boxes/Tower Building/T-410.glb',
