@@ -88,10 +88,11 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
           }, 10000);
         });
 
-        // Initialize EmailJS with your public key
+        // Initialize EmailJS with centralized config
+        const { EMAILJS_CONFIG } = await import('../utils/emailjs.js');
         console.log('🔧 Initializing EmailJS with public key...');
-        window.emailjs.init('7v5wJOSuv1p_PkcU5');
-        console.log('✅ EmailJS initialized with key: 7v5wJOSuv1p_PkcU5');
+        window.emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+        console.log('✅ EmailJS initialized with key:', EMAILJS_CONFIG.PUBLIC_KEY);
       } else {
         console.log('✅ EmailJS already loaded and available');
       }
@@ -109,10 +110,11 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
 
       console.log('📧 Attempting to send email to primary:', templateParams);
 
-      // Send to primary email
+      // Send to primary email using centralized config
+      const { EMAILJS_CONFIG } = await import('../utils/emailjs.js');
       await window.emailjs.send(
-        'service_q47lbr7', // Service ID
-        'template_0zeil8m', // Template ID
+        EMAILJS_CONFIG.SERVICE_ID, // Service ID
+        EMAILJS_CONFIG.TEMPLATE_ID, // Template ID
         templateParams
       );
 
@@ -128,8 +130,8 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
         console.log('📧 Attempting to send email to secondary:', secondaryParams);
 
         await window.emailjs.send(
-          'service_q47lbr7', // Service ID
-          'template_0zeil8m', // Template ID
+          EMAILJS_CONFIG.SERVICE_ID, // Service ID
+          EMAILJS_CONFIG.TEMPLATE_ID, // Template ID
           secondaryParams
         );
 
