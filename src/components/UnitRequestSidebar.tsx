@@ -41,7 +41,7 @@ export function UnitRequestSidebar() {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
       script.onload = () => {
-        window.emailjs?.init('teDdqQCKFWI0yJWAV');
+        window.emailjs?.init('M1SsqAm-ePvANc2hG82Vy');
       };
       document.head.appendChild(script);
     }
@@ -83,11 +83,11 @@ export function UnitRequestSidebar() {
       const secondaryEmail = 'dwyatt@lacenterstudios.com';
 
       await Promise.all([
-        window.emailjs.send('service_ycr91ul', 'template_2m6vnhk', {
+        window.emailjs.send('service_q47lbr7', 'template_0zeil8m', {
           ...templateParams,
           to_email: primaryEmail
         }),
-        window.emailjs.send('service_ycr91ul', 'template_2m6vnhk', {
+        window.emailjs.send('service_q47lbr7', 'template_0zeil8m', {
           ...templateParams,
           to_email: secondaryEmail
         })
