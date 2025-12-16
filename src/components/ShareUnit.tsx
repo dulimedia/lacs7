@@ -33,9 +33,9 @@ export const ShareUnit: React.FC<ShareUnitProps> = ({
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // SIMPLIFIED: Generate direct app link
-  const generateDeepLink = () => {
-    return `https://lacs7.vercel.app/?unit=${unitKey.toLowerCase()}`;
+  // SIMPLIFIED: Use simple home URL (deep links not working)
+  const generateAppLink = () => {
+    return 'https://lacs7.vercel.app/';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,7 +82,7 @@ export const ShareUnit: React.FC<ShareUnitProps> = ({
         console.log('✅ EmailJS initialized');
       }
 
-      const deepLink = generateDeepLink();
+      const appLink = generateAppLink();
       const primaryEmail = unitData?.contact_email_id || 'lacenterstudios3d@gmail.com';
       
       // Prepare email content with unit details
@@ -96,7 +96,7 @@ ${unitData?.private_offices ? `Private Offices: ${unitData.private_offices}` : '
 ${unitData?.amenities ? `Amenities: ${unitData.amenities}` : ''}
 ${unitData?.has_kitchen ? 'Kitchen: Yes' : 'Kitchen: No'}
 
-View this unit in 3D: ${deepLink}
+View campus in 3D: ${appLink}
       `.trim();
 
       // Prepare template parameters
@@ -107,7 +107,7 @@ View this unit in 3D: ${deepLink}
         subject: `Unit Information: ${unitName}`,
         message: `Here's the information for ${unitName} at LA Center Studios:\n\n${unitInfo}`,
         unit_name: unitName,
-        deep_link: deepLink,
+        deep_link: appLink,
         floorplan_url: unitData?.floorplan_url ? `https://lacscampus26.vercel.app${unitData.floorplan_url}` : '',
         unit_details: unitInfo,
         reply_to: primaryEmail
@@ -141,12 +141,12 @@ View this unit in 3D: ${deepLink}
   };
 
   const copyToClipboard = () => {
-    const deepLink = generateDeepLink();
-    navigator.clipboard.writeText(deepLink).then(() => {
+    const appLink = generateAppLink();
+    navigator.clipboard.writeText(appLink).then(() => {
       alert('Link copied to clipboard!');
     }).catch(() => {
       // Fallback for older browsers
-      alert(`Copy this link: ${deepLink}`);
+      alert(`Copy this link: ${appLink}`);
     });
   };
 

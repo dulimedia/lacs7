@@ -38,19 +38,17 @@ export function ShareFloorplanModal() {
             // Construct URLs
             const currentOrigin = window.location.origin;
 
-            // 1. App Link: Use the configured share URL (Vercel app) or fallback to current origin
-            // We strip any existing query params from the base to be safe
-            const baseAppUrl = APP_CONFIG.shareBaseUrl || (currentOrigin + window.location.pathname);
-            const shareUrl = `${baseAppUrl}${baseAppUrl.includes('?') ? '&' : '?'}unit=${shareModalData.unitKey}`;
+            // 1. App Link: Use simple home URL (deep links not working reliably)
+            const shareUrl = APP_CONFIG.shareBaseUrl || 'https://lacs7.vercel.app/';
 
             // 2. PDF Links: ALWAYS use Vercel deployment URL for PDFs (not local development server)
             const vercelOrigin = 'https://lacs7.vercel.app';
             const floorplanLink = shareModalData.floorplanUrl && !shareModalData.floorplanUrl.startsWith('http')
-                ? `${vercelOrigin}${shareModalData.floorplanUrl.startsWith('/') ? '' : '/'}${shareModalData.floorplanUrl}`
+                ? `${vercelOrigin}${shareModalData.floorplanUrl.startsWith('/') ? '' : '/'}${encodeURI(shareModalData.floorplanUrl)}`
                 : shareModalData.floorplanUrl;
 
             const fullFloorLink = shareModalData.fullFloorUrl && !shareModalData.fullFloorUrl.startsWith('http')
-                ? `${vercelOrigin}${shareModalData.fullFloorUrl.startsWith('/') ? '' : '/'}${shareModalData.fullFloorUrl}`
+                ? `${vercelOrigin}${shareModalData.fullFloorUrl.startsWith('/') ? '' : '/'}${encodeURI(shareModalData.fullFloorUrl)}`
                 : shareModalData.fullFloorUrl;
 
             // Note: This relies on the template accepting 'to_email' and 'message_html' or similar
@@ -67,9 +65,9 @@ Below are the requested materials to help you explore the space in detail:
 
 🏢 3D Interactive Tour
 
-Explore ${shareModalData.unitName} within our interactive campus experience:
+Explore our interactive campus experience:
 
-👉 View ${shareModalData.unitName} in 3D
+👉 View Campus in 3D
 ${shareUrl}
 
 📋 Floor Plan
@@ -79,11 +77,7 @@ Download the full floor plan for ${shareModalData.unitName}:
 👉 Download Floor Plan PDF
 ${floorplanLink || 'Floor plan coming soon'}
 
-${fullFloorLink ? `📐 Full Building Layout\n\n👉 Download Full Floor PDF\n${fullFloorLink}\n\n` : ''}${message ? `Message:\n${message}\n\n` : ''}If you have any questions, would like to compare suites, or need assistance exploring additional spaces, our team is happy to help.
-
-Best regards,
-LA Center Studios
-📧 lacenterstudios3d@gmail.com`,
+${fullFloorLink ? `📐 Full Building Layout\n\n👉 Download Full Floor PDF\n${fullFloorLink}\n\n` : ''}${message ? `Message:\n${message}` : ''}`,
                 // These might be used by the template:
                 selected_units: shareModalData.unitName,
                 phone: '',
