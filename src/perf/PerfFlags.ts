@@ -5,7 +5,9 @@ export type Tier = "mobileLow" | "desktopHigh";
 
 export const PerfFlags = (() => {
   const userAgent = navigator.userAgent;
-  const isMobileUA = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent);
+  // ENHANCED: More explicit mobile/tablet detection including all iPad variants
+  const isMobileUA = /iPhone|iPad|iPod|Android|Mobile|Tablet|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const isTablet = /iPad|Tablet|Android(?=.*Mobile)|Kindle|Silk/i.test(userAgent);
   const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
   const isSafari = /Safari/.test(userAgent) && !/Chrome|CriOS|FxiOS/.test(userAgent);
   const isFirefox = /Firefox|FxiOS/i.test(userAgent);
@@ -16,11 +18,13 @@ export const PerfFlags = (() => {
   const hasLowMemory = (navigator as any).deviceMemory ? (navigator as any).deviceMemory <= 4 : false;
   const isSimulatorSize = window.innerWidth < 600 || window.innerHeight < 600;
 
-  const isMobile = isMobileUA || (isTouchDevice && isNarrowViewport) || hasLowMemory || isSimulatorSize;
+  // FIXED: Include tablets explicitly in mobile detection for GLB loading
+  const isMobile = isMobileUA || isTablet || (isTouchDevice && isNarrowViewport) || hasLowMemory || isSimulatorSize;
   const tier: Tier = (isMobile || isIOS) ? "mobileLow" : "desktopHigh";
 
   MobileDiagnostics.log('perf', 'PerfFlags initialized', {
     isIOS,
+    isTablet,
     isSafari,
     isSafariIOS,
     isFirefox,
@@ -45,6 +49,7 @@ export const PerfFlags = (() => {
     qualityTier,
     isMobile,
     isMobileUA,
+    isTablet,
     isIOS,
     isSafari,
     isSafariIOS,
