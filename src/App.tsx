@@ -18,7 +18,7 @@ import { FrustumCuller } from './components/FrustumCuller';
 import { UnitDetailsPopup } from './components/UnitDetailsPopup';
 import { Unit3DPopup } from './components/Unit3DPopup';
 import { Unit3DPopupOverlay } from './components/Unit3DPopupOverlay';
-import { SingleUnitRequestForm } from './components/SingleUnitRequestForm';
+import { UnitRequestSidebar } from './components/UnitRequestSidebar';
 import { ShareFloorplanModal } from './components/ShareFloorplanModal';
 import { FloorplanPopup } from './components/FloorplanPopup';
 import { UnitRequestForm } from './components/UnitRequestForm';
@@ -1739,13 +1739,8 @@ function App() {
             {/* Safari Debug Banner - On-screen debugging for real iOS devices */}
             <SafariDebugBanner />
 
-            {/* Single Unit Request Form Modal */}
-            {singleUnitRequestOpen && (
-              <SingleUnitRequestForm
-                onClose={() => setSingleUnitRequestOpen(false)}
-                unitData={requestUnitData}
-              />
-            )}
+            {/* Unit Request Sidebar - Replaces modal to prevent WebGL context loss */}
+            <UnitRequestSidebar />
           </div>  {/* Close app-layout */}
         </div>  {/* Close app-viewport */}
       </SafariErrorBoundary>
