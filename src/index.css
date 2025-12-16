@@ -224,6 +224,10 @@ body {
   border: 0 !important;
   outline: 0 !important;
   vertical-align: top !important;
+  /* CRITICAL: Force canvas to fill container without aspect ratio constraints */
+  object-fit: fill !important;
+  max-width: none !important;
+  max-height: none !important;
 }
 
 /* Mobile: Vertical split layout - Scene (Top) | Sidebar (Bottom) - REVERTED TO LACSWORLD5 APPROACH */
@@ -243,7 +247,7 @@ body {
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    height: 50vh !important;  /* Canvas takes exactly top half */
+    height: 100% !important;  /* Canvas fills container completely */
     bottom: auto !important;
     z-index: 1;
     border-radius: 0;

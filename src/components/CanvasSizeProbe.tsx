@@ -9,19 +9,38 @@ export function CanvasSizeProbe() {
     const canvas = gl.domElement;
     if (!canvas) return;
 
+    // TEMPORARILY DISABLED TO STOP SPAM
+    return;
+
     const logSizes = (eventType: string) => {
-      const rect = canvas.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
       const r3fSize = size;
       const bufferSize = {
         width: gl.drawingBufferWidth,
         height: gl.drawingBufferHeight
       };
 
+      // CRITICAL: Log container vs canvas dimensions to detect aspect ratio lock
+      const sceneShell = document.querySelector('.scene-shell');
+      const appViewport = document.querySelector('.app-viewport');
+      const canvasParent = canvas.parentElement;
+      
+      const containerRects = {
+        sceneShell: sceneShell ? sceneShell.getBoundingClientRect() : null,
+        appViewport: appViewport ? appViewport.getBoundingClientRect() : null,
+        canvasParent: canvasParent ? canvasParent.getBoundingClientRect() : null
+      };
+
       const logData = {
         event: eventType,
-        cssRect: { width: rect.width, height: rect.height },
+        canvasRect: { width: canvasRect.width, height: canvasRect.height },
         r3fSize: { width: r3fSize.width, height: r3fSize.height },
         bufferSize,
+        containerRects,
+        aspectRatioLockDetected: containerRects.sceneShell ? 
+          (containerRects.sceneShell.height > canvasRect.height + 50) : false,
+        heightDiff: containerRects.sceneShell ? 
+          (containerRects.sceneShell.height - canvasRect.height) : 0,
         timestamp: new Date().toISOString()
       };
 
@@ -30,6 +49,9 @@ export function CanvasSizeProbe() {
       // Only log if different from last log to prevent spam
       if (logString !== lastLogRef.current) {
         console.log('🔍 CANVAS SIZE PROBE:', logData);
+        if (logData.aspectRatioLockDetected) {
+          console.warn(`⚠️ ASPECT RATIO LOCK DETECTED! Container height (${containerRects.sceneShell?.height}) > canvas height (${canvasRect.height}) by ${logData.heightDiff}px`);
+        }
         lastLogRef.current = logString;
       }
     };

@@ -69,14 +69,9 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
       console.warn('⚠️ Canvas has zero dimensions, setting fallback size to prevent context loss');
-      if (PerfFlags.isMobile) {
-        canvas.style.width = '100vw';
-        canvas.style.height = '50vh';
-      } else {
-        // Desktop fallback
-        canvas.style.width = '100vw';
-        canvas.style.height = '100vh';
-      }
+      // Use container dimensions instead of viewport units
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
     }
   }
 
@@ -126,7 +121,7 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   renderer.setPixelRatio(DPR);
 
   function resize() {
-    // FIXED: Measure the actual scene container, not window dimensions
+    // CRITICAL FIX: Force canvas to fill container completely
     const sceneContainer = document.querySelector('.scene-shell') as HTMLElement;
     
     let w, h;
@@ -134,7 +129,23 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
       const rect = sceneContainer.getBoundingClientRect();
       w = Math.max(1, Math.floor(rect.width));
       h = Math.max(1, Math.floor(rect.height));
-      console.log('📐 Renderer resize using scene-shell container:', { width: w, height: h });
+      console.log('📐 FORCED RENDERER RESIZE:', { width: w, height: h });
+      
+      // CRITICAL: Force canvas style to match container exactly
+      const canvas = renderer.domElement;
+      if (canvas) {
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        console.log('🎯 FORCED CANVAS STYLE:', { 
+          canvasWidth: canvas.style.width, 
+          canvasHeight: canvas.style.height,
+          containerWidth: w,
+          containerHeight: h
+        });
+      }
     } else {
       // Fallback to window dimensions if container not found
       w = Math.max(1, Math.floor(window.innerWidth));
