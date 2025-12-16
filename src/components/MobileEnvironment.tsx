@@ -44,53 +44,22 @@ export const MobileEnvironment: React.FC<MobileEnvironmentProps> = ({
     return texture;
   }, []);
 
-  // Use ultra-low-res HDRI on mobile, full HDRI on desktop
-  if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
-    // iOS Safari - use solid color background to prevent context loss (preserve existing behavior)
-    return (
-      <>
-        <color attach="background" args={['#87CEEB']} />
-        <ambientLight intensity={0.6} />
-        <directionalLight 
-          position={[10, 10, 5]} 
-          intensity={2.0} 
-          castShadow={false}
-        />
-      </>
-    );
-  }
-
-
-  // Restore working Safari iOS configuration from commit 7797c6f
-  if (PerfFlags.isMobile && PerfFlags.isSafariIOS) {
-    // iOS Safari - use solid color background (what was working at 7797c6f)
-    console.log('📱 Safari iOS: Using solid color background (no HDRI)');
-    return (
-      <>
-        <color attach="background" args={['#87CEEB']} />
-        <ambientLight intensity={0.6} />
-        <directionalLight 
-          position={[10, 10, 5]} 
-          intensity={2.0} 
-          castShadow={false}
-        />
-      </>
-    );
-  }
-
+  // MOBILE: Use HDRI backdrop with disabled shadows
   if (PerfFlags.isMobile) {
-    // Other mobile browsers - use simple gradient (what was working)
-    console.log('📱 Mobile (non-Safari): Using ultra-lightweight gradient');
+    console.log('📱 Mobile: Using HDRI backdrop with disabled shadows');
     return (
-      <>
-        {gradientTexture && <primitive attach="background" object={gradientTexture} />}
-        <ambientLight intensity={0.6} />
-        <directionalLight 
-          position={[10, 10, 5]} 
-          intensity={2.0} 
-          castShadow={false}
-        />
-      </>
+      <Environment
+        files={assetUrl("textures/kloofendal_48d_partly_cloudy_puresky_2k.hdr")}
+        background={true} // Enable HDRI backdrop for mobile
+        backgroundIntensity={backgroundIntensity}
+        environmentIntensity={environmentIntensity}
+        resolution={512} // Lower resolution for mobile performance
+        onLoad={() => console.log('✅ Mobile HDRI loaded')}
+        onError={(error) => {
+          console.error('❌ Mobile HDRI failed, using fallback:', error);
+          // Fallback to gradient if HDRI fails
+        }}
+      />
     );
   }
 

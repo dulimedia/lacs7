@@ -64,6 +64,7 @@ import { log as debugLog, SAFE, Q } from './lib/debug';
 import { UNIT_CAMERA_CONFIG } from './config/cameraConfig';
 import { MobileDiagnostics } from './debug/mobileDiagnostics';
 import { LayoutDebugger } from './debug/LayoutDebugger';
+import { CanvasSizeProbe } from './components/CanvasSizeProbe';
 
 
 // Component to capture scene and gl refs + setup safety
@@ -1534,6 +1535,9 @@ function App() {
 
                           {/* DEBUG: Layout Diagnosis */}
                           <LayoutDebugger />
+
+                          {/* Canvas Size Probe for debugging aspect lock issues */}
+                          <CanvasSizeProbe />
 
                           {/* God Rays Effect - REMOVED per user request (bandwidth/performance) */}
                           {/* {effectsReady && <GodRays />} */}

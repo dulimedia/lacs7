@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Send, ChevronDown, ChevronRight, Check } from 'lucide-react';
 import { useCsvUnitData } from '../hooks/useCsvUnitData';
 import { detectDevice } from '../utils/deviceDetection';
+import { EMAIL_RECIPIENTS, sendEmailRequest } from '../utils/emailjs';
 
 const UnitRequestForm = ({ isOpen, onClose }) => {
   const [selectedUnits, setSelectedUnits] = useState(new Set());
@@ -13,7 +14,7 @@ const UnitRequestForm = ({ isOpen, onClose }) => {
   const [isSending, setIsSending] = useState(false);
   
   // Google Sheets CSV data source - Updated to new spreadsheet
-  const CSV_URL = 'https://docs.google.com/spreadsheets/d/1sDmF1HJk0qYTjLxTCg0dunv9rXmat_KWLitG8tUlMwI/export?format=csv';
+  const CSV_URL = '/unit-data.csv';
   const { data: csvUnitData, loading: isUnitDataLoading, error } = useCsvUnitData(CSV_URL);
 
   // Generate units structure from CSV data, filtering only available units
@@ -192,16 +193,14 @@ const UnitRequestForm = ({ isOpen, onClose }) => {
     
     const selectedUnitsList = Array.from(selectedUnits).sort();
     
-    // Get contact emails from CSV or use defaults
-    const primaryEmail = 'lacenterstudios3d@gmail.com';
-    const secondaryEmail = 'dwyatt@lacenterstudios.com';
-    
-    console.log('📧 DEBUG: Emails will be sent to primary:', primaryEmail, 'and secondary:', secondaryEmail);
+    const recipientEmail = EMAIL_RECIPIENTS.join(',');
+
+    console.log('📧 DEBUG: All emails will be sent to:', recipientEmail);
     console.log('🔍 DEBUG: Selected units list:', selectedUnitsList);
     
     // Format the email data
     const emailData = {
-      to: primaryEmail, // Use primary email
+      to: recipientEmail, // Use unit-specific email from CSV
       subject: `Unit Inquiry - ${senderName}`,
       body: `
 New Unit Inquiry
@@ -231,70 +230,29 @@ Sent from LA Center Unit Request System
         throw new Error('Please fill in all required fields (Name and Email)');
       }
       
-      // Load EmailJS if not already loaded
-      if (!window.emailjs) {
-        console.log('📦 Loading EmailJS library...');
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-        document.head.appendChild(script);
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = reject;
-          setTimeout(reject, 10000); // 10 second timeout
-        });
-        console.log('✅ EmailJS library loaded');
-        
-        // Initialize EmailJS with your public key
-        window.emailjs.init('7v5wJOSuv1p_PkcU5');
-        console.log('✅ EmailJS initialized');
-      }
-
-      // Prepare template parameters for primary email
+      // Prepare template parameters
       const templateParams = {
         from_name: senderName,
         from_email: senderEmail,
-        phone: senderPhone || 'Not provided',
-        message: message || 'No additional message',
+        phone: senderPhone,
+        message: message,
         selected_units: selectedUnitsList.map(unit => `• ${unit}`).join('\n'),
-        to_email: primaryEmail,
-        reply_to: senderEmail
+        to_email: recipientEmail,
+        reply_to: senderEmail // Add reply-to field
       };
       
-      console.log('📧 Sending email with template params to primary:', templateParams);
+      console.log('🔍 Recipient email check:', recipientEmail);
+      console.log('🔍 Is recipient email empty?', !recipientEmail || recipientEmail.trim() === '');
 
-      // Send to primary email
-      const response = await window.emailjs.send(
-        'service_q47lbr7', // Your service ID
-        'template_0zeil8m', // Your template ID
-        templateParams
-      );
+      console.log('📧 Template params:', templateParams);
 
-      console.log('✅ Primary email sent successfully!');
+      const response = await sendEmailRequest(templateParams);
 
-      // Send to secondary email (dwyatt@lacenterstudios.com)
-      if (secondaryEmail && secondaryEmail !== primaryEmail) {
-        const secondaryParams = {
-          ...templateParams,
-          to_email: secondaryEmail
-        };
-
-        console.log('📧 Sending email to secondary:', secondaryParams);
-
-        await window.emailjs.send(
-          'service_q47lbr7', // Your service ID
-          'template_0zeil8m', // Your template ID
-          secondaryParams
-        );
-
-        console.log('✅ Secondary email sent successfully!');
-      }
-
-      console.log('✅ Email sent successfully via EmailJS:', response);
+      console.log('✅ Email sent successfully:', response);
       
       setIsSending(false);
       
-      // Success feedback
-      alert('🎉 Your request has been sent directly to LA Center Studios! We will contact you soon.');
+      alert('Request has been successfully sent.');
       
       // Reset form and close
       setSelectedUnits(new Set());
@@ -305,17 +263,10 @@ Sent from LA Center Unit Request System
       onClose();
       
     } catch (error) {
-      console.error('❌ Direct email sending failed:', error);
+      console.error('❌ Email sending failed:', error);
+      console.error('❌ Full error object:', JSON.stringify(error, null, 2));
       setIsSending(false);
-      
-      // More user-friendly error handling
-      if (error.message && error.message.includes('fill in all required fields')) {
-        alert(error.message);
-      } else if (error.text === 'The user ID is invalid') {
-        alert('Email service configuration error. Please try again or contact us directly at lacenterstudios3d@gmail.com');
-      } else {
-        alert(`Unable to send email directly. Please try again or contact us at lacenterstudios3d@gmail.com\n\nError: ${error.text || error.message || 'Unknown error'}`);
-      }
+      alert(`Failed to send request: ${error.text || error.message || 'Unknown error'}. Please try again.`);
     }
   };
 

@@ -98,6 +98,9 @@ body {
   overflow: hidden;
   color: #0f172a;
   background: #ffffff;
+  /* FIXED: Prevent any unwanted spacing */
+  border: 0;
+  outline: 0;
 }
 
 * {
@@ -168,6 +171,10 @@ body {
   transition: none !important;
   grid-column: 2;
   /* Desktop: Right slot */
+  /* FIXED: Eliminate any container margin/padding that could create white space */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
 }
 
 /* Sidebar styling handling */
@@ -211,25 +218,18 @@ body {
   z-index: 1;
   min-width: 1px !important;
   min-height: 1px !important;
+  /* FIXED: Eliminate any canvas margin/padding that could create white space */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  vertical-align: top !important;
 }
 
-/* Mobile: Vertical split layout - Scene (Top) | Sidebar (Bottom) */
+/* Mobile: Vertical split layout - Scene (Top) | Sidebar (Bottom) - REVERTED TO LACSWORLD5 APPROACH */
 @media (max-width: 768px) {
-  .app-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr auto;
-    /* Scene takes space, Sidebar takes content */
-    height: 100dvh;
-    /* Force full height on mobile */
-  }
-
   body {
     background: transparent;
-  }
-
-  /* CRITICAL FIX: Let touches pass through canvas to HTML UI on mobile */
-  .scene-shell canvas {
-    pointer-events: none !important;
   }
 
   .app-viewport {
@@ -237,31 +237,51 @@ body {
     padding: 0;
   }
 
+  /* FIXED: Revert to proven lacsworld5 approach - Fixed 50/50 split */
   .scene-shell {
-    grid-column: 1;
-    grid-row: 1;
-    /* Top slot */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 50vh !important;  /* Canvas takes exactly top half */
+    bottom: auto !important;
+    z-index: 1;
     border-radius: 0;
-    /* Reset radius */
     box-shadow: none;
-    min-width: 0;
-    /* Prevent grid blowout */
-    min-height: 0;
+    /* Grid properties no longer needed */
+    grid-column: unset;
+    grid-row: unset;
   }
 
+  /* CRITICAL FIX: Let touches pass through canvas to HTML UI on mobile */
+  .scene-shell canvas {
+    pointer-events: none !important;
+  }
+
+  /* Adjust sidebar to fill bottom 50vh */
   .sidebar {
-    grid-column: 1;
-    grid-row: 2;
-    /* Bottom slot */
-    width: 100%;
+    position: fixed !important;
+    top: 50vh !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    overflow-y: auto;
     z-index: 20;
-    /* Ensure sidebar sits on top of scene if they overlap, but grid keeps them apart */
+    /* Grid properties no longer needed */
+    grid-column: unset;
+    grid-row: unset;
   }
 
-  /* Update Camera Controls Overlay for Mobile Grid */
+  /* Remove grid layout on mobile - use fixed positioning instead */
+  .app-layout {
+    display: block; /* Override grid */
+    height: 100dvh;
+  }
+
+  /* Update Camera Controls Overlay for Mobile Fixed Layout */
   .camera-controls-overlay {
-    /* Dynamic bottom offset from Sidebar height + padding */
-    bottom: calc(var(--mobile-bottom-ui-h, 0px) + 16px) !important;
+    bottom: calc(50vh + 16px) !important; /* Above sidebar */
     transition: bottom 0.2s ease-out;
   }
 }

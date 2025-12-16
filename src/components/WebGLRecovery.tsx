@@ -28,8 +28,21 @@ export function WebGLRecovery() {
       // Force a full scene refresh
       setTimeout(() => {
         if (gl) {
-          const width = gl.domElement.clientWidth || window.innerWidth;
-          const height = gl.domElement.clientHeight || window.innerHeight;
+          // FIXED: Use scene container dimensions, not canvas or window dimensions
+          const sceneContainer = document.querySelector('.scene-shell') as HTMLElement;
+          
+          let width, height;
+          if (sceneContainer) {
+            const rect = sceneContainer.getBoundingClientRect();
+            width = Math.floor(rect.width);
+            height = Math.floor(rect.height);
+            console.log('📐 WebGL Recovery using scene-shell container:', { width, height });
+          } else {
+            // Fallback to canvas/window dimensions
+            width = gl.domElement.clientWidth || window.innerWidth;
+            height = gl.domElement.clientHeight || window.innerHeight;
+            console.warn('⚠️ WebGL Recovery: scene-shell not found, using fallback dimensions');
+          }
           
           // Ensure we never set size to 0 (prevents context loss)
           if (width > 0 && height > 0) {

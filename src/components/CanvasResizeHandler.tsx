@@ -92,15 +92,27 @@ export function CanvasResizeHandler() {
               
               // Schedule resize retry on next animation frame using R3F's setSize directly
               requestAnimationFrame(() => {
-                const container = canvas.parentElement;
-                if (container) {
-                  const containerRect = container.getBoundingClientRect();
+                // FIXED: Use scene-shell container instead of canvas parent
+                const sceneContainer = document.querySelector('.scene-shell') as HTMLElement;
+                if (sceneContainer) {
+                  const containerRect = sceneContainer.getBoundingClientRect();
                   if (containerRect.width > 0 && containerRect.height > 0) {
-                    console.log(`🔄 iOS Safari: R3F setSize retry to ${containerRect.width}x${containerRect.height}`);
+                    console.log(`🔄 iOS Safari: R3F setSize retry to ${containerRect.width}x${containerRect.height} (scene-shell)`);
                     
                     // Use R3F's setSize directly with proper DPR handling (no CSS manipulation)
                     setSize(containerRect.width, containerRect.height);
                     invalidate(); // Force a frame render
+                  }
+                } else {
+                  // Fallback to canvas parent if scene-shell not found
+                  const container = canvas.parentElement;
+                  if (container) {
+                    const containerRect = container.getBoundingClientRect();
+                    if (containerRect.width > 0 && containerRect.height > 0) {
+                      console.log(`🔄 iOS Safari: R3F setSize retry to ${containerRect.width}x${containerRect.height} (fallback)`);
+                      setSize(containerRect.width, containerRect.height);
+                      invalidate();
+                    }
                   }
                 }
               });

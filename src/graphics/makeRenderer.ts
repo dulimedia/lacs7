@@ -126,8 +126,21 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   renderer.setPixelRatio(DPR);
 
   function resize() {
-    const w = Math.max(1, Math.floor(window.innerWidth));
-    const h = Math.max(1, Math.floor(window.innerHeight));
+    // FIXED: Measure the actual scene container, not window dimensions
+    const sceneContainer = document.querySelector('.scene-shell') as HTMLElement;
+    
+    let w, h;
+    if (sceneContainer) {
+      const rect = sceneContainer.getBoundingClientRect();
+      w = Math.max(1, Math.floor(rect.width));
+      h = Math.max(1, Math.floor(rect.height));
+      console.log('📐 Renderer resize using scene-shell container:', { width: w, height: h });
+    } else {
+      // Fallback to window dimensions if container not found
+      w = Math.max(1, Math.floor(window.innerWidth));
+      h = Math.max(1, Math.floor(window.innerHeight));
+      console.warn('⚠️ scene-shell not found, falling back to window dimensions');
+    }
     
     // Ensure we never set size to 0 (prevents context loss)
     if (w > 0 && h > 0) {
