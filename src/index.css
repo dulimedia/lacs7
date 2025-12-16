@@ -138,21 +138,18 @@ body {
 .app-layout {
   flex: 1;
   max-width: 100%;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
   width: 100%;
   height: 100%;
   position: relative;
 }
 
 .scene-shell {
-  position: fixed;
-  /* STATIC LAYOUT: Position canvas to the right of sidebar */
-  left: var(--sidebar-w);
-  top: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;  /* Prevent right overflow */
   z-index: 0;
   /* CRITICAL FIX: No transforms or transitions */
   transform: none !important;
@@ -162,13 +159,26 @@ body {
 /* Desktop - add border radius and shadow */
 @media (min-width: 769px) {
   .app-viewport {
-    padding: 20px;
+    padding: 20px !important;
     background: transparent;
+    box-sizing: border-box !important;
   }
   
+  .app-layout {
+    display: grid !important;
+    grid-template-columns: var(--sidebar-w) 1fr !important; /* Sidebar left, canvas right */
+    height: 100% !important;
+  }
+
   .scene-shell {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
     border-radius: 24px;
     box-shadow: 0 20px 48px rgba(15, 23, 42, 0.22);
+    margin: 0 !important;  /* No extra gap */
   }
 }
 
@@ -180,7 +190,7 @@ body {
   width: 100% !important;
   height: 100% !important;
   object-fit: contain !important;
-  object-position: center center !important;
+  object-position: center !important;
   touch-action: pan-x pan-y pinch-zoom;
   z-index: 1;
 }
@@ -204,6 +214,11 @@ body {
     padding: 0;
   }
   
+  .app-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  
   .scene-shell {
     position: fixed !important;
     top: 0 !important;
@@ -214,6 +229,7 @@ body {
     z-index: 1;
     border-radius: 0;
     box-shadow: none;
+    margin: 0 !important;
   }
 }
 
