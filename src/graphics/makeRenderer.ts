@@ -64,16 +64,6 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
 }
 
 function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElement, tier: string, isIOS: boolean, isSafari: boolean): THREE.WebGLRenderer {
-  // Canvas safeguard: Ensure canvas has minimum dimensions (prevents WebGL context loss)
-  if (canvas) {
-    const rect = canvas.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      console.warn('⚠️ Canvas has zero dimensions, setting fallback size to prevent context loss');
-      // Use container dimensions instead of viewport units
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-    }
-  }
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
@@ -121,43 +111,21 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
   renderer.setPixelRatio(DPR);
 
   function resize() {
-    // CRITICAL FIX: Force canvas to fill container completely
     const sceneContainer = document.querySelector('.scene-shell') as HTMLElement;
-    
+
     let w, h;
     if (sceneContainer) {
       const rect = sceneContainer.getBoundingClientRect();
       w = Math.max(1, Math.floor(rect.width));
       h = Math.max(1, Math.floor(rect.height));
-      console.log('📐 FORCED RENDERER RESIZE:', { width: w, height: h });
-      
-      // CRITICAL: Force canvas style to match container exactly
-      const canvas = renderer.domElement;
-      if (canvas) {
-        canvas.style.width = `${w}px`;
-        canvas.style.height = `${h}px`;
-        canvas.style.position = 'absolute';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
-        console.log('🎯 FORCED CANVAS STYLE:', { 
-          canvasWidth: canvas.style.width, 
-          canvasHeight: canvas.style.height,
-          containerWidth: w,
-          containerHeight: h
-        });
-      }
     } else {
-      // Fallback to window dimensions if container not found
       w = Math.max(1, Math.floor(window.innerWidth));
       h = Math.max(1, Math.floor(window.innerHeight));
-      console.warn('⚠️ scene-shell not found, falling back to window dimensions');
     }
-    
-    // Ensure we never set size to 0 (prevents context loss)
+
     if (w > 0 && h > 0) {
-      renderer.setSize(w, h, false);
-    } else {
-      console.warn('Renderer resize: Skipping setSize with invalid dimensions to prevent context loss');
+      renderer.setSize(w, h, false);  // Only set renderer buffer
+      // Let CSS/R3F handle DOM size (width/height: 100%)
     }
   }
   window.addEventListener('resize', () => requestAnimationFrame(resize), { passive: true });
