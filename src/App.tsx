@@ -65,6 +65,7 @@ import { UNIT_CAMERA_CONFIG } from './config/cameraConfig';
 import { MobileDiagnostics } from './debug/mobileDiagnostics';
 import { LayoutDebugger } from './debug/LayoutDebugger';
 import { CanvasSizeProbe } from './components/CanvasSizeProbe';
+import { loadUnitData, UnitDataItem } from './data/UnitDataLoader';
 
 
 // Component to capture scene and gl refs + setup safety
@@ -736,6 +737,15 @@ function App() {
 
   // Use new CSV-based data fetching
   const { data: csvUnitData, loading: isUnitDataLoading, error } = useCsvUnitData(CSV_URL);
+  
+  // Enhanced unit data with Google Sheets square footage
+  const [enhancedUnitData, setEnhancedUnitData] = useState<Record<string, UnitDataItem>>({});
+  
+  useEffect(() => {
+    loadUnitData().then(setEnhancedUnitData).catch(err => 
+      console.error('Failed to load enhanced unit data:', err)
+    );
+  }, []);
 
   // Deep link handling - select unit from URL parameter
   useEffect(() => {

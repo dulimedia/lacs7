@@ -302,3 +302,33 @@ body {
     min-height: -webkit-fill-available;
   }
 }
+
+/* Fix white space - full canvas height */
+html, body, #root {
+  height: 100% !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important; /* iOS dynamic viewport */
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.app-layout {
+  height: 100% !important;
+  min-height: 100dvh !important;
+  display: grid !important; /* Keep grid */
+}
+
+.scene-shell {
+  height: 100% !important;
+  min-height: calc(100vh - var(--ui-height, 0px)) !important; /* Adjust if UI has fixed height var */
+}
+
+@media (max-width: 768px) {
+  .app-layout {
+    grid-template-rows: 1fr auto !important; /* Keep, but force fill */
+  }
+  .scene-shell {
+    height: 100% !important; /* Override any 50vh */
+  }
+}
