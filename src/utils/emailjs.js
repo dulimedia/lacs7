@@ -1,16 +1,15 @@
 // EmailJS configuration and utilities
 
-// TODO: Update these with your actual EmailJS dashboard values
-// Get these from: https://dashboard.emailjs.com/admin
+// EmailJS configuration with your actual credentials
 export const EMAILJS_CONFIG = {
-  // From Account tab - copy your Public Key
-  PUBLIC_KEY: '7v5wJOSuv1p_PkcU5', // REPLACE: user_abc123XYZ 
+  // Your working private key from EmailJS dashboard
+  PUBLIC_KEY: 'M1SsqAm-ePvANc2hG82Vy',
   
-  // From Email Services tab - note your Service ID  
-  SERVICE_ID: 'service_q47lbr7', // REPLACE: service_123abc
+  // Your confirmed service ID  
+  SERVICE_ID: 'service_q47lbr7',
   
-  // From Email Templates tab - note your Template ID
-  TEMPLATE_ID: 'template_0zeil8m' // REPLACE: template_xyz789
+  // Template ID (keeping existing - update if you have a specific one)
+  TEMPLATE_ID: 'template_0zeil8m'
 };
 
 export const EMAIL_RECIPIENTS = ['lacenterstudios3d@gmail.com', 'dwyatt@lacenterstudios.com'];
