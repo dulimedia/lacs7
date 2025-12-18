@@ -21,7 +21,7 @@ export const UnitGlowHighlightFixed = () => {
   // Helper function to safely create glow mesh from a single unit
   const createGlowMeshFromUnit = (unitGLB: any): THREE.Mesh[] => {
     const glowMeshes: THREE.Mesh[] = [];
-    
+
     if (!unitGLB?.object || !glowMaterialRef.current) {
       console.warn('❌ Cannot create glow: missing unit object or material');
       return glowMeshes;
@@ -40,7 +40,7 @@ export const UnitGlowHighlightFixed = () => {
         try {
           // Safety check: skip if geometry is too large (likely environment mesh)
           const vertexCount = child.geometry.attributes.position?.count || 0;
-          
+
           // DEBUG: Log all meshes for T-310
           if (isT310) {
             console.log(`🔍 [T-310 DEBUG] Found mesh:`, {
@@ -51,7 +51,7 @@ export const UnitGlowHighlightFixed = () => {
               parent: child.parent?.name
             });
           }
-          
+
           if (vertexCount > 10000) {
             if (isT310) {
               console.warn(`🔍 [T-310 DEBUG] Skipping large mesh "${child.name}" with ${vertexCount} vertices (likely environment)`);
@@ -64,22 +64,30 @@ export const UnitGlowHighlightFixed = () => {
           // Clone the geometry and material to prevent sharing corruption
           const clonedGeometry = child.geometry.clone();
           const clonedMaterial = glowMaterialRef.current!.clone();
+
+          // SPECIAL HANDLING: Dim brightness for specific units that appear too bright (F-250, F-290)
+          if (unitGLB.key === 'F-250' || unitGLB.key === 'F-290') {
+            if ('opacity' in clonedMaterial) {
+              clonedMaterial.opacity = 0.4; // Significantly reduce opacity from 1.0 to 0.4
+            }
+          }
+
           const glowMesh = new THREE.Mesh(clonedGeometry, clonedMaterial);
-          
+
           // Copy transform from original mesh
           glowMesh.position.copy(child.position);
           glowMesh.rotation.copy(child.rotation);
           glowMesh.scale.copy(child.scale);
-          
+
           // Key settings for glow-through effect
           glowMesh.renderOrder = 999; // Render on top of everything
           glowMesh.visible = true; // Visible when created
-          
+
           // Store metadata
           glowMesh.userData.unitKey = unitGLB.key;
           glowMesh.userData.originalMesh = child.uuid;
           glowMesh.userData.isGlowMesh = true;
-          
+
           glowMeshes.push(glowMesh);
           meshCount++;
         } catch (error) {
@@ -92,7 +100,7 @@ export const UnitGlowHighlightFixed = () => {
       console.log(`🔍 [T-310 DEBUG] Final summary: Created ${meshCount} glow meshes for ${unitGLB.key}`);
       console.log(`🔍 [T-310 DEBUG] Glow meshes:`, glowMeshes);
     }
-    
+
     console.log(`✅ Created ${meshCount} glow meshes for unit ${unitGLB.key}`);
     return glowMeshes;
   };
@@ -105,27 +113,27 @@ export const UnitGlowHighlightFixed = () => {
       hasGroup: !!glowGroupRef.current,
       timestamp: Date.now()
     });
-    
+
     if (glowGroupRef.current && !isProcessingRef.current) {
       isProcessingRef.current = true;
       console.log('🔒 GLOW CLEANUP LOCKED - starting enhanced disposal...');
-      
+
       try {
         // CRITICAL FIX: Clear ALL children from glow group, not just tracked ones
         const allGlowChildren = [...glowGroupRef.current.children];
         console.log(`🗑️ Found ${allGlowChildren.length} total glow meshes in group`);
-        
+
         allGlowChildren.forEach((child, index) => {
           try {
             if (child instanceof THREE.Mesh) {
               console.log(`🗑️ Disposing glow mesh ${index + 1}/${allGlowChildren.length}`);
               glowGroupRef.current?.remove(child);
-              
+
               // Dispose geometry
               if (child.geometry) {
                 child.geometry.dispose();
               }
-              
+
               // Dispose material
               if (child.material && Array.isArray(child.material)) {
                 child.material.forEach(mat => mat.dispose());
@@ -137,7 +145,7 @@ export const UnitGlowHighlightFixed = () => {
             console.error(`❌ ERROR disposing mesh ${index + 1}:`, meshError);
           }
         });
-        
+
         // Clear the reference array
         currentGlowMeshesRef.current = [];
         console.log('✅ ENHANCED GLOW CLEANUP COMPLETE - ALL meshes disposed');
@@ -165,17 +173,17 @@ export const UnitGlowHighlightFixed = () => {
     if (selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined) {
       const unitGLB = getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
       console.log('[SELECTIVE GLOW MATCH]', unitGLB ? 'Found GLB for' : 'No GLB found for', selectedUnit);
-      
+
       if (unitGLB) {
         try {
           const glowMeshes = createGlowMeshFromUnit(unitGLB);
-          
+
           glowMeshes.forEach(mesh => {
             glowGroupRef.current?.add(mesh);
           });
-          
+
           currentGlowMeshesRef.current = glowMeshes;
-          
+
           if (glowMeshes.length > 0) {
             console.log(`🔵 Applied selective blue glow to ${selectedUnit} (${glowMeshes.length} meshes)`);
           }
@@ -184,20 +192,20 @@ export const UnitGlowHighlightFixed = () => {
         }
       }
     }
-    
+
     // Also handle hover when no selection (optional)
     else if (hoveredUnit && !selectedUnit) {
       const hoveredUnitGLB = glbNodes.get(hoveredUnit);
       if (hoveredUnitGLB) {
         try {
           const glowMeshes = createGlowMeshFromUnit(hoveredUnitGLB);
-          
+
           glowMeshes.forEach(mesh => {
             glowGroupRef.current?.add(mesh);
           });
-          
+
           currentGlowMeshesRef.current = glowMeshes;
-          
+
           if (glowMeshes.length > 0) {
             console.log(`🔵 Applied selective blue glow to hovered ${hoveredUnit}`);
           }
@@ -211,27 +219,22 @@ export const UnitGlowHighlightFixed = () => {
   // Update glow for selected unit ONLY - MOVED AFTER function definition
   useEffect(() => {
     if (!glowGroupRef.current || !glowMaterialRef.current || isProcessingRef.current) return;
-    
+
     console.log('[SELECTIVE GLOW] selectedUnit =', selectedUnit, 'selectedBuilding =', selectedBuilding, 'selectedFloor =', selectedFloor);
-    
+
     // RACE CONDITION PROTECTION: Prevent overlapping glow operations
     if (isProcessingRef.current) {
       console.log('[SELECTIVE GLOW] ⚡ Skipping glow update - processing in progress');
       return;
     }
-    
+
     // ANTI-FLASH FIX: Clear glow immediately, then delay creation to let camera settle
     clearGlowMeshes();
-    
+
     if (selectedUnit) {
-      // Delay glow creation by 300ms to prevent white flash during camera animation
-      console.log('[SELECTIVE GLOW] ⏰ Delaying glow creation 300ms to prevent white flash...');
-      const glowTimer = setTimeout(() => {
-        console.log('[SELECTIVE GLOW] ⏰ Creating glow after camera settle delay');
-        performGlowUpdate();
-      }, 300);
-      
-      return () => clearTimeout(glowTimer);
+      // Instant glow creation - no delay
+      console.log('[SELECTIVE GLOW] ✨ Creating glow immediately');
+      performGlowUpdate();
     } else {
       // No unit selected, cleanup only (already done above)
       console.log('[SELECTIVE GLOW] 🧹 No unit selected, glow cleanup complete');

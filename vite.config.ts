@@ -13,7 +13,7 @@ export default defineConfig({
   base,
   server: {
     host: '0.0.0.0',
-    port: 4500,
+    port: 5000,
     strictPort: true,
   },
   preview: {

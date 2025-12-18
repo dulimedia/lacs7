@@ -290,8 +290,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
     // Trigger flash prevention for first unit selection
     if (building && unit) {
-      console.log('📡 Broadcasting unit selection event for flash prevention');
-      window.dispatchEvent(new CustomEvent('unit-selection-flash-prevention'));
+      console.log('📡 Unit selection changed');
+      // window.dispatchEvent(new CustomEvent('unit-selection-flash-prevention')); // DISABLED
     }
 
     console.groupEnd();
@@ -393,7 +393,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
     // Reset all GLBs to invisible and dispose of object references to free memory
     glbNodes.forEach((node, key) => {
       get().setGLBState(key, 'invisible');
-      
+
       // Dispose of the loaded GLB object to free memory if it exists
       if (node.object) {
         // Traverse and dispose of materials and geometries
@@ -614,38 +614,69 @@ export const useGLBState = create<GLBState>((set, get) => ({
     const horizontalDistance = isMobile ? 8 : 12; // Much closer on mobile for simpler rendering
 
     // Unit-specific camera positioning override map
-    const unitSpecificAngles: Record<string, { side: 'west' | 'north' | 'south' | 'east', heightMultiplier?: number }> = {
+    // Supports: side (legacy), rotation (degrees), distance (meters), height (meters), heightMultiplier
+    type CameraConfig = {
+      side?: 'west' | 'north' | 'south' | 'east';
+      rotation?: number; // Degrees from North (0 = North, 90 = East, 180 = South, 270 = West)
+      distance?: number; // Distance from target center
+      height?: number;   // Explicit height offset
+      heightMultiplier?: number; // Multiplier for default height
+    };
+
+    const unitSpecificAngles: Record<string, CameraConfig> = {
       // Fifth Street Building - West side units
       'F-35': { side: 'west', heightMultiplier: 1.8 },
-      'F-170': { side: 'west' },
-      'F-250': { side: 'west', heightMultiplier: 1.5 },
-      'F-290': { side: 'west', heightMultiplier: 1.5 },
+      'F-170': { rotation: 45, distance: 8, heightMultiplier: 0.7 },
+      'F-250': { side: 'west', distance: 8, heightMultiplier: 0.7 },
+      'F-290': { side: 'west', distance: 8, heightMultiplier: 0.7 },
       'F-330': { side: 'west', heightMultiplier: 1.5 },
       'F-350': { side: 'west' },
 
       // Maryland Building - custom west-side angles
-      'M-20': { side: 'west', heightMultiplier: 2.0 },
-      'M-150': { side: 'west', heightMultiplier: 1.95 },
-      'M-170': { side: 'west', heightMultiplier: 1.85 },
-      'M-230': { side: 'west', heightMultiplier: 1.95 },
-      'M-250': { side: 'west', heightMultiplier: 1.95 },
-      'M-270': { side: 'west', heightMultiplier: 1.85 },
+      'M-20': { rotation: 45, distance: 6, heightMultiplier: 1.4 },
+      'M-50': { rotation: 45, distance: 6, heightMultiplier: 1.4 },
+      'M-150': { rotation: 45, distance: 6, heightMultiplier: 1.25 },
+      'M-170': { rotation: 45, distance: 6, heightMultiplier: 1.15 },
+      'M-230': { rotation: 45, distance: 6, heightMultiplier: 1.25 },
+      'M-250': { rotation: 45, distance: 6, heightMultiplier: 1.25 },
+      'M-270': { rotation: 45, distance: 6, heightMultiplier: 1.15 },
       'M-340': { side: 'west', heightMultiplier: 1.85 },
-      'M-345': { side: 'west', heightMultiplier: 1.85 },
+      'M-345': { rotation: 45, distance: 8, heightMultiplier: 1.6 },
 
       // Maryland Building - North side units
       'M-120': { side: 'north' },
-      'M-130': { side: 'north', heightMultiplier: 1.5 },
+      'M-130': { rotation: 110, distance: 8, heightMultiplier: 1.5 },
       'M-140': { side: 'north' },
 
       // Tower Building - South side units
       'T-200': { side: 'south', heightMultiplier: 1.5 },
       'T-210': { side: 'south' },
       'T-220': { side: 'south' },
-      'T-400': { side: 'south' },
-      'T-430': { side: 'south' },
-      'T-450': { side: 'south' },
-      'T-530': { side: 'south' },
+
+      // Lowered Tower Units (T-300 to T-1200)
+      'T-300': { side: 'north', heightMultiplier: 0.3 },
+      'T-310': { side: 'north', heightMultiplier: 0.3 },
+      'T-320': { side: 'north', heightMultiplier: 0.3 },
+      'T-340': { side: 'north', heightMultiplier: 0.3 },
+
+      'T-400': { side: 'south', heightMultiplier: 0.3, distance: 8 },
+      'T-410': { side: 'north', heightMultiplier: 0.3 },
+      'T-420': { side: 'north', heightMultiplier: 0.3 },
+      'T-430': { side: 'south', heightMultiplier: 0.3, distance: 8 },
+      'T-450': { side: 'south', heightMultiplier: 0.3 },
+
+      'T-500': { side: 'north', heightMultiplier: 0.3 },
+      'T-530': { side: 'south', heightMultiplier: 0.3 },
+      'T-550': { side: 'north', heightMultiplier: 0.3 },
+
+      'T-600': { side: 'north', heightMultiplier: 0.3 },
+      'T-700': { side: 'north', heightMultiplier: 0.3 },
+      'T-800': { side: 'north', heightMultiplier: 0.3 },
+      'T-900': { side: 'north', heightMultiplier: 0.3 },
+      'T-950': { side: 'north', heightMultiplier: 0.3 },
+      'T-1000': { side: 'north', heightMultiplier: 0.3 },
+      'T-1200': { side: 'north', heightMultiplier: 0.3 },
+      'T-1100': { side: 'north', heightMultiplier: 0.3 },
 
       // Fifth Street Building - East side units (all others not specified above)
       'F-10': { side: 'east' },
@@ -657,42 +688,43 @@ export const useGLBState = create<GLBState>((set, get) => ({
       'F-50': { side: 'east' },
       'F-60': { side: 'east' },
       'F-70': { side: 'east' },
-      'F-100': { side: 'east' },
+      'F-100': { rotation: 25, distance: 8, heightMultiplier: 0.7 },
       'F-105': { side: 'east' },
       'F-110': { side: 'east' },
-      'F-115': { side: 'east' },
-      'F-140': { side: 'east' },
-      'F-150': { side: 'east' },
+      'F-115': { rotation: 225, distance: 6, heightMultiplier: 0.5 },
+      'F-140': { side: 'east', distance: 8, heightMultiplier: 0.7 },
+      'F-150': { side: 'east', distance: 8, heightMultiplier: 0.7 },
       'F-160': { side: 'east' },
-      'F-175': { side: 'east' },
-      'F-180': { side: 'east' },
-      'F-185': { side: 'east' },
-      'F-187': { side: 'east' },
-      'F-190': { side: 'east' },
-      'F-200': { side: 'east' },
-      'F-240': { side: 'east' },
-      'F-280': { side: 'east' },
-      'F-300': { side: 'east' },
-      'F-340': { side: 'east' },
-      'F-360': { side: 'east' },
+      'F-175': { rotation: 45, distance: 8, heightMultiplier: 0.7 },
+      'F-180': { side: 'east', distance: 8, heightMultiplier: 0.7 },
+      'F-185': { side: 'east', distance: 8, heightMultiplier: 0.7 },
+      'F-187': { side: 'east', distance: 8, heightMultiplier: 0.7 },
+      'F-190': { rotation: 45, distance: 8, heightMultiplier: 0.7 },
+      'F-200': { side: 'east', distance: 8, heightMultiplier: 0.4 },
+      'F-240': { side: 'east', distance: 8, heightMultiplier: 0.4 },
+      'F-280': { side: 'east', distance: 8, heightMultiplier: 0.4 },
+      'F-300': { side: 'east', distance: 8, heightMultiplier: 0.7 },
+      'F-340': { side: 'east', distance: 8, heightMultiplier: 0.7 },
+      'F-360': { side: 'east', distance: 8, heightMultiplier: 0.7 },
       'F-363': { side: 'east' },
-      'F-365': { side: 'east' },
+      'F-365': { side: 'east', distance: 8, heightMultiplier: 0.7 },
       'F-380': { side: 'east' },
 
       // Maryland Building - East side units (all others not specified above)
-      'M-40': { side: 'east' },
-      'M-45': { side: 'east' },
-      'M-50': { side: 'east' },
-      'M-145': { side: 'east' },
-      'M-160': { side: 'east', heightMultiplier: 1.5 },
-      'M-180': { side: 'east', heightMultiplier: 1.65 },
-      'M-210': { side: 'east' },
-      'M-220': { side: 'east' },
-      'M-240': { side: 'east' },
-      'M-260': { side: 'east' },
-      'M-300': { side: 'east' },
-      'M-320': { side: 'east' },
-      'M-350': { side: 'east' }
+      'M-40': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-45': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-50': { rotation: 45, distance: 6, heightMultiplier: 1.4 },
+
+      'M-145': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-160': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-180': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-210': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-220': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-240': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-260': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
+      'M-300': { rotation: 315, distance: 8 },
+      'M-320': { rotation: 315, distance: 8 },
+      'M-350': { rotation: 315, distance: 8 }
     };
 
     // Check for unit-specific override and calculate camera position
@@ -700,29 +732,59 @@ export const useGLBState = create<GLBState>((set, get) => ({
     let cameraX: number;
     let cameraZ: number;
 
-    if (unitOverride) {
-      // Use unit-specific positioning
-      const heightAdjustment = unitOverride.heightMultiplier || 1.0;
-      eyeLevelHeight = baseHeight + (isMobile ? 2 : 3) * heightAdjustment;
+    // Determine base parameters
+    let dist = isMobile ? 8 : 12;
+    if (unitOverride?.distance) {
+      dist = unitOverride.distance;
+    }
 
-      switch (unitOverride.side) {
-        case 'west':
-          cameraX = unitPosition.x + horizontalDistance;
-          cameraZ = unitPosition.z;
-          break;
-        case 'north':
-          cameraX = unitPosition.x;
-          cameraZ = unitPosition.z - horizontalDistance;
-          break;
-        case 'south':
-          cameraX = unitPosition.x;
-          cameraZ = unitPosition.z + horizontalDistance;
-          break;
-        case 'east':
-        default:
-          cameraX = unitPosition.x - horizontalDistance;
-          cameraZ = unitPosition.z;
-          break;
+    // Determine height
+    const heightAdjustment = unitOverride?.heightMultiplier || 1.0;
+    if (unitOverride?.height) {
+      eyeLevelHeight = baseHeight + unitOverride.height;
+    } else {
+      eyeLevelHeight = baseHeight + (isMobile ? 2 : 3) * heightAdjustment;
+    }
+
+    if (unitOverride) {
+      if (unitOverride.rotation !== undefined) {
+        // Precision Rotation Mode
+        // 0 = North (-Z), 90 = East (+X), 180 = South (+Z), 270 = West (-X)
+        // Math: x = sin(angle) * dist, z = -cos(angle) * dist
+        // Adjusting to match Three.js coordinate system where North is usually -Z
+        const rad = (unitOverride.rotation * Math.PI) / 180;
+
+        // Calculate offset from unit center
+        // Using standard trigonometric circle (0 at +X) rotated to match compass
+        // 0 deg (North) -> -Z
+        // 90 deg (East) -> +X
+        // 180 deg (South) -> +Z
+        // 270 deg (West) -> -X
+
+        cameraX = unitPosition.x + Math.sin(rad) * dist;
+        cameraZ = unitPosition.z - Math.cos(rad) * dist;
+
+      } else {
+        // Legacy Side Mode
+        switch (unitOverride.side) {
+          case 'west':
+            cameraX = unitPosition.x + dist;
+            cameraZ = unitPosition.z;
+            break;
+          case 'north':
+            cameraX = unitPosition.x;
+            cameraZ = unitPosition.z - dist;
+            break;
+          case 'south':
+            cameraX = unitPosition.x;
+            cameraZ = unitPosition.z + dist;
+            break;
+          case 'east':
+          default:
+            cameraX = unitPosition.x - dist;
+            cameraZ = unitPosition.z;
+            break;
+        }
       }
     } else {
       // Building-specific camera positioning for straight-on views (fallback)

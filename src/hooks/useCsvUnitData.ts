@@ -97,19 +97,32 @@ class CsvDataCache {
                   const cleanSize = String(rawSize).replace(/,/g, '').replace(/\s/g, '').replace(/RSF/gi, '').replace(/sf/gi, '').replace(/[A-Za-z]/g, '');
                   const parsedSize = parseInt(cleanSize) || 0;
 
-                  // Parse offices count
-                  const rawOffices = row.Offices || row['# of Offices'] || row.Private_Offices || '0';
+                  // Parse offices count (from Private_Offices column)
+                  const rawOffices = row.Private_Offices || row.Offices || row['# of Offices'] || '0';
                   const parsedOffices = parseInt(String(rawOffices)) || 0;
 
-                  // Parse kitchen flag
-                  const hasKitchen = row.Kitchen === '1' || String(row.Kitchen).toLowerCase() === 'yes' || String(row.Has_Kitchen).toLowerCase() === 'true';
+                  // Parse kitchen flag (from Has_Kitchen column)
+                  const hasKitchen = String(row.Has_Kitchen).toLowerCase() === 'true' || 
+                                     row.Kitchen === '1' || 
+                                     String(row.Kitchen).toLowerCase() === 'yes';
 
-                  // Parse status
+                  // Parse production office flag (from Is_Production_Office column)
+                  const isProductionOffice = String(row.Is_Production_Office).toLowerCase() === 'true' || 
+                                             row['Production Office'] === '1';
+
+                  // Parse status - prioritize Available column (1/0) over Status column
+                  const availableValue = row.Available;
                   const status = row.Status || 'Available';
-                  const isAvailable = status.toLowerCase() === 'available' || row.Available === '1' || row.Available === 1;
 
-                  // Parse production office flag
-                  const isProductionOffice = row['Production Office'] === '1' || String(row.Is_Production_Office).toLowerCase() === 'true';
+                  let isAvailable = false;
+                  if (availableValue !== undefined && availableValue !== null) {
+                    const availableStr = String(availableValue).trim();
+                    isAvailable = availableStr === '1' || 
+                                  availableStr.toLowerCase() === 'true' || 
+                                  availableStr.toLowerCase() === 'available';
+                  } else {
+                    isAvailable = status.toLowerCase() === 'available';
+                  }
 
                   const unitDataEntry: UnitData = {
                     name: unitName,

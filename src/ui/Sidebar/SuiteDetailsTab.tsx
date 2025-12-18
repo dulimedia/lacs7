@@ -249,7 +249,7 @@ export function SuiteDetailsTab() {
       'F-175': 'https://my.matterport.com/show/?m=YjynxrdQ36k',
       'F-365': 'https://my.matterport.com/show/?m=XThnDcJSZf5'
     };
-    
+
     return mappings[unitName.toUpperCase()] || null;
   };
 
@@ -497,7 +497,7 @@ export function SuiteDetailsTab() {
               className="w-full flex items-center justify-center gap-2 p-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-sm"
             >
               <Maximize2 size={16} />
-              <span>3D Tour</span>
+              <span>Virtual Tour</span>
             </button>
           )}
 

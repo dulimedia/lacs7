@@ -8,6 +8,7 @@ export function ShareFloorplanModal() {
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [senderName, setSenderName] = useState('');
 
     if (!shareModalOpen || !shareModalData) return null;
 
@@ -36,10 +37,8 @@ export function ShareFloorplanModal() {
             }
 
             // Construct URLs
-            const currentOrigin = window.location.origin;
-
-            // 1. App Link: Use simple home URL (deep links not working reliably)
-            const shareUrl = APP_CONFIG.shareBaseUrl || 'https://lacs7.vercel.app/';
+            // 1. App Link: Use deep link format
+            const shareUrl = `${APP_CONFIG.shareBaseUrl || 'https://lacs7.vercel.app'}/?unit=${encodeURIComponent(shareModalData.unitName.toLowerCase())}`;
 
             // 2. PDF Links: ALWAYS use Vercel deployment URL for PDFs (not local development server)
             const vercelOrigin = 'https://lacs7.vercel.app';
@@ -47,27 +46,22 @@ export function ShareFloorplanModal() {
                 ? `${vercelOrigin}${shareModalData.floorplanUrl.startsWith('/') ? '' : '/'}${encodeURI(shareModalData.floorplanUrl)}`
                 : shareModalData.floorplanUrl;
 
-            const fullFloorLink = shareModalData.fullFloorUrl && !shareModalData.fullFloorUrl.startsWith('http')
-                ? `${vercelOrigin}${shareModalData.fullFloorUrl.startsWith('/') ? '' : '/'}${encodeURI(shareModalData.fullFloorUrl)}`
-                : shareModalData.fullFloorUrl;
+            // const fullFloorLink = shareModalData.fullFloorUrl && !shareModalData.fullFloorUrl.startsWith('http')
+            //     ? `${vercelOrigin}${shareModalData.fullFloorUrl.startsWith('/') ? '' : '/'}${encodeURI(shareModalData.fullFloorUrl)}`
+            //     : shareModalData.fullFloorUrl;
 
-            // Note: This relies on the template accepting 'to_email' and 'message_html' or similar
-            // We reuse the existing template but frame it for sharing
             const templateParams = {
                 to_email: email,
-                from_name: "LA Center Studios", // System sender
+                from_name: senderName || "LA Center Studios",
                 from_email: "noreply@lacenterstudios.com",
-                message: `Hello,
-
-Thank you for your interest in ${shareModalData.unitName} at LA Center Studios.
-
-Below are the requested materials to help you explore the space in detail:
+                message: `${message ? `${message}\n\n` : ''
+                    }Below are the requested materials for ${shareModalData.unitName}:
 
 🏢 3D Interactive Tour
 
-Explore our interactive campus experience:
+View ${shareModalData.unitName} within our interactive campus experience:
 
-👉 View Campus in 3D
+👉 View ${shareModalData.unitName} in 3D
 ${shareUrl}
 
 📋 Floor Plan
@@ -75,9 +69,8 @@ ${shareUrl}
 Download the full floor plan for ${shareModalData.unitName}:
 
 👉 Download Floor Plan PDF
-${floorplanLink || 'Floor plan coming soon'}
-
-${fullFloorLink ? `📐 Full Building Layout\n\n👉 Download Full Floor PDF\n${fullFloorLink}\n\n` : ''}${message ? `Message:\n${message}` : ''}`,
+${floorplanLink || 'Floor plan coming soon'}${senderName ? `\n\nShared by: ${senderName}` : ''
+                    }`,
                 // These might be used by the template:
                 selected_units: shareModalData.unitName,
                 phone: '',
@@ -94,6 +87,7 @@ ${fullFloorLink ? `📐 Full Building Layout\n\n👉 Download Full Floor PDF\n${
             setShareModalOpen(false);
             setEmail('');
             setMessage('');
+            setSenderName('');
 
         } catch (error: any) {
             console.error('Share failed:', error);
@@ -114,7 +108,7 @@ ${fullFloorLink ? `📐 Full Building Layout\n\n👉 Download Full Floor PDF\n${
                         Share Floorplan
                     </h3>
                     <button
-                        onClick={() => setShareModalOpen(false)}
+                        onClick={() => { setShareModalOpen(false); setSenderName(''); }}
                         className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                     >
                         <X size={20} className="text-gray-500" />
@@ -125,6 +119,17 @@ ${fullFloorLink ? `📐 Full Building Layout\n\n👉 Download Full Floor PDF\n${
                 <form onSubmit={handleSubmit} className="p-5 space-y-4">
                     <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700">
                         Sharing <strong>{shareModalData.unitName}</strong> floorplans.
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                        <input
+                            type="text"
+                            value={senderName}
+                            onChange={(e) => setSenderName(e.target.value)}
+                            placeholder="John Smith"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black/5 focus:border-black outline-none transition-all"
+                        />
                     </div>
 
                     <div>
@@ -148,7 +153,7 @@ ${fullFloorLink ? `📐 Full Building Layout\n\n👉 Download Full Floor PDF\n${
                         <textarea
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Check out this unit..."
+                            placeholder="I found this space interesting..."
                             rows={3}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black/5 focus:border-black outline-none transition-all resize-none"
                         />

@@ -227,7 +227,7 @@ const GLBUnitInner: React.FC<GLBUnitProps> = React.memo(({ node }) => {
           if (!child.material || !(child.material as any).__isAnimatedMaterial) {
             (sharedMaterial as any).__isAnimatedMaterial = true;
             child.material = sharedMaterial;
-            // Start with 0 opacity and fade in to prevent white flash
+            // Start with 0 opacity and fade in for smoothness
             sharedMaterial.opacity = 0;
             sharedMaterial.emissiveIntensity = 0;
           }
@@ -280,7 +280,7 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
       // MOBILE: Immediate disposal for memory conservation
       if (PerfFlags.isMobile) {
         setShouldRender(false);
-        
+
         // Dispose GLB object immediately on mobile
         if (node.object) {
           console.log(`🗑️ Mobile cleanup: Disposing GLB unit ${node.unitName}`);
@@ -320,32 +320,32 @@ const GLBInitializer: React.FC = () => {
     if (glbNodes.size === 0) {
       logger.log('LOADING', '🔧', 'GLBManager: Initializing GLB nodes...');
       MobileDiagnostics.log('glb-manager', 'Initializing GLB nodes');
-      
+
       // Add delay for mobile to ensure proper initialization
       const initDelay = PerfFlags.isMobile ? 500 : 0;
-      
+
       const timeoutId = setTimeout(() => {
         try {
           initializeGLBNodes();
-          
+
           // Verify initialization after a short delay
           setTimeout(() => {
             const currentCount = useGLBState.getState().glbNodes.size;
             console.log(`📦 GLB initialization verification: ${currentCount} nodes registered`);
-            
+
             if (currentCount === 0) {
               console.warn('⚠️ GLB initialization failed, retrying...');
               initializeGLBNodes();
             }
           }, 100);
-          
+
         } catch (error) {
           console.error('❌ GLB initialization error:', error);
           // Retry after delay
           setTimeout(initializeGLBNodes, 1000);
         }
       }, initDelay);
-      
+
       return () => clearTimeout(timeoutId);
     } else {
       MobileDiagnostics.log('glb-manager', 'GLB nodes already initialized', {

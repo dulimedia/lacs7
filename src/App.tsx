@@ -737,12 +737,12 @@ function App() {
 
   // Use new CSV-based data fetching
   const { data: csvUnitData, loading: isUnitDataLoading, error } = useCsvUnitData(CSV_URL);
-  
+
   // Enhanced unit data with Google Sheets square footage
   const [enhancedUnitData, setEnhancedUnitData] = useState<Record<string, UnitDataItem>>({});
-  
+
   useEffect(() => {
-    loadUnitData().then(setEnhancedUnitData).catch(err => 
+    loadUnitData().then(setEnhancedUnitData).catch(err =>
       console.error('Failed to load enhanced unit data:', err)
     );
   }, []);
@@ -753,7 +753,7 @@ function App() {
       // Support both ?unit= and ?sel= parameters - use dynamic URLSearchParams
       const urlParams = new URLSearchParams(window.location.search);
       const selectedUnitParam = urlParams.get('unit') || urlParams.get('sel');
-      
+
       if (selectedUnitParam) {
         console.log('🔗 Processing deep link for unit:', selectedUnitParam);
 
@@ -1385,36 +1385,7 @@ function App() {
           document.body
         )}
 
-        {/* Visible Error Overlay - Always on top */}
-        {errorLog.length > 0 && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            background: '#dc2626',
-            color: 'white',
-            padding: '10px 20px',
-            zIndex: 999999,
-            fontSize: '14px',
-            fontFamily: 'monospace',
-            maxHeight: '200px',
-            overflow: 'auto',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-          }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-              🚨 ERRORS DETECTED ({errorLog.length})
-            </div>
-            {errorLog.map((err, i) => (
-              <div key={i} style={{
-                padding: '5px 0',
-                borderBottom: i < errorLog.length - 1 ? '1px solid rgba(255,255,255,0.3)' : 'none'
-              }}>
-                {err}
-              </div>
-            ))}
-          </div>
-        )}
+
 
         <div className="app-viewport">
           <div className="app-layout">
@@ -1428,11 +1399,7 @@ function App() {
             >
               {/* CSV loads in background - logo screen moved outside viewport */}
 
-              {error && (
-                <div className="absolute top-4 right-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-3 py-2 rounded-md text-sm z-10">
-                  Using offline data - CSV unavailable: {error}
-                </div>
-              )}
+
 
 
 

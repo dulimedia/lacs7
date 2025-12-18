@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useExploreState } from '../../store/exploreState';
+import { useCsvUnitData } from '../../hooks/useCsvUnitData';
 import { useSidebarState } from './useSidebarState';
 import { useGLBState } from '../../store/glbState';
 import { useFilterStore } from '../../stores/useFilterStore';
@@ -400,8 +401,24 @@ export function ExploreTab() {
     }
   }, [sizeFilter, statusFilter, officesFilter, groupedByBuilding, setFilter, clearFilter]);
 
+  const { error } = useCsvUnitData();
+
   return (
     <div className={isMobile ? "space-y-2 pb-32" : "space-y-4 pb-20"}>
+      {error && (
+        <div className="bg-amber-50 mx-3 mt-3 p-3 rounded-md border border-amber-200 flex flex-row items-center justify-between">
+          <div className="text-xs text-amber-800">
+            <span className="font-semibold block mb-0.5">Connection Failed</span>
+            Using offline backup data
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-xs bg-white border border-amber-300 text-amber-900 px-2 py-1 rounded shadow-sm hover:bg-amber-50 transition"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
       <div className="space-y-4 p-3 bg-gray-50 rounded-lg border border-black/10">
         <div>
           <div className="flex items-center space-x-2 mb-2">
@@ -429,7 +446,7 @@ export function ExploreTab() {
         <div>
           <div className="flex items-center space-x-2 mb-2">
             <Home size={14} className="text-gray-500" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">Status</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">Type of Office</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {STATUS_OPTIONS.map((option) => {
