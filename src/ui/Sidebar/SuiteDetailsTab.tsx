@@ -89,7 +89,7 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
     return (
       <div className="space-y-2">
         <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all">
-          <object data={`${url}#view=Fit&toolbar=0&navpanes=0&scrollbar=1`} type="application/pdf" className="w-full h-full">
+          <object data={`${url}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=1`} type="application/pdf" className="w-full h-full">
             {/* Fallback */}
             <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 text-red-500">
               <FileText size={48} />
@@ -97,12 +97,12 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
             </div>
           </object>
 
-          {/* Non-blocking Open Button */}
+          {/* Non-blocking Open Button (Overlay) */}
           <a
-            href={`${url}#view=Fit`}
+            href={`${url}#view=FitH&page=1`}
             target="_blank"
             rel="noreferrer"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
             title="Open Full PDF"
           >
             <div className="bg-white/90 backdrop-blur p-1.5 rounded-md text-xs font-medium shadow-sm hover:bg-white text-gray-700">
@@ -112,13 +112,24 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
         </div>
 
         <div className="flex items-center gap-2">
+          {/* New prominent View Button */}
+          <a
+            href={`${url}#view=FitH&page=1`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0"
+          >
+            <Maximize2 size={14} />
+            View
+          </a>
+
           <a
             href={url}
             download
             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0"
           >
             <Download size={14} />
-            Download PDF
+            Download
           </a>
           <button
             onClick={onShare}
@@ -193,11 +204,11 @@ export function SuiteDetailsTab() {
     if (!displayUnit) return null;
     if (isTowerUnit(displayUnit.unit_name)) {
       const combined = getTowerUnitCombinedFloorplan(displayUnit.unit_name);
-      if (combined) return encodeFloorplanUrl(combined) + '#view=FitH&page=1&scrollbar=1&toolbar=1&statusbar=1&messages=1&navpanes=1';
+      if (combined) return encodeFloorplanUrl(combined);
     }
     if (isFifthStreetUnit(displayUnit.unit_name)) {
       const combined = getFifthStreetUnitCombinedFloorplan(displayUnit.unit_name);
-      if (combined) return encodeFloorplanUrl(combined) + '#view=FitH&page=1&scrollbar=1&toolbar=1&statusbar=1&messages=1&navpanes=1';
+      if (combined) return encodeFloorplanUrl(combined);
     }
     return null;
   };
@@ -208,8 +219,7 @@ export function SuiteDetailsTab() {
     // 1. Try to get a high-quality PDF from our mapping service
     const intelligentUrl = getIntelligentFloorplanUrl(displayUnit.unit_name, displayUnit);
     if (intelligentUrl && intelligentUrl.endsWith('.pdf')) {
-      // Append scroll parameters to force top view
-      return encodeFloorplanUrl(intelligentUrl) + '#view=FitH&page=1&scrollbar=1&toolbar=1&statusbar=1&messages=1&navpanes=1';
+      return encodeFloorplanUrl(intelligentUrl);
     }
 
     // 2. Fallback to CSV data if provided (likely PNGs)

@@ -9,6 +9,7 @@ export function ShareFloorplanModal() {
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [senderName, setSenderName] = useState('');
+    const [senderPhone, setSenderPhone] = useState('');
 
     if (!shareModalOpen || !shareModalData) return null;
 
@@ -73,7 +74,7 @@ ${floorplanLink || 'Floor plan coming soon'}${senderName ? `\n\nShared by: ${sen
                     }`,
                 // These might be used by the template:
                 selected_units: shareModalData.unitName,
-                phone: '',
+                phone: senderPhone || '',
                 reply_to: 'lacenterstudios3d@gmail.com'
             };
 
@@ -142,6 +143,19 @@ ${floorplanLink || 'Floor plan coming soon'}${senderName ? `\n\nShared by: ${sen
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="colleague@example.com"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black/5 focus:border-black outline-none transition-all"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Your Phone (Optional)
+                        </label>
+                        <input
+                            type="tel"
+                            value={senderPhone}
+                            onChange={(e) => setSenderPhone(e.target.value)}
+                            placeholder="(555) 123-4567"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black/5 focus:border-black outline-none transition-all"
                         />
                     </div>
