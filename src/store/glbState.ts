@@ -724,7 +724,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
       'M-260': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
       'M-300': { rotation: 315, distance: 8 },
       'M-320': { rotation: 315, distance: 8 },
-      'M-350': { rotation: 315, distance: 8 }
+      'M-350': { rotation: 315, distance: 8 },
+      'T-200': { side: 'south', distance: 8, heightMultiplier: 0.1 }
     };
 
     // Check for unit-specific override and calculate camera position

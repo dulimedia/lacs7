@@ -45,10 +45,10 @@ export default function Sidebar() {
     clearSelection();
     resetCameraAnimation();
 
-    // Aggressive memory cleanup to prevent memory leaks on Back to Explore
-    const memoryManager = MobileMemoryManager.getInstance();
-    memoryManager.aggressiveCleanup();
-    console.log('🧹 Memory cleanup triggered on Back to Explore');
+    // Aggressive memory cleanup REMOVED - Triggering GC causes visual hitch/flash
+    // const memoryManager = MobileMemoryManager.getInstance();
+    // memoryManager.aggressiveCleanup();
+    // console.log('🧹 Memory cleanup triggered on Back to Explore');
 
     setView('explore');
     setFloorPlanExpanded(false);

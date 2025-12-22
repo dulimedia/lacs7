@@ -539,9 +539,31 @@ export function ExploreTab() {
                               onMouseLeave={() => setHovered(null)}
                             >
                               <span className={isMobile ? "font-medium text-xs" : "font-medium text-xs"}>{unit.unit_name}</span>
+
+                              {/* Unit Info: Sq Ft, Offices, Kitchen */}
+                              <div className="flex flex-col space-y-0.5 mt-0.5 mb-1">
+                                {unit.area_sqft && (
+                                  <span className="text-[10px] text-gray-500 font-medium">
+                                    ({unit.area_sqft.toLocaleString()} sf)
+                                  </span>
+                                )}
+                                <div className="flex flex-wrap gap-1">
+                                  {unit.private_offices !== undefined && unit.private_offices > 0 && (
+                                    <span className="text-[10px] text-gray-400">
+                                      ({unit.private_offices} Office{unit.private_offices !== 1 ? 's' : ''})
+                                    </span>
+                                  )}
+                                  {unit.has_kitchen && (
+                                    <span className="text-[10px] text-gray-400">
+                                      (Kitchen)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
                               <span className={isMobile
-                                ? `text-xs px-1 py-0.5 rounded mt-1 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
-                                : `text-xs px-1 py-0.5 rounded mt-0.5 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                ? `text-xs px-1 py-0.5 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
+                                : `text-xs px-1 py-0.5 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                 {unit.status ? 'Available' : 'Occupied'}
                               </span>
                             </button>
@@ -587,9 +609,31 @@ export function ExploreTab() {
                                 onMouseLeave={() => setHovered(null)}
                               >
                                 <span className={isMobile ? "font-medium text-xs" : "font-medium text-xs"}>{unit.unit_name}</span>
+
+                                {/* Unit Info: Sq Ft, Offices, Kitchen */}
+                                <div className="flex flex-col space-y-0.5 mt-0.5 mb-1">
+                                  {unit.area_sqft && (
+                                    <span className="text-[10px] text-gray-500 font-medium">
+                                      ({unit.area_sqft.toLocaleString()} sf)
+                                    </span>
+                                  )}
+                                  <div className="flex flex-wrap gap-1">
+                                    {unit.private_offices !== undefined && unit.private_offices > 0 && (
+                                      <span className="text-[10px] text-gray-400">
+                                        ({unit.private_offices} Office{unit.private_offices !== 1 ? 's' : ''})
+                                      </span>
+                                    )}
+                                    {unit.has_kitchen && (
+                                      <span className="text-[10px] text-gray-400">
+                                        (Kitchen)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
                                 <span className={isMobile
-                                  ? `text-xs px-1 py-0.5 rounded mt-1 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
-                                  : `text-xs px-1 py-0.5 rounded mt-0.5 ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                  ? `text-xs px-1 py-0.5 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`
+                                  : `text-xs px-1 py-0.5 rounded ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                   {unit.status ? 'Available' : 'Occupied'}
                                 </span>
                               </button>
