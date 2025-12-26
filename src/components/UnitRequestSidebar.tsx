@@ -49,13 +49,7 @@ export function UnitRequestSidebar() {
     }
   }, [singleUnitRequestOpen]);
 
-  // Auto-populate message with unit details
-  useEffect(() => {
-    if (singleUnitRequestOpen && requestUnitData && !formData.message) {
-      const defaultMessage = `Hi, I'm interested in leasing ${requestUnitData.unitName}${unitDetails?.building ? ` in ${unitDetails.building}` : ''}. Could you please provide more information about availability, pricing, and lease terms?`;
-      setFormData(prev => ({ ...prev, message: defaultMessage }));
-    }
-  }, [singleUnitRequestOpen, requestUnitData, unitDetails, formData.message]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,18 +130,16 @@ export function UnitRequestSidebar() {
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
-          singleUnitRequestOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+      <div
+        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${singleUnitRequestOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
         onClick={handleClose}
       />
 
       {/* Sidebar */}
-      <div 
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transition-transform duration-400 ease-out overflow-y-auto ${
-          singleUnitRequestOpen ? 'transform translate-x-0' : 'transform translate-x-full'
-        }`}
+      <div
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transition-transform duration-400 ease-out overflow-y-auto ${singleUnitRequestOpen ? 'transform translate-x-0' : 'transform translate-x-full'
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -199,11 +191,10 @@ export function UnitRequestSidebar() {
                 )}
               </div>
               <div className="mt-4">
-                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  unitDetails.status 
-                    ? 'bg-green-100 text-green-800' 
+                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${unitDetails.status
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
-                }`}>
+                  }`}>
                   {unitDetails.status ? 'Available' : 'Unavailable'}
                 </div>
               </div>
@@ -276,7 +267,7 @@ export function UnitRequestSidebar() {
                   value={formData.message}
                   onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Tell us about your needs..."
+                  placeholder={`Hi, I'm interested in leasing ${requestUnitData.unitName}${unitDetails?.building ? ` in ${unitDetails.building}` : ''}. Could you please provide more information about availability, pricing, and lease terms?`}
                 />
               </div>
 
@@ -284,15 +275,14 @@ export function UnitRequestSidebar() {
               <button
                 type="submit"
                 disabled={isSubmitting || submitStatus === 'success'}
-                className={`w-full py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center space-x-2 ${
-                  submitStatus === 'success'
+                className={`w-full py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center space-x-2 ${submitStatus === 'success'
                     ? 'bg-green-600 text-white cursor-default'
                     : submitStatus === 'error'
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : isSubmitting
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : isSubmitting
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 {isSubmitting ? (
                   <>

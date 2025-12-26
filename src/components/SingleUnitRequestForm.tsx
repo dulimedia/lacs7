@@ -273,7 +273,7 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none ${errors.message ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
-                  placeholder="Let us know when you need it, for how long, and any questions."
+                  placeholder={`Hi, I'm interested in leasing ${unitName} in Fifth Street Building. Could you please provide more information about availability, pricing, and lease terms?`}
                   disabled={isSubmitting}
                 />
                 {errors.message && <p className="text-red-600 text-xs mt-1">{errors.message}</p>}
