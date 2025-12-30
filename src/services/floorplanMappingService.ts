@@ -148,7 +148,7 @@ export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: strin
   // 12th Floor
   't1200': {
     floorFloorplan: towerPath('12th-floor', 'LACS_Floor 12_M1_Color.pdf'),
-    combinedFloorplan: towerPath('12th-floor', 'LACS_T-1200_Suite and Floor Plan.pdf')
+    combinedFloorplan: towerPath('12th-floor', 'LACS_T-1200_Floor and Suite Plan.pdf')
   }
 };
 

@@ -1597,7 +1597,7 @@ function App() {
             {/* Camera Controls - Desktop Only (Mobile uses pointer-events CSS pattern) */}
             {sceneEnabled && !modelsLoading && !deviceCapabilities.isMobile && (
               <div
-                className="fixed bottom-6 left-1/2 z-40 camera-controls-overlay -translate-x-1/2"
+                className="fixed bottom-6 z-40 camera-controls-overlay"
               >
                 <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-xl border border-black/5 p-3">
                   <div className="grid grid-cols-5 gap-2">

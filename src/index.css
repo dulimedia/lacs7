@@ -254,7 +254,7 @@ body {
   .camera-controls-overlay {
     position: absolute !important;
     bottom: 20px !important;
-    left: 50% !important;
+    left: calc(50vw + (var(--sidebar-w) / 2)) !important;
     top: auto !important;
     transform: translateX(-50%) !important;
     z-index: 100 !important;
