@@ -128,7 +128,7 @@ export default function Sidebar() {
                   setView('explore');
                 }}
               >
-                Explore Suites
+                Available Suites
               </button>
               <button
                 className={cn(

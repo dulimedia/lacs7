@@ -226,20 +226,33 @@ export const useExploreState = create<ExploreState>((set, get) => ({
       });
     });
 
+    // Always exclude F-10 from available units (per client request)
+    const filteredKeys = allUnitKeys.filter(unitKey => {
+      const unit = unitsData.get(unitKey);
+      const unitName = unit?.unit_name || unitKey;
+      return !unitName.toLowerCase().includes('f-10') && !unitKey.toLowerCase().includes('f-10');
+    });
+
     if (!showAvailableOnly) {
-      return allUnitKeys;
+      return filteredKeys;
     }
 
     // Filter by availability
-    return allUnitKeys.filter(unitKey => {
+    return filteredKeys.filter(unitKey => {
       const unit = unitsData.get(unitKey);
       return unit?.status === true;
     });
   },
 
   getUnitsByFloor: (building: string, floor: string) => {
-    const { unitsByBuilding } = get();
-    return unitsByBuilding[building]?.[floor] || [];
+    const { unitsByBuilding, unitsData } = get();
+    const units = unitsByBuilding[building]?.[floor] || [];
+    // Always exclude F-10 from available units (per client request)
+    return units.filter(unitKey => {
+      const unit = unitsData.get(unitKey);
+      const unitName = unit?.unit_name || unitKey;
+      return !unitName.toLowerCase().includes('f-10') && !unitKey.toLowerCase().includes('f-10');
+    });
   },
 
   getUnitData: (unitKey: string) => {

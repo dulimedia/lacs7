@@ -401,6 +401,11 @@ export function ExploreTab() {
     }
   }, [sizeFilter, statusFilter, officesFilter, groupedByBuilding, setFilter, clearFilter]);
 
+  // Calculate total unit count across all buildings after filtering
+  const totalUnitCount = useMemo(() => {
+    return groupedByBuilding.reduce((total, building) => total + building.suiteCount, 0);
+  }, [groupedByBuilding]);
+
   const { error } = useCsvUnitData();
 
   return (
@@ -492,6 +497,12 @@ export function ExploreTab() {
         </div>
       </div>
 
+      {/* Unit Count Display */}
+      <div className="px-3 py-1">
+        <div className="text-xs text-gray-500 font-medium">
+          Showing {totalUnitCount} unit{totalUnitCount !== 1 ? 's' : ''}
+        </div>
+      </div>
 
       <div className={isMobile ? "mt-2 space-y-1" : "mt-4 space-y-2"}>
         {groupedByBuilding.map(b => (

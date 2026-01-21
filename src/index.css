@@ -281,3 +281,73 @@ body {
   }
 }
 
+/* Thumbnail optimization for faster scrolling */
+.thumbnail-optimized {
+  /* GPU acceleration for smoother scrolling */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000;
+  
+  /* Optimize rendering */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  
+  /* Strong containment to prevent layout thrashing during scroll */
+  contain: layout style paint;
+  
+  /* Conservative hardware acceleration for thumbnails */
+  will-change: auto;
+  
+  /* Smooth transitions */
+  transition: opacity 0.2s ease-out;
+  
+  /* Force subpixel rendering for crisp thumbnails */
+  image-rendering: auto;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Container optimization for floorplan viewers */
+.floorplan-container {
+  /* Strong containment to prevent layout calculations from bubbling up */
+  contain: layout style paint;
+  
+  /* Prevent content shifting */
+  position: relative;
+  
+  /* GPU acceleration for scroll container */
+  transform: translateZ(0);
+  
+  /* Optimize for scrolling */
+  overscroll-behavior: contain;
+  
+  /* Prevent image loading from affecting layout */
+  content-visibility: auto;
+  contain-intrinsic-size: 300px;
+}
+
+/* Reduce thumbnail quality for better performance during scroll */
+@media (prefers-reduced-motion: no-preference) {
+  .thumbnail-optimized {
+    transition: transform 0.1s ease-out, opacity 0.2s ease-out;
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  .thumbnail-optimized {
+    /* Even more aggressive optimizations on mobile */
+    image-rendering: optimizeSpeed;
+    
+    /* Reduce GPU memory usage */
+    will-change: auto;
+  }
+  
+  .floorplan-container {
+    /* Better touch scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+    
+    /* Prevent bounce scroll */
+    overscroll-behavior-y: none;
+  }
+}
+

@@ -28,6 +28,16 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
     phone: '',
     message: ''
   });
+  const [selectedSuggestedMessage, setSelectedSuggestedMessage] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  
+  const suggestedMessages = [
+    `Hi, I'm interested in leasing ${unitName} in Tower Building. Could you please provide more information about availability, pricing, and lease terms?`,
+    `Hello, I would like to schedule a viewing for ${unitName}. When would be a good time to see the space?`,
+    `I'm looking for office space and ${unitName} caught my attention. Can you provide details about the lease agreement and move-in timeline?`,
+    `Hi, I'm interested in ${unitName}. What are the monthly rates and what amenities are included?`,
+    `Hello, could you please send me more information about ${unitName}, including floor plans and pricing details?`
+  ];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -45,9 +55,7 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!formData.message.trim()) {
-      newErrors.message = 'Message is required';
-    }
+    // Message is now optional - will auto-populate if empty
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -97,12 +105,15 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
         console.log('✅ EmailJS already loaded and available');
       }
 
+      // Auto-populate message if empty
+      const defaultMessage = `Hi, I'm interested in leasing ${unitName}. Could you please provide more information about availability, pricing, and lease terms?`;
+      
       // Prepare template parameters for primary email
       const templateParams = {
         from_name: formData.name,
         from_email: formData.email,
         phone: formData.phone || 'Not provided',
-        message: formData.message || 'No additional message',
+        message: formData.message.trim() || defaultMessage,
         selected_units: `• ${unitName} (Single Unit Request)`,
         to_email: primaryEmail,
         reply_to: formData.email
@@ -261,11 +272,58 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
                 />
               </div>
 
+              {/* Suggested Messages */}
+              {showSuggestions && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Suggested Messages (Optional)
+                  </label>
+                  <div className="space-y-2 mb-3">
+                    {suggestedMessages.map((message, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          handleInputChange('message', message);
+                          setSelectedSuggestedMessage(message);
+                          setShowSuggestions(false);
+                        }}
+                        className="w-full text-left p-2 text-xs border border-gray-200 rounded-md hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        disabled={isSubmitting}
+                      >
+                        {message}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSuggestions(false)}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Or write your own message
+                  </button>
+                </div>
+              )}
+              
               {/* Message Field */}
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                  Message *
-                </label>
+              <div className={showSuggestions ? 'hidden' : ''}>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                    Message *
+                  </label>
+                  {!showSuggestions && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSuggestions(true);
+                        handleInputChange('message', '');
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-700"
+                    >
+                      Choose suggested message
+                    </button>
+                  )}
+                </div>
                 <textarea
                   id="message"
                   rows={4}
@@ -273,7 +331,7 @@ export const SingleUnitRequestForm: React.FC<SingleUnitRequestFormProps> = ({
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none ${errors.message ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
-                  placeholder={`Hi, I'm interested in leasing ${unitName} in Fifth Street Building. Could you please provide more information about availability, pricing, and lease terms?`}
+                  placeholder={`Hi, I'm interested in leasing ${unitName}. Could you please provide more information about availability, pricing, and lease terms?`}
                   disabled={isSubmitting}
                 />
                 {errors.message && <p className="text-red-600 text-xs mt-1">{errors.message}</p>}

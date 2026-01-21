@@ -1307,7 +1307,7 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
                     : 'text-gray-600 hover:text-gray-900'
                   }`}
               >
-                Explore Suites
+                Available Suites
               </button>
               <button
                 onClick={() => setCurrentView('request')}
@@ -1577,6 +1577,7 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
                           unitName={selectedUnitDetails.unit_name}
                           onExpand={onExpandFloorplan}
                           unitData={selectedUnitDetails}
+                          useThumbnail={true} // Use thumbnails for fast sidebar scrolling
                         />
                       </>
                     ) : (

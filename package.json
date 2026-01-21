@@ -23,7 +23,9 @@
     "audit:ui": "npm run build && npm run test:ui",
     "agent:mobile": "node agent/run-mobile-agent.mjs",
     "agent:mobile:quick": "node agent/run-mobile-agent.mjs --quick",
-    "agent:mobile:dry": "node agent/run-mobile-agent.mjs --dry-run"
+    "agent:mobile:dry": "node agent/run-mobile-agent.mjs --dry-run",
+    "generate:thumbnails": "node scripts/generateThumbnails.js",
+    "optimize:images": "npm run generate:thumbnails"
   },
   "dependencies": {
     "@react-three/drei": "^9.99.7",

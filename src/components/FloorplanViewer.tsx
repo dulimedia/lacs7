@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Expand, X, Download, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { Expand, X, Download, ZoomIn, ZoomOut, RotateCw, FileText } from 'lucide-react';
 import { getFloorplanUrl, preloadImage, FALLBACK_FLOORPLAN } from '../services/floorplanService';
 import { getFloorplanUrl as getIntelligentFloorplanUrl } from '../services/floorplanMappingService';
+
+// Helper function to check if URL points to a PDF
+const isPDFUrl = (url: string): boolean => {
+  if (!url) return false;
+  return url.toLowerCase().endsWith('.pdf');
+};
 
 interface FloorplanViewerProps {
   floorplanUrl: string | null;
@@ -13,6 +19,7 @@ interface FloorplanViewerProps {
   onClose?: () => void;
   onExpand?: (floorplanUrl: string, unitName: string, unitData?: any) => void;
   unitData?: any;
+  useThumbnail?: boolean; // New prop to control thumbnail usage
 }
 
 export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
@@ -24,7 +31,8 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
   isExpanded = false,
   onClose,
   onExpand,
-  unitData
+  unitData,
+  useThumbnail = false // Default to full resolution
 }) => {
   console.log('🖼️ FloorplanViewer RENDER:', { unitName, floorplanUrl, unitData });
   
@@ -35,11 +43,53 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
   const [rotation, setRotation] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(isExpanded);
   const [finalImageUrl, setFinalImageUrl] = useState<string>(FALLBACK_FLOORPLAN);
+  const [isVisible, setIsVisible] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(!useThumbnail); // Always load if not thumbnail, lazy load thumbnails
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setIsFullscreen(isExpanded);
   }, [isExpanded]);
+
+  // Intersection Observer for lazy loading thumbnails
+  useEffect(() => {
+    if (!useThumbnail || shouldLoad) return; // Skip if not thumbnail or already loading
+    
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          setShouldLoad(true);
+          console.log(`🖼️ FloorplanViewer: Thumbnail ${unitName} came into view, starting load`);
+        }
+      },
+      {
+        rootMargin: '100px', // Start loading 100px before coming into view
+        threshold: 0.1
+      }
+    );
+
+    observer.observe(container);
+
+    return () => observer.disconnect();
+  }, [useThumbnail, shouldLoad, unitName]);
+
+  // Memory cleanup when component unmounts or unit changes
+  useEffect(() => {
+    return () => {
+      // Clean up image reference to prevent memory leaks
+      if (imageRef.current) {
+        imageRef.current.src = '';
+        imageRef.current.onload = null;
+        imageRef.current.onerror = null;
+      }
+      console.log(`🧹 FloorplanViewer: Cleaned up ${unitName}`);
+    };
+  }, [unitName]);
 
   // Lock body scroll when fullscreen modal is open
   useEffect(() => {
@@ -83,24 +133,46 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
         return;
       }
       
-      // For non-fullscreen, only handle if over the image area
+      // For non-fullscreen (small view), be less aggressive with event prevention
       const target = e.target as HTMLElement;
-      if (!target.closest('[data-floorplan-image]')) {
+      const floorplanContainer = target.closest('[data-floorplan-image]');
+      
+      if (!floorplanContainer) {
+        // Not over floorplan, allow normal scrolling
         return;
       }
       
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      
-      const delta = e.deltaY;
-      const zoomStep = 25;
-      
-      if (delta < 0) {
-        // Zoom in
-        setZoom(prev => Math.min(prev + zoomStep, 300));
+      // Check if we're actively interacting with the floorplan (e.g., zoomed in)
+      if (zoom > 100) {
+        // If zoomed in, capture wheel events for floorplan control
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const delta = e.deltaY;
+        const zoomStep = 25;
+        
+        if (delta < 0) {
+          setZoom(prev => Math.min(prev + zoomStep, 300));
+        } else {
+          setZoom(prev => Math.max(prev - zoomStep, 50));
+        }
       } else {
-        // Zoom out
-        setZoom(prev => Math.max(prev - zoomStep, 50));
+        // At default zoom (100%), allow normal page scrolling unless user holds Ctrl/Cmd
+        if (e.ctrlKey || e.metaKey) {
+          // User is trying to zoom, prevent default and handle
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const delta = e.deltaY;
+          const zoomStep = 25;
+          
+          if (delta < 0) {
+            setZoom(prev => Math.min(prev + zoomStep, 300));
+          } else {
+            setZoom(prev => Math.max(prev - zoomStep, 50));
+          }
+        }
+        // Otherwise, let the wheel event pass through for normal scrolling
       }
     };
 
@@ -136,6 +208,12 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
       return;
     }
 
+    // For thumbnails, wait until shouldLoad is true (intersection observer trigger)
+    if (useThumbnail && !shouldLoad) {
+      console.log(`🖼️ FloorplanViewer: Waiting for ${unitName} to come into view`);
+      return;
+    }
+
     // Reset all state when unit changes
     setImageLoading(true);
     setImageError(false);
@@ -157,13 +235,13 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
       let finalUrl: string;
       
       if (intelligentUrl) {
-        // Use the floorplanService to construct the full URL
-        finalUrl = getFloorplanUrl(intelligentUrl);
-        console.log('🖼️ FloorplanViewer: Final URL (from intelligent):', finalUrl);
+        // Use the floorplanService to construct the URL (thumbnail for sidebar, full-res for expanded)
+        finalUrl = getFloorplanUrl(intelligentUrl, FALLBACK_FLOORPLAN, useThumbnail);
+        console.log(`🖼️ FloorplanViewer: Final URL (from intelligent) [${useThumbnail ? 'THUMBNAIL' : 'FULL-RES'}]:`, finalUrl);
       } else if (floorplanUrl) {
-        // Use the floorplanService to construct the full URL
-        finalUrl = getFloorplanUrl(floorplanUrl);
-        console.log('🖼️ FloorplanViewer: Final URL (from prop):', finalUrl);
+        // Use the floorplanService to construct the URL (thumbnail for sidebar, full-res for expanded)
+        finalUrl = getFloorplanUrl(floorplanUrl, FALLBACK_FLOORPLAN, useThumbnail);
+        console.log(`🖼️ FloorplanViewer: Final URL (from prop) [${useThumbnail ? 'THUMBNAIL' : 'FULL-RES'}]:`, finalUrl);
       } else {
         console.warn('⚠️ FloorplanViewer: No floorplan URL found, using fallback');
         finalUrl = FALLBACK_FLOORPLAN;
@@ -175,7 +253,7 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
       
       // Only proceed if we have a valid URL
       if (finalUrl && finalUrl !== FALLBACK_FLOORPLAN) {
-        console.log('✅ FloorplanViewer: Setting final image URL:', finalUrl);
+        console.log(`✅ FloorplanViewer: Setting ${useThumbnail ? 'THUMBNAIL' : 'FULL-RES'} image URL:`, finalUrl);
         setFinalImageUrl(finalUrl);
         
         // Set a timeout to prevent infinite loading state
@@ -202,10 +280,18 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
         clearTimeout(loadTimeout);
       }
     };
-  }, [floorplanUrl, unitName, unitData]);
+  }, [floorplanUrl, unitName, unitData, useThumbnail, shouldLoad]);
 
   const handleImageLoad = () => {
-    console.log('✅ FloorplanViewer: Image loaded successfully:', finalImageUrl);
+    const imageType = useThumbnail ? 'THUMBNAIL' : 'FULL-RES';
+    const imageElement = imageRef.current;
+    const dimensions = imageElement ? `${imageElement.naturalWidth}x${imageElement.naturalHeight}` : 'unknown';
+    console.log(`✅ FloorplanViewer: ${imageType} image loaded successfully:`, {
+      url: finalImageUrl.split('/').pop(),
+      dimensions,
+      unit: unitName,
+      memoryEstimate: imageElement ? `${Math.round((imageElement.naturalWidth * imageElement.naturalHeight * 4) / 1024)}KB` : 'unknown'
+    });
     setImageLoading(false);
     setImageError(false);
   };
@@ -260,8 +346,12 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
 
   const handleToggleFullscreen = () => {
     if (onExpand && finalImageUrl) {
-      // Use the new popup system
-      onExpand(finalImageUrl, unitName, unitData);
+      // For expansion, always use high-resolution URL, not thumbnail
+      const highResUrl = useThumbnail 
+        ? getFloorplanUrl(floorplanUrl || finalImageUrl, FALLBACK_FLOORPLAN, false) 
+        : finalImageUrl;
+      // Use the new popup system with high-res URL
+      onExpand(highResUrl, unitName, unitData);
     } else {
       // Fallback to internal fullscreen
       setIsFullscreen(!isFullscreen);
@@ -336,6 +426,10 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
       <div 
         className={`${isFullscreen ? 'overflow-auto' : 'overflow-hidden'} relative bg-gray-50 rounded-lg`}
         data-floorplan-image
+        style={{
+          contain: 'layout style paint',
+          willChange: isFullscreen ? 'scroll-position' : 'auto'
+        }}
       >
         {/* Loading indicator */}
         {imageLoading && (
@@ -347,27 +441,70 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
         {/* Image */}
         <div
           className={`flex items-center justify-center p-4 ${isFullscreen ? 'min-h-[300px]' : 'min-h-[200px]'}`}
-          style={{
-            transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-            transformOrigin: 'center',
-            transition: 'transform 0.3s ease'
-          }}
           data-floorplan-image
         >
-          <img
-            key={`${unitName}-${finalImageUrl}`}
-            src={finalImageUrl}
-            alt={`${unitName} Floorplan`}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-            className={`max-w-full h-auto transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'} ${imageError ? 'hidden' : 'block'}`}
-            style={{
-              maxHeight: isFullscreen ? 'none' : '300px',
-              objectFit: 'contain',
-              width: 'auto',
-              height: 'auto'
-            }}
-          />
+          {shouldLoad ? (
+            isPDFUrl(finalImageUrl) ? (
+              // PDF placeholder with download link
+              <div className="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300" style={{ scrollMargin: 0 }}>
+                <FileText size={48} className="text-gray-500 mb-4" />
+                <p className="text-gray-700 font-medium mb-2">{unitName} Floorplan</p>
+                <p className="text-sm text-gray-500 mb-4">PDF Document</p>
+                <a 
+                  href={finalImageUrl}
+                  download
+                  tabIndex={-1}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <Download size={16} />
+                  <span>Download PDF</span>
+                </a>
+              </div>
+            ) : (
+              <img
+                ref={imageRef}
+                key={`${unitName}-${finalImageUrl}`}
+                src={finalImageUrl}
+                alt={`${unitName} Floorplan`}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+                className={`max-w-full h-auto transition-all duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'} ${imageError ? 'hidden' : 'block'} ${useThumbnail ? 'thumbnail-optimized' : ''}`}
+                style={{
+                  maxHeight: isFullscreen ? 'none' : useThumbnail ? '200px' : '300px',
+                  objectFit: 'contain',
+                  width: useThumbnail ? '100%' : 'auto',
+                  height: useThumbnail ? 'auto' : 'auto',
+                  // Apply transforms directly to the image for better performance
+                  transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                  transformOrigin: 'center',
+                  // Performance optimizations for thumbnail mode
+                  ...(useThumbnail && {
+                    imageRendering: 'auto',
+                    backfaceVisibility: 'hidden',
+                    willChange: 'auto'
+                  })
+                }}
+                loading={useThumbnail ? 'lazy' : 'eager'} // Lazy load thumbnails, eager load full-res
+                decoding={useThumbnail ? 'async' : 'auto'} // Async decoding for thumbnails
+              />
+            )
+          ) : (
+            // Placeholder for lazy-loaded thumbnails
+            <div 
+              className="flex items-center justify-center bg-gray-100 rounded"
+              style={{
+                minHeight: useThumbnail ? '150px' : '200px',
+                maxHeight: useThumbnail ? '200px' : '300px'
+              }}
+            >
+              <div className="text-gray-400 text-sm text-center">
+                <div className="w-8 h-8 mx-auto mb-2 opacity-40">
+                  📄
+                </div>
+                {useThumbnail ? 'Loading...' : unitName}
+              </div>
+            </div>
+          )}
           
           {/* Error message */}
           {imageError && !imageLoading && (
@@ -412,7 +549,7 @@ export const FloorplanViewer: React.FC<FloorplanViewerProps> = ({
 
   // Inline Viewer
   return (
-    <div className="relative bg-white rounded-lg shadow-sm border">
+    <div className="relative bg-white rounded-lg shadow-sm border floorplan-container">
       {viewerContent}
     </div>
   );

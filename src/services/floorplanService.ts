@@ -47,9 +47,9 @@ export function generateFloorplanKey(
 }
 
 /**
- * Preload an image and cache it
+ * Preload an image and cache it with thumbnail fallback
  */
-export async function preloadImage(url: string): Promise<HTMLImageElement> {
+export async function preloadImage(url: string, allowThumbnailFallback: boolean = false): Promise<HTMLImageElement> {
   // Update access order for LRU if already cached
   if (imageCache.has(url)) {
     cacheAccessOrder.delete(url);
@@ -83,6 +83,20 @@ export async function preloadImage(url: string): Promise<HTMLImageElement> {
     
     img.onerror = () => {
       loadingPromises.delete(url);
+      
+      // If thumbnail fallback is allowed and this looks like a thumbnail URL, try the full version
+      if (allowThumbnailFallback && (url.includes('/thumbs/') || url.includes('thumb_'))) {
+        const fullResUrl = convertThumbnailToFullUrl(url);
+        console.log(`📸 Thumbnail failed, trying full-res: ${fullResUrl}`);
+        
+        // Try loading the full resolution version
+        preloadImage(fullResUrl, false).then(resolve).catch(() => {
+          // If both fail, reject
+          reject(new Error(`Failed to load both thumbnail and full-res image: ${url}`));
+        });
+        return;
+      }
+      
       // Don't cache failed loads
       reject(new Error(`Failed to load image: ${url}`));
     };
@@ -92,6 +106,39 @@ export async function preloadImage(url: string): Promise<HTMLImageElement> {
 
   loadingPromises.set(url, loadingPromise);
   return loadingPromise;
+}
+
+/**
+ * Convert thumbnail URL back to full resolution URL
+ */
+function convertThumbnailToFullUrl(thumbnailUrl: string): string {
+  try {
+    if (thumbnailUrl.startsWith('http')) {
+      const url = new URL(thumbnailUrl);
+      // Convert /thumbnails/ back to /converted/ and remove thumb_ prefix
+      let pathname = url.pathname.replace('/thumbnails/', '/converted/');
+      const pathParts = pathname.split('/');
+      const fileName = pathParts[pathParts.length - 1];
+      if (fileName.startsWith('thumb_')) {
+        pathParts[pathParts.length - 1] = fileName.substring(6); // Remove 'thumb_' prefix
+        pathname = pathParts.join('/');
+      }
+      url.pathname = pathname;
+      return url.toString();
+    } else {
+      // Handle relative paths
+      let path = thumbnailUrl.replace('/thumbnails/', '/converted/');
+      const pathParts = path.split('/');
+      const fileName = pathParts[pathParts.length - 1];
+      if (fileName.startsWith('thumb_')) {
+        pathParts[pathParts.length - 1] = fileName.substring(6);
+        path = pathParts.join('/');
+      }
+      return path;
+    }
+  } catch (error) {
+    return thumbnailUrl;
+  }
 }
 
 /**
@@ -116,18 +163,22 @@ export async function preloadFloorFloorplans(
 
 /**
  * Get floorplan URL with fallback and proper base URL handling
+ * @param floorplanUrl - The floorplan URL to process
+ * @param fallbackUrl - Fallback URL if none provided
+ * @param useThumbnail - Whether to use thumbnail version for faster loading
  */
 export function getFloorplanUrl(
   floorplanUrl: string | null | undefined,
-  fallbackUrl: string = FALLBACK_FLOORPLAN
+  fallbackUrl: string = FALLBACK_FLOORPLAN,
+  useThumbnail: boolean = false
 ): string {
   if (!floorplanUrl) {
     return fallbackUrl;
   }
   
-  // If it's already a full URL, return as-is
+  // If it's already a full URL, return as-is (but may need thumbnail conversion)
   if (floorplanUrl.startsWith('http://') || floorplanUrl.startsWith('https://')) {
-    return floorplanUrl;
+    return useThumbnail ? convertToThumbnailUrl(floorplanUrl) : floorplanUrl;
   }
   
   // Handle relative paths with proper base URL
@@ -138,9 +189,74 @@ export function getFloorplanUrl(
     normalizedPath = normalizedPath.substring(1);
   }
   
+  // Convert to thumbnail path if requested
+  if (useThumbnail) {
+    normalizedPath = convertToThumbnailPath(normalizedPath);
+  }
+  
   // Combine with base URL - Vite handles URL encoding automatically
   const finalUrl = import.meta.env.BASE_URL + normalizedPath;
   return finalUrl;
+}
+
+/**
+ * Convert a full-resolution floorplan path to thumbnail version
+ * Looks for thumbnails in the /thumbnails/ subdirectory with thumb_ prefix
+ * Falls back to original if thumbnails don't exist
+ */
+function convertToThumbnailPath(originalPath: string): string {
+  // Extract the directory and filename
+  const pathParts = originalPath.split('/');
+  const fileName = pathParts[pathParts.length - 1];
+  
+  // For floorplan paths like 'floorplans/converted/filename.png'
+  // Convert to 'floorplans/thumbnails/thumb_filename.png'
+  if (originalPath.includes('floorplans/converted/')) {
+    const thumbnailPath = originalPath.replace(
+      'floorplans/converted/',
+      'floorplans/thumbnails/'
+    );
+    // Add thumb_ prefix to filename
+    const pathWithoutFile = thumbnailPath.substring(0, thumbnailPath.lastIndexOf('/'));
+    const thumbFileName = 'thumb_' + fileName;
+    return `${pathWithoutFile}/${thumbFileName}`;
+  }
+  
+  // Generic approach for other paths
+  const directory = pathParts.slice(0, -1).join('/');
+  const thumbFileName = 'thumb_' + fileName;
+  
+  if (directory) {
+    // Replace the last directory component with 'thumbnails'
+    const dirParts = directory.split('/');
+    dirParts[dirParts.length - 1] = 'thumbnails';
+    const thumbDir = dirParts.join('/');
+    return `${thumbDir}/${thumbFileName}`;
+  }
+  
+  // Fallback: just add thumb_ prefix in same directory
+  return `thumbnails/${thumbFileName}`;
+}
+
+/**
+ * Convert a full URL to thumbnail version
+ */
+function convertToThumbnailUrl(originalUrl: string): string {
+  try {
+    const url = new URL(originalUrl);
+    const pathParts = url.pathname.split('/');
+    const fileName = pathParts[pathParts.length - 1];
+    const directory = pathParts.slice(0, -1).join('/');
+    
+    // Try thumb_ prefix and /thumbs/ subdirectory
+    const thumbFileName = 'thumb_' + fileName;
+    url.pathname = `${directory}/thumbs/${thumbFileName}`;
+    
+    return url.toString();
+  } catch (error) {
+    // If URL parsing fails, return original
+    return originalUrl;
+  }
 }
 
 /**

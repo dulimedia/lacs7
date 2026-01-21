@@ -5,7 +5,7 @@ import { APP_CONFIG } from '../config/appConfig';
 
 export function ShareFloorplanModal() {
     const { shareModalOpen, shareModalData, setShareModalOpen } = useExploreState();
-    const [email, setEmail] = useState('');
+    const [emails, setEmails] = useState('');
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [senderName, setSenderName] = useState('');
@@ -15,9 +15,20 @@ export function ShareFloorplanModal() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!email) {
-            alert('Please enter an email address');
+        if (!emails.trim()) {
+            alert('Please enter at least one email address');
             return;
+        }
+        
+        // Parse multiple emails (separated by commas or semicolons)
+        const emailList = emails.split(/[,;]/).map(email => email.trim()).filter(email => email);
+        
+        // Validate all emails
+        for (const email of emailList) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert(`Invalid email address: ${email}`);
+                return;
+            }
         }
 
         setSending(true);
@@ -51,12 +62,14 @@ export function ShareFloorplanModal() {
             //     ? `${vercelOrigin}${shareModalData.fullFloorUrl.startsWith('/') ? '' : '/'}${encodeURI(shareModalData.fullFloorUrl)}`
             //     : shareModalData.fullFloorUrl;
 
-            const templateParams = {
-                to_email: email,
-                from_name: senderName || "LA Center Studios",
-                from_email: "noreply@lacenterstudios.com",
-                message: `${message ? `${message}\n\n` : ''
-                    }Below are the requested materials for ${shareModalData.unitName}:
+            // Send email to each recipient
+            for (const email of emailList) {
+                const templateParams = {
+                    to_email: email,
+                    from_name: senderName || "LA Center Studios",
+                    from_email: "noreply@lacenterstudios.com",
+                    message: `${message ? `${message}\n\n` : ''
+                        }Below is information about suite ${shareModalData.unitName}:
 
 🏢 3D Interactive Tour
 
@@ -71,22 +84,23 @@ Download the full floor plan for ${shareModalData.unitName}:
 
 👉 Download Floor Plan PDF
 ${floorplanLink || 'Floor plan coming soon'}${senderName ? `\n\nShared by: ${senderName}` : ''
-                    }`,
-                // These might be used by the template:
-                selected_units: shareModalData.unitName,
-                phone: senderPhone || '',
-                reply_to: 'lacenterstudios3d@gmail.com'
-            };
+                        }`,
+                    // These might be used by the template:
+                    selected_units: shareModalData.unitName,
+                    phone: senderPhone || '',
+                    reply_to: 'lacenterstudios3d@gmail.com'
+                };
 
-            await window.emailjs!.send(
-                'service_q47lbr7',
-                'template_0zeil8m',
-                templateParams
-            );
+                await window.emailjs!.send(
+                    'service_q47lbr7',
+                    'template_0zeil8m',
+                    templateParams
+                );
+            }
 
-            alert(`Floorplan sent to ${email}!`);
+            alert(`Floorplan sent to ${emailList.join(', ')}!`);
             setShareModalOpen(false);
-            setEmail('');
+            setEmails('');
             setMessage('');
             setSenderName('');
 
@@ -135,16 +149,17 @@ ${floorplanLink || 'Floor plan coming soon'}${senderName ? `\n\nShared by: ${sen
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Recipient Email
+                            Recipient Email(s)
                         </label>
                         <input
-                            type="email"
+                            type="text"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="colleague@example.com"
+                            value={emails}
+                            onChange={(e) => setEmails(e.target.value)}
+                            placeholder="colleague@example.com, colleague2@example.com"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black/5 focus:border-black outline-none transition-all"
                         />
+                        <p className="text-xs text-gray-500 mt-1">Separate multiple emails with commas</p>
                     </div>
 
                     <div>

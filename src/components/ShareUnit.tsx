@@ -22,7 +22,7 @@ export const ShareUnit: React.FC<ShareUnitProps> = ({
   const { data: csvUnitData } = useCsvUnitData(CSV_URL);
   const unitData = csvUnitData[unitKey.toLowerCase()];
 
-  const [email, setEmail] = useState('');
+  const [emails, setEmails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -41,14 +41,20 @@ export const ShareUnit: React.FC<ShareUnitProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim()) {
-      setError('Email is required');
+    if (!emails.trim()) {
+      setError('At least one email is required');
       return;
     }
     
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
+    // Parse multiple emails (separated by commas or semicolons)
+    const emailList = emails.split(/[,;]/).map(email => email.trim()).filter(email => email);
+    
+    // Validate all emails
+    for (const email of emailList) {
+      if (!validateEmail(email)) {
+        setError(`Invalid email address: ${email}`);
+        return;
+      }
     }
 
     setError('');
@@ -99,28 +105,31 @@ ${unitData?.has_kitchen ? 'Kitchen: Yes' : 'Kitchen: No'}
 View campus in 3D: ${appLink}
       `.trim();
 
-      // Prepare template parameters
-      const templateParams = {
-        from_name: 'LA Center Studios',
-        from_email: primaryEmail,
-        to_email: email,
-        subject: `Unit Information: ${unitName}`,
-        message: `Here's the information for ${unitName} at LA Center Studios:\n\n${unitInfo}`,
-        unit_name: unitName,
-        deep_link: appLink,
-        floorplan_url: unitData?.floorplan_url ? `https://lacscampus26.vercel.app${unitData.floorplan_url}` : '',
-        unit_details: unitInfo,
-        reply_to: primaryEmail
-      };
+      // Send email to each recipient
+      for (const email of emailList) {
+        // Prepare template parameters
+        const templateParams = {
+          from_name: 'LA Center Studios',
+          from_email: primaryEmail,
+          to_email: email,
+          subject: `This suite at LACS looks good!`,
+          message: `Below is information about suite ${unitName}:\n\n${unitInfo}`,
+          unit_name: unitName,
+          deep_link: appLink,
+          floorplan_url: unitData?.floorplan_url ? `https://lacscampus26.vercel.app${unitData.floorplan_url}` : '',
+          unit_details: unitInfo,
+          reply_to: primaryEmail
+        };
 
-      console.log('📧 Sending share email with:', templateParams);
+        console.log('📧 Sending share email to:', email, 'with:', templateParams);
 
-      // Send email using EmailJS
-      await window.emailjs.send(
-        'service_q47lbr7', // Service ID
-        'template_0zeil8m', // Template ID  
-        templateParams
-      );
+        // Send email using EmailJS
+        await window.emailjs.send(
+          'service_q47lbr7', // Service ID
+          'template_0zeil8m', // Template ID  
+          templateParams
+        );
+      }
 
       console.log('✅ Share email sent successfully!');
       setIsSubmitted(true);
@@ -128,7 +137,7 @@ View campus in 3D: ${appLink}
       // Reset form after delay
       setTimeout(() => {
         setIsSubmitted(false);
-        setEmail('');
+        setEmails('');
         onClose();
       }, 3000);
 
@@ -173,7 +182,7 @@ View campus in 3D: ${appLink}
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
             <h4 className="text-lg font-semibold text-gray-900 mb-2">Email Sent!</h4>
             <p className="text-gray-600">
-              Unit information and deep link have been sent to {email}
+              Unit information and deep link have been sent to {emails.split(/[,;]/).map(email => email.trim()).filter(email => email).join(', ')}
             </p>
           </div>
         ) : (
@@ -192,18 +201,19 @@ View campus in 3D: ${appLink}
 
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
+                <label htmlFor="emails" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address(es)
                 </label>
                 <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email address"
+                  type="text"
+                  id="emails"
+                  value={emails}
+                  onChange={(e) => setEmails(e.target.value)}
+                  placeholder="Enter email addresses (separated by commas)"
                   className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isMobile ? 'text-base' : 'text-sm'}`}
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">Separate multiple emails with commas</p>
                 {error && (
                   <p className="text-red-500 text-xs mt-1">{error}</p>
                 )}

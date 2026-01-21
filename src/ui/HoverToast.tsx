@@ -54,14 +54,14 @@ export const HoverToast: React.FC<HoverToastProps> = ({ className = '' }) => {
     <div 
       className={`
         fixed bottom-6 z-50 pointer-events-none
-        bg-white bg-opacity-95 backdrop-blur-sm 
+        bg-white bg-opacity-80 backdrop-blur-sm 
         rounded-lg shadow-xl border border-gray-300 
         px-4 py-3
         transition-all duration-300 ease-in-out
         ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
         ${className}
       `}
-      style={{ left: 12 }}
+      style={{ left: 432 }}
     >
       <div className="text-sm font-semibold text-gray-900">
         {hoveredUnit.unit_name}

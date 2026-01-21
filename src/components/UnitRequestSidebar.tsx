@@ -61,6 +61,9 @@ export function UnitRequestSidebar() {
         throw new Error('EmailJS not loaded');
       }
 
+      // Auto-populate message if empty
+      const defaultMessage = `Hi, I'm interested in leasing ${requestUnitData?.unitName || 'this unit'}${unitDetails?.building ? ` in ${unitDetails.building}` : ''}. Could you please provide more information about availability, pricing, and lease terms?`;
+      
       const templateParams = {
         to_name: 'LA Center Studios',
         from_name: formData.name || 'Anonymous',
@@ -70,7 +73,7 @@ export function UnitRequestSidebar() {
         unit_name: requestUnitData?.unitName || 'Unknown Unit',
         unit_key: requestUnitData?.unitKey || 'Unknown Key',
         building: unitDetails?.building || 'Unknown Building',
-        message: formData.message || 'No message provided',
+        message: formData.message.trim() || defaultMessage,
         timestamp: new Date().toLocaleString(),
       };
 
