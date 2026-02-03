@@ -1,5 +1,7 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as fm from 'framer-motion';
+
+const { motion, AnimatePresence } = fm;
 
 interface UnitHoverPreviewProps {
   unitName: string;

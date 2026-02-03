@@ -28,20 +28,25 @@ class FresnelMaterial extends THREE.ShaderMaterial {
     };
 
     const vertexShader = /*glsl*/ `
+      #include <common>
+      #include <logdepthbuf_pars_vertex>
       varying vec3 vView;
       varying vec3 vNormal;
 
       void main() {
         vec3 objectPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-        
+
         vView = normalize(cameraPosition - objectPosition);
         vNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        #include <logdepthbuf_vertex>
       }
     `;
 
     const fragmentShader = /*glsl*/ `
+      #include <common>
+      #include <logdepthbuf_pars_fragment>
       uniform vec3 uFresnelColor;
       uniform vec3 uBaseColor;
       uniform float uFresnelAmt;
@@ -79,6 +84,7 @@ class FresnelMaterial extends THREE.ShaderMaterial {
         float alpha = ${options.alpha ? 'fresnel * pulse' : 'pulse'};
 
         gl_FragColor = vec4(finalColor, alpha);
+        #include <logdepthbuf_fragment>
       }
     `;
 

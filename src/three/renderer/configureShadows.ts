@@ -39,8 +39,8 @@ export function configureDirectionalShadows(
     cam.right = extent;
     cam.top = extent;
     cam.bottom = -extent;
-    cam.near = 0.5;
-    cam.far = 400; // Deep enough for sunlight
+    cam.near = 1.0;
+    cam.far = 250; // Tightened for better shadow depth precision
 
     cam.updateProjectionMatrix();
 

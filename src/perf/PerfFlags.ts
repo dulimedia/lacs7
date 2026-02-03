@@ -14,12 +14,12 @@ export const PerfFlags = (() => {
   const isFirefoxMobile = isFirefox && isMobileUA;
   const isSafariIOS = isIOS && isSafari;
   const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  const isNarrowViewport = window.innerWidth < 768;
   const hasLowMemory = (navigator as any).deviceMemory ? (navigator as any).deviceMemory <= 4 : false;
-  const isSimulatorSize = window.innerWidth < 600 || window.innerHeight < 600;
+  // Use input capabilities, not viewport size, to determine mobile.
+  // A desktop browser resized small is NOT a phone.
+  const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
 
-  // FIXED: Include tablets explicitly in mobile detection for GLB loading
-  const isMobile = isMobileUA || isTablet || (isTouchDevice && isNarrowViewport) || hasLowMemory || isSimulatorSize;
+  const isMobile = isMobileUA || isTablet || (isTouchDevice && isCoarsePointer) || hasLowMemory;
   const tier: Tier = (isMobile || isIOS) ? "mobileLow" : "desktopHigh";
 
   MobileDiagnostics.log('perf', 'PerfFlags initialized', {
@@ -33,9 +33,8 @@ export const PerfFlags = (() => {
     tier,
     userAgent: userAgent.substring(0, 80),
     isTouchDevice,
-    isNarrowViewport,
+    isCoarsePointer,
     hasLowMemory,
-    isSimulatorSize,
   });
 
   const qualityTier: QualityTier = isMobile ? 'LOW' : pickTier();
@@ -67,8 +66,8 @@ export const PerfFlags = (() => {
     SHADOWS_ENABLED: true,
     SHADOW_MAX_EXTENT: isLow ? 60 : isBalanced ? 80 : 80, // ULTRA-TIGHT: 80m extent for 50px/m resolution
     SHADOW_MARGIN: isLow ? 4 : isBalanced ? 5.5 : 6,
-    SHADOW_BIAS: isLow ? -0.001 : -0.0001, // PHASE 1 FIX: Increased bias on mobile to prevent black roof artifacts
-    SHADOW_NORMAL_BIAS: isLow ? 0.02 : 0.01, // PHASE 1 FIX: Increased normal bias on mobile for roof distance viewing
+    SHADOW_BIAS: -0.00005, // Tiny bias — normalBias does the real work
+    SHADOW_NORMAL_BIAS: 0.02, // Consistent across all tiers
 
     // 🔥 Post FX flags - none on mobile
     dynamicShadows: !isLow && isHigh,

@@ -2,10 +2,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
-import { motion } from 'framer-motion';
+import * as fm from 'framer-motion';
 import { Expand, X, MessageCircle } from 'lucide-react';
 import { useExploreState } from '../store/exploreState';
 import { useGLBState } from '../store/glbState';
+
+const { motion } = fm;
 
 interface Unit3DPopupOverlayProps {
   onExpand: () => void;

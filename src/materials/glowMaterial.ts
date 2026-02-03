@@ -37,34 +37,40 @@ export const createFresnelGlowMaterial = (options: {
       uPower: { value: power },
     },
     vertexShader: `
+      #include <common>
+      #include <logdepthbuf_pars_vertex>
       varying vec3 vNormal;
       varying vec3 vViewPosition;
-      
+
       void main() {
         vNormal = normalize(normalMatrix * normal);
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         vViewPosition = -mvPosition.xyz;
         gl_Position = projectionMatrix * mvPosition;
+        #include <logdepthbuf_vertex>
       }
     `,
     fragmentShader: `
+      #include <common>
+      #include <logdepthbuf_pars_fragment>
       uniform vec3 uColor;
       uniform float uOpacity;
       uniform float uBias;
       uniform float uScale;
       uniform float uPower;
-      
+
       varying vec3 vNormal;
       varying vec3 vViewPosition;
-      
+
       void main() {
         vec3 viewDir = normalize(vViewPosition);
         float fresnel = uBias + uScale * pow(1.0 - max(dot(viewDir, vNormal), 0.0), uPower);
-        
+
         // Make it emissive for bloom
         vec3 emissive = uColor * fresnel * 2.0;
-        
+
         gl_FragColor = vec4(emissive, fresnel * uOpacity);
+        #include <logdepthbuf_fragment>
       }
     `,
     transparent: true,

@@ -34,6 +34,8 @@ export function createFresnelHighlightMaterial({
     side: doubleSide ? THREE.DoubleSide : THREE.FrontSide,
     uniforms,
     vertexShader: `
+      #include <common>
+      #include <logdepthbuf_pars_vertex>
       varying vec3 vNormal;
       varying vec3 vWorldPos;
       void main() {
@@ -41,9 +43,12 @@ export function createFresnelHighlightMaterial({
         vec4 worldPos = modelMatrix * vec4(position, 1.0);
         vWorldPos = worldPos.xyz;
         gl_Position = projectionMatrix * viewMatrix * worldPos;
+        #include <logdepthbuf_vertex>
       }
     `,
     fragmentShader: `
+      #include <common>
+      #include <logdepthbuf_pars_fragment>
       uniform vec3 uColor;
       uniform float uOpacity;
       uniform float uBias;
@@ -77,6 +82,7 @@ export function createFresnelHighlightMaterial({
         // Apply enhanced opacity with fresnel-based variation for maximum visibility
         float finalOpacity = uOpacity * (1.2 + 0.8 * fresnel) * max(0.5, depthDimming); // Never less than 50% opacity
         gl_FragColor = vec4(col, finalOpacity);
+        #include <logdepthbuf_fragment>
       }
     `
   });

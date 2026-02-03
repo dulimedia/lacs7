@@ -13,7 +13,7 @@ export default defineConfig({
   base,
   server: {
     host: '0.0.0.0',
-    port: 5000,
+    port: 5005,
     strictPort: true,
   },
   preview: {
@@ -41,6 +41,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
+    include: ['react-dom/client'],
     esbuildOptions: {
       target: 'esnext',
     },

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as fm from 'framer-motion';
 import { Expand, X, MessageCircle } from 'lucide-react';
 import { useExploreState } from '../store/exploreState';
+
+const { motion, AnimatePresence } = fm;
 
 interface Unit3DPopupProps {
   isOpen: boolean;

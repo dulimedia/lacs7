@@ -631,7 +631,7 @@ function App() {
       powerPreference: PerfFlags.isIOS ? "low-power" : "high-performance",
       antialias: false,
       alpha: false,
-      logarithmicDepthBuffer: false,
+      logarithmicDepthBuffer: true,
       preserveDrawingBuffer: true, // FIXED: Prevents white flashing on context loss/frame miss
       stencil: false,
       depth: true,
@@ -639,9 +639,8 @@ function App() {
       failIfMajorPerformanceCaveat: false,
     };
 
-    if (PerfFlags.isIOS) {
-      config.precision = "mediump";
-    }
+    // Always use highp — mediump wrecks depth math and shadow stability
+    config.precision = "highp";
 
     return config;
   }, []);
@@ -1418,7 +1417,7 @@ function App() {
                     {console.log('🎬 Rendering RootCanvas - canvasReady:', canvasReady, 'sceneEnabled:', sceneEnabled)}
                     <RootCanvas
                       shadows={mobileSettings.shadows}
-                      camera={{ position: [-10, 10, -14], fov: 45, near: 0.5, far: 2000 }}
+                      camera={{ position: [-10, 10, -14], fov: 45, near: 1.0, far: 1000 }}
                       style={{
                         width: '100%',
                         height: '100%',

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as fm from 'framer-motion';
 import { X, Check, AlertTriangle, Home, Wrench, Share2 } from 'lucide-react';
 import { UnitData } from '../types';
+
+const { motion, AnimatePresence } = fm;
 
 interface UnitDetailPopupProps {
   selectedUnit: string | null;

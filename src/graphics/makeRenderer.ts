@@ -25,7 +25,7 @@ function createWebGLRenderer(canvas: HTMLCanvasElement, tier: string): THREE.Web
     alpha: !RENDER_FLAGS.OPAQUE_CANVAS,
     antialias: isMobile, // PHASE 3 FIX: Enable antialiasing on mobile to reduce pixelation
     powerPreference: 'default',
-    logarithmicDepthBuffer: isMobile, // PHASE 2 FIX: Enable log depth buffer on mobile to prevent Z-fighting
+    logarithmicDepthBuffer: true, // Enable log depth buffer universally to prevent Z-fighting
     preserveDrawingBuffer: true, // FIXED: Align with App.tsx to prevent white flashing
     failIfMajorPerformanceCaveat: false,
     stencil: false,

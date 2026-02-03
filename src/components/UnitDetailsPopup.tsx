@@ -3,7 +3,7 @@
  * Do not change ids/schema without updating docs.
  */
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as fm from 'framer-motion';
 import { 
   X, 
   MapPin, 
@@ -11,15 +11,14 @@ import {
   FileText, 
   ExternalLink,
   Share,
-  Copy,
-  CheckCircle,
-  ChevronRight,
-  ChevronLeft
+  CheckCircle
 } from 'lucide-react';
 import { type UnitRecord } from '../store/exploreState';
 import { emitEvent, getTimestamp } from '../lib/events';
-import { isTowerUnit, getTowerUnitIndividualFloorplan, getTowerUnitFloorFloorplan, getFloorplanUrl as getIntelligentFloorplanUrl } from '../services/floorplanMappingService';
+import { getFloorplanUrl as getIntelligentFloorplanUrl } from '../services/floorplanMappingService';
 import { getFloorplanUrl as encodeFloorplanUrl } from '../services/floorplanService';
+
+const { motion, AnimatePresence } = fm;
 
 interface UnitDetailsPopupProps {
   unit: UnitRecord | null;
@@ -34,7 +33,6 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
 }) => {
   const [floorPlanOpen, setFloorPlanOpen] = useState(false);
   const [shareUrlCopied, setShareUrlCopied] = useState(false);
-  const [showIndividualFloorplan, setShowIndividualFloorplan] = useState(false);
   const constraintsRef = useRef<HTMLDivElement>(null);
 
   // Don't render if not open
@@ -49,27 +47,15 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
   } as UnitRecord;
 
 
-  // Check if this is a tower unit with individual floorplan
-  const isTower = isTowerUnit(displayUnit.unit_name || '');
-  const individualFloorplan = getTowerUnitIndividualFloorplan(displayUnit.unit_name || '');
-  const hasIndividualFloorplan = isTower && individualFloorplan;
-  
-  // Get the appropriate floorplan URL based on current view mode
+  // Get the appropriate floorplan URL based on current data/mapping
   const getFloorplanUrl = () => {
     if (!displayUnit.unit_name) {
       return null;
     }
     
-    if (isTower && showIndividualFloorplan && hasIndividualFloorplan) {
-      // Show individual unit floorplan
-      const individualFloorplan = getTowerUnitIndividualFloorplan(displayUnit.unit_name);
-      const rawUrl = individualFloorplan ? `floorplans/converted/${individualFloorplan}` : null;
-      return rawUrl ? encodeFloorplanUrl(rawUrl) : null;
-    } else {
-      // Use the intelligent mapping service (handles tower floor floorplans and regular units)
-      const rawUrl = getIntelligentFloorplanUrl(displayUnit.unit_name, displayUnit);
-      return rawUrl ? encodeFloorplanUrl(rawUrl) : null;
-    }
+    // Use the intelligent mapping service (combined PDF when available)
+    const rawUrl = getIntelligentFloorplanUrl(displayUnit.unit_name, displayUnit);
+    return rawUrl ? encodeFloorplanUrl(rawUrl) : null;
   };
 
   const currentFloorplanUrl = getFloorplanUrl();
@@ -78,11 +64,6 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
     onClose();
     setFloorPlanOpen(false);
     setShareUrlCopied(false);
-    setShowIndividualFloorplan(false);
-  };
-
-  const toggleFloorplanView = () => {
-    setShowIndividualFloorplan(prev => !prev);
   };
 
   const handleFloorPlanClick = () => {
@@ -272,45 +253,37 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-semibold text-gray-900">Floor Plan</h3>
-                  {isTower && (
-                    <div className="text-xs text-gray-600 bg-blue-50 px-2 py-1 rounded">
-                      {showIndividualFloorplan ? 'Individual Unit' : 'Full Floor'}
-                    </div>
-                  )}
                 </div>
                 <div className="relative bg-white border border-gray-100 rounded-md overflow-hidden" style={{ aspectRatio: '16/9' }}>
-                  {/* Navigation arrows for tower units */}
-                  {hasIndividualFloorplan && (
-                    <>
-                      <button
-                        onClick={toggleFloorplanView}
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 shadow-md transition-all duration-200"
-                        title={showIndividualFloorplan ? "Show Full Floor Plan" : "Show Individual Unit Plan"}
-                      >
-                        <ChevronLeft size={16} className="text-gray-700" />
-                      </button>
-                      <button
-                        onClick={toggleFloorplanView}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 shadow-md transition-all duration-200"
-                        title={showIndividualFloorplan ? "Show Full Floor Plan" : "Show Individual Unit Plan"}
-                      >
-                        <ChevronRight size={16} className="text-gray-700" />
-                      </button>
-                    </>
-                  )}
-                  
                   {currentFloorplanUrl ? (
-                    <img
-                      src={currentFloorplanUrl}
-                      alt={`${displayUnit.unit_name} floor plan`}
-                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={handleFloorPlanClick}
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (placeholder) placeholder.style.display = 'flex';
-                      }}
-                    />
+                    currentFloorplanUrl.toLowerCase().includes('.pdf') ? (
+                      <object
+                        data={`${currentFloorplanUrl}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=0`}
+                        type="application/pdf"
+                        className="w-full h-full"
+                        onClick={handleFloorPlanClick}
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500">
+                          <div className="text-center">
+                            <FileText size={24} className="mx-auto mb-2 text-gray-400" />
+                            <div className="text-sm font-medium">PDF Preview</div>
+                            <div className="text-xs text-gray-400">Click to view full size</div>
+                          </div>
+                        </div>
+                      </object>
+                    ) : (
+                      <img
+                        src={currentFloorplanUrl}
+                        alt={`${displayUnit.unit_name} floor plan`}
+                        className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={handleFloorPlanClick}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (placeholder) placeholder.style.display = 'flex';
+                        }}
+                      />
+                    )
                   ) : null}
                   <div 
                     className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500"
@@ -332,13 +305,6 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
                   <FileText size={16} />
                   <span>View Full Floor Plan</span>
                 </button>
-                {hasIndividualFloorplan && (
-                  <div className="mt-2 text-center">
-                    <p className="text-xs text-gray-500">
-                      Use the arrows to switch between floor and individual unit plans
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -405,24 +371,8 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
                       <h3 className="text-lg font-semibold text-gray-900">
                         {displayUnit.unit_name} Floor Plan
                       </h3>
-                      {isTower && (
-                        <p className="text-sm text-gray-600">
-                          {showIndividualFloorplan ? 'Individual Unit View' : 'Full Floor View'}
-                        </p>
-                      )}
                     </div>
                     <div className="flex items-center space-x-2">
-                      {hasIndividualFloorplan && (
-                        <button
-                          onClick={toggleFloorplanView}
-                          className="flex items-center space-x-1 px-3 py-1 text-sm bg-gray-100 
-                                     hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
-                        >
-                          <ChevronLeft size={14} />
-                          <span>{showIndividualFloorplan ? 'Floor View' : 'Unit View'}</span>
-                          <ChevronRight size={14} />
-                        </button>
-                      )}
                       {currentFloorplanUrl && (
                         <a
                           href={currentFloorplanUrl}
@@ -446,16 +396,32 @@ export const UnitDetailsPopup: React.FC<UnitDetailsPopupProps> = ({
                   </div>
                   <div className="p-6 flex items-center justify-center bg-gray-50" style={{ minHeight: '400px' }}>
                     {currentFloorplanUrl ? (
-                      <img
-                        src={currentFloorplanUrl}
-                        alt={`${displayUnit.unit_name} Floor Plan`}
-                        className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (placeholder) placeholder.style.display = 'flex';
-                        }}
-                      />
+                      currentFloorplanUrl.toLowerCase().includes('.pdf') ? (
+                        <object
+                          data={`${currentFloorplanUrl}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=1`}
+                          type="application/pdf"
+                          className="w-full h-[70vh] rounded-lg shadow-lg bg-white"
+                        >
+                          <div className="flex items-center justify-center text-gray-500 h-[70vh]">
+                            <div className="text-center">
+                              <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+                              <div className="text-lg font-medium text-gray-700 mb-2">PDF Preview Unavailable</div>
+                              <div className="text-sm text-gray-500">Open original to view.</div>
+                            </div>
+                          </div>
+                        </object>
+                      ) : (
+                        <img
+                          src={currentFloorplanUrl}
+                          alt={`${displayUnit.unit_name} Floor Plan`}
+                          className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (placeholder) placeholder.style.display = 'flex';
+                          }}
+                        />
+                      )
                     ) : null}
                     <div 
                       className="flex items-center justify-center text-gray-500"

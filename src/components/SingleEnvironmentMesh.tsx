@@ -83,11 +83,11 @@ function EnvironmentFragment({ filename, tier }: { filename: string, tier: strin
               }
             }
 
-            // Z-FIGHTING (Roads/Sidewalks)
+            // Z-FIGHTING (Roads/Sidewalks) — increased offset to survive small-viewport quantization
             if (isRoadFile) {
               mat.polygonOffset = true;
-              mat.polygonOffsetFactor = -1;
-              mat.polygonOffsetUnits = -1;
+              mat.polygonOffsetFactor = -2;
+              mat.polygonOffsetUnits = -10;
             }
 
             // Note: We removed the 'accessory concrete raw' safety check 
@@ -158,8 +158,8 @@ function MobileEnvironmentMesh({ tier }: { tier: string }) {
             const meshName = mesh.name.toLowerCase();
             if (meshName.includes('road') || meshName.includes('sidewalk') || meshName.includes('concrete')) {
               mat.polygonOffset = true;
-              mat.polygonOffsetFactor = -1;
-              mat.polygonOffsetUnits = -1;
+              mat.polygonOffsetFactor = -2;
+              mat.polygonOffsetUnits = -10;
             }
 
             mat.needsUpdate = true;

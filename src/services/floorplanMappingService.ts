@@ -102,7 +102,7 @@ export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: strin
   // 6th Floor
   't600': {
     floorFloorplan: towerPath('6th-floor', 'LACS_Floor 6_M1_Color.pdf'),
-    combinedFloorplan: towerPath('6th-floor', 'LACS_T-600_Suite and Floor Plan.pdf')
+    combinedFloorplan: towerPath('6th-floor', 'LACS_T-600_Floor and Suite Plan.pdf')
   },
 
   // 7th Floor
@@ -153,7 +153,7 @@ export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: strin
 };
 
 // Maryland Building unit to floor mapping
-export const MARYLAND_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; individualFloorplan?: string } } = {
+export const MARYLAND_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: string; individualFloorplan?: string; combinedFloorplan?: string } } = {
   // Ground Floor - all units use single floorplan (MG Floorplan.pdf)
   'm20': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
   'm40': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
@@ -163,31 +163,31 @@ export const MARYLAND_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: st
   'mgstage7': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
   'studioom': { floorFloorplan: marylandPath('ground-floor', 'MG Floorplan.pdf') },
 
-  // First Floor (M1xx) -> maryland/1st-floor/M1xx_LACS.pdf
-  'm120': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M120_LACS.pdf') },
-  'm130': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M130_LACS.pdf') },
-  'm140': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M140_LACS.pdf') },
-  'm145': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M145_LACS.pdf') },
-  'm150': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M150_LACS.pdf') },
-  'm160': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M160_LACS.pdf') },
-  'm170': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M170_LACS.pdf') },
-  'm180': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M180_LACS.pdf') },
+  // First Floor (M1xx) -> maryland/1st-floor/
+  'm120': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M120_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-120_Suite and Floor Plan.pdf') },
+  'm130': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M130_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-130_Suite and Floor Plan.pdf') },
+  'm140': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M140_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-140_Suite and Floor Plan.pdf') },
+  'm145': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M145_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-145_Suite and Floor Plan.pdf') },
+  'm150': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M150_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-150_Suite and Floor Plan.pdf') },
+  'm160': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M160_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-160_Suite and Floor Plan.pdf') },
+  'm170': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M170_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-170_Suite and Floor Plan.pdf') },
+  'm180': { floorFloorplan: marylandPath('1st-floor', 'M1Floor_LACS.pdf'), individualFloorplan: marylandPath('1st-floor', 'M180_LACS.pdf'), combinedFloorplan: marylandPath('1st-floor', 'LACS_M-180_Suite and Floor Plan.pdf') },
 
-  // Second Floor (M2xx) -> maryland/2nd-floor/M2xx_LACS.pdf
-  'm210': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M210_LACS.pdf') },
-  'm220': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M220_LACS.pdf') },
-  'm230': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M230_LACS.pdf') },
-  'm240': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M240_LACS.pdf') },
-  'm250': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M250_LACS.pdf') },
-  'm260': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M260_LACS.pdf') },
-  'm270': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M270_LACS.pdf') },
+  // Second Floor (M2xx) -> maryland/2nd-floor/
+  'm210': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M210_LACS.pdf'), combinedFloorplan: marylandPath('2nd-floor', 'LACS_M-210_Suite and Floor Plan.pdf') },
+  'm220': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M220_LACS.pdf'), combinedFloorplan: marylandPath('2nd-floor', 'LACS_M-220_Suite and Floor Plan.pdf') },
+  'm230': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M230_LACS.pdf'), combinedFloorplan: marylandPath('2nd-floor', 'LACS_M-230_Suite and Floor Plan.pdf') },
+  'm240': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M240_LACS.pdf'), combinedFloorplan: marylandPath('2nd-floor', 'LACS_M-240_Suite and Floor Plan.pdf') },
+  'm250': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M250_LACS.pdf'), combinedFloorplan: marylandPath('2nd-floor', 'LACS_M-250_Suite and Floor Plan.pdf') },
+  'm260': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M260_LACS.pdf'), combinedFloorplan: marylandPath('2nd-floor', 'LACS_M-260_Suite and Floor Plan.pdf') },
+  'm270': { floorFloorplan: marylandPath('2nd-floor', 'M2Floor_LACS.pdf'), individualFloorplan: marylandPath('2nd-floor', 'M270_LACS.pdf'), combinedFloorplan: marylandPath('2nd-floor', 'LACS_M-270_Suite and Floor Plan.pdf') },
 
-  // Third Floor (M3xx) -> maryland/3rd-floor/M3xx_LACS.pdf
-  'm300': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M300_LACS.pdf') },
-  'm320': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M320_LACS.pdf') },
-  'm340': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M340_LACS.pdf') },
-  'm345': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M345_LACS.pdf') },
-  'm350': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M350_LACS.pdf') },
+  // Third Floor (M3xx) -> maryland/3rd-floor/
+  'm300': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M300_LACS.pdf'), combinedFloorplan: marylandPath('3rd-floor', 'LACS_M-300_Suite and Floor Plan.pdf') },
+  'm320': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M320_LACS.pdf'), combinedFloorplan: marylandPath('3rd-floor', 'LACS_M-320_Suite and Floor Plan.pdf') },
+  'm340': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M340_LACS.pdf'), combinedFloorplan: marylandPath('3rd-floor', 'LACS_M-340_Suite and Floor Plan.pdf') },
+  'm345': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M345_LACS.pdf'), combinedFloorplan: marylandPath('3rd-floor', 'LACS_M-345_Suite and Floor Plan.pdf') },
+  'm350': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf'), individualFloorplan: marylandPath('3rd-floor', 'M350_LACS.pdf'), combinedFloorplan: marylandPath('3rd-floor', 'LACS_M-350_Suite and Floor Plan.pdf') },
 
   // Mezzanine
   'mezz': { floorFloorplan: marylandPath('3rd-floor', 'M3Floor_LACS.pdf') }
@@ -358,6 +358,10 @@ export function getMarylandUnitIndividualFloorplan(unitName: string): string | n
   const m = MARYLAND_UNIT_FLOOR_MAPPINGS[cleanUnitName(unitName)];
   return m ? m.individualFloorplan || null : null;
 }
+export function getMarylandUnitCombinedFloorplan(unitName: string): string | null {
+  const m = MARYLAND_UNIT_FLOOR_MAPPINGS[cleanUnitName(unitName)];
+  return m ? m.combinedFloorplan || null : null;
+}
 export function getFifthStreetUnitFloorFloorplan(unitName: string): string | null {
   const m = FIFTH_STREET_UNIT_FLOOR_MAPPINGS[cleanUnitName(unitName)];
   return m ? m.floorFloorplan : null;
@@ -386,18 +390,18 @@ export function getFloorplanUrl(unitName: string, unitData?: any): string | null
 
   if (isTowerUnit(unitName)) {
     const map = TOWER_UNIT_FLOOR_MAPPINGS[cleanName];
-    // Prioritize individual if exists, else floor
-    return map.individualFloorplan || map.floorFloorplan;
+    // Prefer combined (single PDF), else individual, else floor
+    return map.combinedFloorplan || map.individualFloorplan || map.floorFloorplan;
   }
 
   if (isMarylandUnit(unitName)) {
     const map = MARYLAND_UNIT_FLOOR_MAPPINGS[cleanName];
-    return map.individualFloorplan || map.floorFloorplan;
+    return map.combinedFloorplan || map.individualFloorplan || map.floorFloorplan;
   }
 
   if (isFifthStreetUnit(unitName)) {
     const map = FIFTH_STREET_UNIT_FLOOR_MAPPINGS[cleanName];
-    return map.individualFloorplan || map.floorFloorplan;
+    return map.combinedFloorplan || map.individualFloorplan || map.floorFloorplan;
   }
 
   // 2. Special cases
