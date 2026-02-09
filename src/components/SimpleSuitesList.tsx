@@ -197,8 +197,8 @@ export const SimpleSuitesList: React.FC = () => {
                                     console.log('[UNIT CLICK]', data.unit_name, 'building:', building, 'floor:', floor, 'unitKey:', unitKey);
                                     selectUnit(building, floor, data.unit_name);
                                   }}
-                                  onMouseEnter={() => hoverUnit(unitKey)}
-                                  onMouseLeave={() => hoverUnit(null)}
+                                  onMouseEnter={() => hoverUnit(building, floor, data.unit_name)}
+                                  onMouseLeave={() => hoverUnit(null, null, null)}
                                   className="w-full text-left px-3 py-2 hover:bg-blue-50 rounded-lg transition-colors"
                                 >
                                   <div className="flex items-center justify-between">

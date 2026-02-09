@@ -230,22 +230,22 @@ export const FALLBACK_UNIT_DATA = {
   'T-230': { name: 'T-230', size: '1,900 sq ft', availability: 'Available', amenities: 'Large tower unit' },
   'T-300': { name: 'T-300', size: '2,200 sq ft', availability: 'Occupied', amenities: 'Premium tower space' },
   'T-320': { name: 'T-320', size: '2,400 sq ft', availability: 'Available', amenities: 'Large tower unit' },
-  'T-400 ': { name: 'T-400 ', size: '2,800 sq ft', availability: 'Available', amenities: 'Extra large tower space' },
-  'T-410 ': { name: 'T-410 ', size: '2,600 sq ft', availability: 'Available', amenities: 'Large tower unit' },
-  'T-420 ': { name: 'T-420 ', size: '2,700 sq ft', availability: 'Occupied', amenities: 'Premium tower space' },
-  'T-430 ': { name: 'T-430 ', size: '2,900 sq ft', availability: 'Available', amenities: 'Extra large tower unit' },
-  'T-450 ': { name: 'T-450 ', size: '3,000 sq ft', availability: 'Available', amenities: 'Maximum tower space' },
+  'T-400': { name: 'T-400', size: '2,800 sq ft', availability: 'Available', amenities: 'Extra large tower space' },
+  'T-410': { name: 'T-410', size: '2,600 sq ft', availability: 'Available', amenities: 'Large tower unit' },
+  'T-420': { name: 'T-420', size: '2,700 sq ft', availability: 'Occupied', amenities: 'Premium tower space' },
+  'T-430': { name: 'T-430', size: '2,900 sq ft', availability: 'Available', amenities: 'Extra large tower unit' },
+  'T-450': { name: 'T-450', size: '3,000 sq ft', availability: 'Available', amenities: 'Maximum tower space' },
   'T-500': { name: 'T-500', size: '3,200 sq ft', availability: 'Available', amenities: 'Premium large tower unit' },
   'T-530': { name: 'T-530', size: '3,400 sq ft', availability: 'Occupied', amenities: 'Extra large tower space' },
   'T-550': { name: 'T-550', size: '3,600 sq ft', availability: 'Available', amenities: 'Maximum tower unit' },
   'T-600': { name: 'T-600', size: '3,800 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
-  'T-700 ': { name: 'T-700 ', size: '4,200 sq ft', availability: 'Available', amenities: 'Largest tower unit available' },
-  'T-800 ': { name: 'T-800 ', size: '4,600 sq ft', availability: 'Occupied', amenities: 'Premium maximum tower space' },
-  'T-900 ': { name: 'T-900 ', size: '5,000 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
-  'T- 950': { name: 'T- 950', size: '5,200 sq ft', availability: 'Available', amenities: 'Largest tower unit' },
-  'T-1000 ': { name: 'T-1000 ', size: '5,500 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
-  'T-1100 ': { name: 'T-1100 ', size: '6,000 sq ft', availability: 'Available', amenities: 'Largest premium tower unit' },
-  'T-1200 ': { name: 'T-1200 ', size: '6,500 sq ft', availability: 'Available', amenities: 'Maximum tower space available' },
+  'T-700': { name: 'T-700', size: '4,200 sq ft', availability: 'Available', amenities: 'Largest tower unit available' },
+  'T-800': { name: 'T-800', size: '4,600 sq ft', availability: 'Occupied', amenities: 'Premium maximum tower space' },
+  'T-900': { name: 'T-900', size: '5,000 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
+  'T-950': { name: 'T-950', size: '5,200 sq ft', availability: 'Available', amenities: 'Largest tower unit' },
+  'T-1000': { name: 'T-1000', size: '5,500 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
+  'T-1100': { name: 'T-1100', size: '6,000 sq ft', availability: 'Available', amenities: 'Largest premium tower unit' },
+  'T-1200': { name: 'T-1200', size: '6,500 sq ft', availability: 'Available', amenities: 'Maximum tower space available' },
 
   // Production Stages
   'stage a': { name: 'stage a', size: '8,000 sq ft', availability: 'Available', amenities: 'Full production stage with lighting grid' },
@@ -256,8 +256,8 @@ export const FALLBACK_UNIT_DATA = {
   'stage f': { name: 'stage f', size: '8,200 sq ft', availability: 'Occupied', amenities: 'Full service production stage' },
   'stage 7': { name: 'stage 7', size: '7,800 sq ft', availability: 'Available', amenities: 'Professional production stage' },
   'stage 8': { name: 'stage 8', size: '8,400 sq ft', availability: 'Available', amenities: 'Large production facility' },
-  'mg - stage 7': { name: 'mg - stage 7', size: '6,500 sq ft', availability: 'Available', amenities: 'Mezzanine stage area', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/LACS_Site Map_M1_Color_page_1.png' },
-  'studio o.m.': { name: 'studio o.m.', size: '5,000 sq ft', availability: 'Occupied', amenities: 'Private studio space', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/LACS_Site Map_M1_Color_page_1.png' },
+  'mg - stage 7': { name: 'mg - stage 7', size: '6,500 sq ft', availability: 'Available', amenities: 'Mezzanine stage area', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/site-map/LACS_Site Map_M1_Color_page_1.png' },
+  'studio o.m.': { name: 'studio o.m.', size: '5,000 sq ft', availability: 'Occupied', amenities: 'Private studio space', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/site-map/LACS_Site Map_M1_Color_page_1.png' },
   'mill 2': { name: 'mill 2', size: '4,500 sq ft', availability: 'Available', amenities: 'Mill building workspace' },
   'mill 3': { name: 'mill 3', size: '4,800 sq ft', availability: 'Available', amenities: 'Large mill workspace' },
   'mill 3 office': { name: 'mill 3 office', size: '1,200 sq ft', availability: 'Available', amenities: 'Office space in mill building' },
@@ -965,6 +965,7 @@ function App() {
     // Performance: debug logging removed
 
     if (error) {
+      console.warn('[CSV] Failed to load unit data:', error);
     }
   }, [csvUnitData, hasValidUnitData, effectiveUnitData, error]);
 
@@ -1002,6 +1003,17 @@ function App() {
           floorValue = 'Main Floor';
         } else if (!floorValue) {
           console.warn(`⚠️ Unit ${unitData.unit_name} (${unitData.building}) has no floor data in CSV!`);
+        }
+
+        // Correct known CSV floor assignment errors
+        const floorCorrections: Record<string, string> = {
+          'T-1100': 'Eleventh Floor',
+          'T-1200': 'Twelfth Floor',
+          'T-1000': 'Tenth Floor',
+        };
+        const correctedFloor = floorCorrections[(unitData.unit_name || '').toUpperCase()] || floorCorrections[unitData.unit_name || ''];
+        if (correctedFloor) {
+          floorValue = correctedFloor;
         }
 
         const unitRecord: UnitRecord = {

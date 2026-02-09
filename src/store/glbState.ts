@@ -713,7 +713,6 @@ export const useGLBState = create<GLBState>((set, get) => ({
       // Maryland Building - East side units (all others not specified above)
       'M-40': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
       'M-45': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
-      'M-50': { rotation: 45, distance: 6, heightMultiplier: 1.4 },
 
       'M-145': { rotation: 315, distance: 8, heightMultiplier: 0.7 },
       'M-160': { rotation: 315, distance: 8, heightMultiplier: 0.7 },

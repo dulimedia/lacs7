@@ -298,9 +298,9 @@ function cleanUnitName(unitName: string): string {
 // Special case mappings
 const SPECIAL_MAPPINGS: { [key: string]: string } = {
   // Maryland Ground
-  'm20': marylandPath('ground-floor', 'MG_Full_LACS.pdf'), // Assumed
-  'm40': marylandPath('ground-floor', 'MG_Full_LACS.pdf'),
-  'm45': marylandPath('ground-floor', 'MG_Full_LACS.pdf'),
+  'm20': marylandPath('ground-floor', 'MG Floorplan.pdf'),
+  'm40': marylandPath('ground-floor', 'MG Floorplan.pdf'),
+  'm45': marylandPath('ground-floor', 'MG Floorplan.pdf'),
   // Fifth Ground -> FG (which we know is LACS_FG...)
   'fglibrary': fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf'),
   'fgrestroom': fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf'),
@@ -415,7 +415,7 @@ export function getFloorplanUrl(unitName: string, unitData?: any): string | null
     // If kept as PNG, it needs to look in converted. 
     // Assuming for now we stick to PDF logic or return the old PNG path.
     // Let's check if the user uploaded a Site Map PDF. If not, use generic path.
-    return `floorplans/converted/LACS_Site Map_M1_Color_page_1.png`;
+    return `floorplans/site-map/LACS_Site Map_M1_Color_page_1.png`;
   }
 
   // 4. Fallback from CSV? 

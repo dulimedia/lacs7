@@ -230,7 +230,7 @@ export const useExploreState = create<ExploreState>((set, get) => ({
     const filteredKeys = allUnitKeys.filter(unitKey => {
       const unit = unitsData.get(unitKey);
       const unitName = unit?.unit_name || unitKey;
-      return !unitName.toLowerCase().includes('f-10') && !unitKey.toLowerCase().includes('f-10');
+      return unitName.toLowerCase().trim() !== 'f-10' && unitKey.toLowerCase().trim() !== 'f-10';
     });
 
     if (!showAvailableOnly) {
@@ -251,7 +251,7 @@ export const useExploreState = create<ExploreState>((set, get) => ({
     return units.filter(unitKey => {
       const unit = unitsData.get(unitKey);
       const unitName = unit?.unit_name || unitKey;
-      return !unitName.toLowerCase().includes('f-10') && !unitKey.toLowerCase().includes('f-10');
+      return unitName.toLowerCase().trim() !== 'f-10' && unitKey.toLowerCase().trim() !== 'f-10';
     });
   },
 
@@ -268,8 +268,13 @@ export const useExploreState = create<ExploreState>((set, get) => ({
     const { unitsByBuilding } = get();
     const floors = Object.keys(unitsByBuilding[building] || {});
 
-    // FORCE CORRECT ORDER: Ground → First → Second → Third
-    const floorOrder = ['Ground Floor', 'First Floor', 'Second Floor', 'Third Floor'];
+    // FORCE CORRECT ORDER: Ground → First → Second → ... → Twelfth
+    const floorOrder = [
+      'Ground Floor', 'First Floor', 'Second Floor', 'Third Floor',
+      'Fourth Floor', 'Fifth Floor', 'Sixth Floor', 'Seventh Floor',
+      'Eighth Floor', 'Ninth Floor', 'Tenth Floor', 'Eleventh Floor',
+      'Twelfth Floor'
+    ];
 
     const sortedFloors = floors.sort((a, b) => {
       // First try exact match

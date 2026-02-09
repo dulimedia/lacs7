@@ -93,7 +93,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
                 Fill out the form below to submit a leasing request.
               </p>
               
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name

@@ -228,26 +228,9 @@ export const UnitGlowHighlightFixed = () => {
       return;
     }
 
-    // ANTI-FLASH FIX: Clear glow immediately, then delay creation to let camera settle
+    // Clear old glow and apply new one in a single step to prevent white flash
     clearGlowMeshes();
-
-    let timeoutId: NodeJS.Timeout;
-
-    if (selectedUnit) {
-      // Delay glow creation to prevent flash during camera movement
-      console.log('[SELECTIVE GLOW] ⏳ Scheduling glow creation (500ms delay)...');
-      timeoutId = setTimeout(() => {
-        performGlowUpdate();
-      }, 500);
-    } else {
-      // No unit selected (or just hover), update immediately
-      // If hoveredUnit is set, performGlowUpdate will handle it
-      performGlowUpdate();
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+    performGlowUpdate();
   }, [selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, performGlowUpdate]);
 
   // Cleanup on unmount

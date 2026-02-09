@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import * as fm from 'framer-motion';
 import { X, Check, AlertTriangle, Home, Wrench, Share2 } from 'lucide-react';
 import { UnitData } from '../types';
+import { getFloorplanUrl as getIntelligentFloorplanUrl } from '../services/floorplanMappingService';
+import { getFloorplanUrl as encodeFloorplanUrl } from '../services/floorplanService';
 
 const { motion, AnimatePresence } = fm;
 
@@ -27,26 +29,22 @@ const UnitDetailPopup: React.FC<UnitDetailPopupProps> = ({
 
   const data = unitData[selectedUnit];
 
-  // Use floorPlanUrl from unit data if available, otherwise use default mapping
+  // Use the intelligent mapping service (combined PDF when available), fallback to CSV
   const getFloorPlanUrl = (unitName: string, unitData: UnitData): string => {
-    // First check if unit data has a specific floorPlanUrl from CSV (Column E)
+    // First try the mapping service (handles combined 3-page PDFs)
+    const mappedUrl = getIntelligentFloorplanUrl(unitName, unitData);
+    if (mappedUrl) {
+      const encoded = encodeFloorplanUrl(mappedUrl);
+      return encoded || mappedUrl;
+    }
+
+    // Fallback to CSV Column E
     if (unitData?.floorPlanUrl) {
-      console.log(`📋 Using floorplan from CSV Column E for ${unitName}:`, unitData.floorPlanUrl);
       return unitData.floorPlanUrl;
     }
 
-    // Legacy fallback: Special cases for units with specific floorplans
-    // This will be removed once Column E is populated in the spreadsheet
-    if (unitName.toLowerCase() === 'b1' || unitName.toLowerCase() === 'c13') {
-      const googleDriveUrl = 'https://drive.google.com/uc?export=view&id=1qzM6Y6tOdFa3pEwaX5rxyUvPrIzCkoYv';
-      console.log(`📋 Using legacy Google Drive URL for ${unitName} (add to Column E to override):`, googleDriveUrl);
-      return googleDriveUrl;
-    }
-
-    // Default naming convention for other units (will show "not available" placeholder)
-    const defaultUrl = `/floorplans/${unitName.toLowerCase()}.png`;
-    console.log(`📋 Using default local path for ${unitName} (add URL to Column E for floorplan):`, defaultUrl);
-    return defaultUrl;
+    // Default naming convention for other units
+    return `/floorplans/${unitName.toLowerCase()}.png`;
   };
 
   const floorPlanUrl = getFloorPlanUrl(selectedUnit, data);
