@@ -13,9 +13,6 @@ import {
   Download
 } from 'lucide-react';
 import {
-  isTowerUnit, getTowerUnitIndividualFloorplan, getTowerUnitFloorFloorplan, getTowerUnitCombinedFloorplan,
-  isMarylandUnit, getMarylandUnitIndividualFloorplan, getMarylandUnitFloorFloorplan,
-  isFifthStreetUnit, getFifthStreetUnitIndividualFloorplan, getFifthStreetUnitFloorFloorplan, getFifthStreetUnitCombinedFloorplan,
   getFloorplanUrl as getIntelligentFloorplanUrl
 } from '../../services/floorplanMappingService';
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
@@ -199,63 +196,22 @@ export function SuiteDetailsTab() {
   // --- Floorplan Resolution Logic ---
   // Prioritize Intelligent PDF Mapping Service over outdated CVS/CSV data
 
-  // 0. Check for Combined Floorplan (New Standard)
-  const getCombinedFloorplan = () => {
-    if (!displayUnit) return null;
-    if (isTowerUnit(displayUnit.unit_name)) {
-      const combined = getTowerUnitCombinedFloorplan(displayUnit.unit_name);
-      if (combined) return encodeFloorplanUrl(combined);
-    }
-    if (isFifthStreetUnit(displayUnit.unit_name)) {
-      const combined = getFifthStreetUnitCombinedFloorplan(displayUnit.unit_name);
-      if (combined) return encodeFloorplanUrl(combined);
-    }
-    return null;
-  };
-
-  const getPrimaryFloorplan = () => {
+  const getResolvedFloorplan = () => {
     if (!displayUnit) return null;
 
     // 1. Try to get a high-quality PDF from our mapping service
     const intelligentUrl = getIntelligentFloorplanUrl(displayUnit.unit_name, displayUnit);
-    if (intelligentUrl && intelligentUrl.endsWith('.pdf')) {
-      return encodeFloorplanUrl(intelligentUrl);
-    }
+    if (intelligentUrl) return encodeFloorplanUrl(intelligentUrl);
 
     // 2. Fallback to CSV data if provided (likely PNGs)
     if (displayUnit.floorplan_url) return encodeFloorplanUrl(displayUnit.floorplan_url);
 
-    // 3. Last resort fallback (returns what we found in step 1 even if not PDF, or null)
-    return intelligentUrl ? encodeFloorplanUrl(intelligentUrl) : null;
-  };
-
-  const getSecondaryFloorplan = () => {
-    if (!displayUnit) return null;
-
-    // Try to get explicit floor-level plan from mapping service
-    let floorPlan: string | null = null;
-
-    if (isTowerUnit(displayUnit.unit_name)) floorPlan = getTowerUnitFloorFloorplan(displayUnit.unit_name);
-    else if (isMarylandUnit(displayUnit.unit_name)) floorPlan = getMarylandUnitFloorFloorplan(displayUnit.unit_name);
-    else if (isFifthStreetUnit(displayUnit.unit_name)) floorPlan = getFifthStreetUnitFloorFloorplan(displayUnit.unit_name);
-
-    if (floorPlan) return encodeFloorplanUrl(floorPlan);
-
-    // Fallback to CSV
+    // 3. Last resort fallback
     if (displayUnit.full_floor_floorplan_url) return encodeFloorplanUrl(displayUnit.full_floor_floorplan_url);
-
     return null;
   };
 
-  const combinedFloorplanUrl = getCombinedFloorplan();
-  const primaryFloorplanUrl = getPrimaryFloorplan();
-  let secondaryFloorplanUrl = getSecondaryFloorplan();
-
-  // Deduplicate: If secondary matches primary, don't show it twice.
-  // This happens for Ground Floor units where we force the generic map as primary.
-  if (primaryFloorplanUrl && secondaryFloorplanUrl && primaryFloorplanUrl === secondaryFloorplanUrl) {
-    secondaryFloorplanUrl = null;
-  }
+  const floorplanUrl = getResolvedFloorplan();
 
   // Matterport URL mapping for specific units
   const getMatterportUrl = (unitName: string): string | null => {
@@ -378,8 +334,8 @@ export function SuiteDetailsTab() {
     setShareModalOpen(true, {
       unitKey: displayUnit.unit_key,
       unitName: displayUnit.unit_name,
-      floorplanUrl: combinedFloorplanUrl || primaryFloorplanUrl || undefined,
-      fullFloorUrl: combinedFloorplanUrl ? undefined : (secondaryFloorplanUrl || undefined)
+      floorplanUrl: floorplanUrl || undefined,
+      fullFloorUrl: undefined
     });
   };
 
@@ -532,40 +488,14 @@ export function SuiteDetailsTab() {
           {/* Floorplans */}
           {/* Floorplans */}
           {/* Floorplans */}
-          {combinedFloorplanUrl ? (
+          {floorplanUrl && (
             <div className="space-y-6">
               <FloorplanPreview
-                url={combinedFloorplanUrl}
+                url={floorplanUrl}
                 title={displayUnit.unit_name}
-                label="Suite & Floor Plan"
+                label="Floorplan"
                 onShare={handleShareClick}
               />
-            </div>
-          ) : (primaryFloorplanUrl || secondaryFloorplanUrl) && (
-            <div className="space-y-6">
-              {/* Primary Plan */}
-              {primaryFloorplanUrl && (
-                <div className="space-y-2">
-                  <FloorplanPreview
-                    url={primaryFloorplanUrl}
-                    title={displayUnit.unit_name}
-                    label="Suite Plan"
-                    onShare={handleShareClick}
-                  />
-                </div>
-              )}
-
-              {/* Secondary Plan */}
-              {secondaryFloorplanUrl && (
-                <div className="space-y-2">
-                  <FloorplanPreview
-                    url={secondaryFloorplanUrl}
-                    title={`${displayUnit.unit_name} Full Floor`}
-                    label="Full Floor Plan"
-                    onShare={handleShareClick}
-                  />
-                </div>
-              )}
             </div>
           )}
         </div>

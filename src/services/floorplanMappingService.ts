@@ -213,18 +213,18 @@ export const FIFTH_STREET_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan
   'club76': { floorFloorplan: fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf') },
 
   // First Floor (F1xx) -> F[num]_LACS.pdf
-  'f100': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F100_LACS.pdf') },
-  'f105': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F105_LACS.pdf') },
-  'f115': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F115_LACS.pdf') },
+  'f100': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F100_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-100_Suite and Floor Plan.pdf') },
+  'f105': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F105_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-105_Suite and Floor Plan.pdf') },
+  'f115': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F115_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-115_Suite and Floor Plan.pdf') },
   'f140': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F140_LACS.pdf') },
-  'f150': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F150_LACS.pdf') },
-  'f160': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F160_LACS.pdf') },
-  'f170': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F170_LACS.pdf') },
-  'f175': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F175_LACS.pdf') },
-  'f180': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F180_LACS.pdf') },
-  'f185': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F185_LACS.pdf') },
-  'f187': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F187_LACS.pdf') },
-  'f190': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F190_LACS.pdf') },
+  'f150': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F150_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-150_Suite and Floor Plan.pdf') },
+  'f160': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F160_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-160_Suite and Floor Plan.pdf') },
+  'f170': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F170_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-170_Suite and Floor Plan.pdf') },
+  'f175': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F175_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-175_Suite and Floor Plan.pdf') },
+  'f180': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F180_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-180_Suite and Floor Plan.pdf') },
+  'f185': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F185_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-185_Suite and Floor Plan.pdf') },
+  'f187': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F187_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-187_Suite and Floor Plan.pdf') },
+  'f190': { floorFloorplan: fifthStreetPath('1st-floor', 'LACS_F1 Floor Plan_M1_Color_Compressed.pdf'), individualFloorplan: fifthStreetPath('1st-floor', 'F190_LACS.pdf'), combinedFloorplan: fifthStreetPath('1st-floor', 'LACS_F-190_Suite and Floor Plan.pdf') },
 
   // Second Floor (F2xx) -> LACS_F-[num]_M1_Color_Compressed.pdf (NOTE THE DASH)
   // Second Floor (F2xx)
