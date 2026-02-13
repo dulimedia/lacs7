@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { useGLBState } from '../store/glbState';
 import * as THREE from 'three';
 import { createGlowMaterial } from '../materials/glowMaterial';
@@ -9,6 +10,7 @@ export const UnitGlowHighlightFixed = () => {
   const currentGlowMeshesRef = useRef<THREE.Mesh[]>([]);
   const glowMaterialRef = useRef<THREE.Material | null>(null);
   const isProcessingRef = useRef<boolean>(false);
+  const glowFadeRef = useRef<number>(0); // 0 = invisible, 1 = fully visible
 
   // Create the blue glow material once with proper depth settings
   useEffect(() => {
@@ -65,12 +67,14 @@ export const UnitGlowHighlightFixed = () => {
           const clonedGeometry = child.geometry.clone();
           const clonedMaterial = glowMaterialRef.current!.clone();
 
-          // SPECIAL HANDLING: Dim brightness for specific units that appear too bright (F-250, F-290)
+          // Determine target opacity (dimmed for specific bright units)
+          let targetOpacity = 1.0;
           if (unitGLB.key === 'F-250' || unitGLB.key === 'F-290') {
-            if ('opacity' in clonedMaterial) {
-              clonedMaterial.opacity = 0.4; // Significantly reduce opacity from 1.0 to 0.4
-            }
+            targetOpacity = 0.4;
           }
+
+          // Start at 0 opacity to prevent white flash from Bloom blowout
+          clonedMaterial.opacity = 0;
 
           const glowMesh = new THREE.Mesh(clonedGeometry, clonedMaterial);
 
@@ -87,6 +91,7 @@ export const UnitGlowHighlightFixed = () => {
           glowMesh.userData.unitKey = unitGLB.key;
           glowMesh.userData.originalMesh = child.uuid;
           glowMesh.userData.isGlowMesh = true;
+          glowMesh.userData.targetOpacity = targetOpacity;
 
           glowMeshes.push(glowMesh);
           meshCount++;
@@ -230,8 +235,26 @@ export const UnitGlowHighlightFixed = () => {
 
     // Clear old glow and apply new one in a single step to prevent white flash
     clearGlowMeshes();
+    glowFadeRef.current = 0; // Reset fade so new meshes fade in from 0
     performGlowUpdate();
   }, [selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, performGlowUpdate]);
+
+  // Fade in glow meshes gradually to prevent Bloom blowout / white flash
+  useFrame((_, delta) => {
+    if (currentGlowMeshesRef.current.length === 0) return;
+    if (glowFadeRef.current >= 1) return;
+
+    // Ramp from 0 to 1 over ~0.3 seconds
+    glowFadeRef.current = Math.min(1, glowFadeRef.current + delta * 3.3);
+    const t = glowFadeRef.current;
+
+    currentGlowMeshesRef.current.forEach(mesh => {
+      if (mesh.material && 'opacity' in mesh.material) {
+        const target = mesh.userData.targetOpacity ?? 1.0;
+        (mesh.material as THREE.MeshBasicMaterial).opacity = t * target;
+      }
+    });
+  });
 
   // Cleanup on unmount
   useEffect(() => {

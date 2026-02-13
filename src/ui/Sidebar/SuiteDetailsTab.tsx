@@ -85,14 +85,17 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
   if (isPdf) {
     return (
       <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all">
-          <object data={`${url}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=1`} type="application/pdf" className="w-full h-full">
-            {/* Fallback */}
-            <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 text-red-500">
-              <FileText size={48} />
-              <p className="text-xs font-medium mt-2">Preview Unavailable</p>
-            </div>
-          </object>
+        <div
+          className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all"
+          style={{ contain: 'strict' }}
+        >
+          <iframe
+            src={`${url}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=0`}
+            title={title}
+            className="w-full h-full border-0"
+            style={{ willChange: 'transform' }}
+            loading="lazy"
+          />
 
           {/* Non-blocking Open Button (Overlay) */}
           <a
@@ -370,7 +373,7 @@ export function SuiteDetailsTab() {
   if (!displayUnit) return null;
 
   return (
-    <div ref={scrollContainerRef} className="h-full overflow-y-auto relative">
+    <div ref={scrollContainerRef} className="h-full overflow-y-auto relative" style={{ WebkitOverflowScrolling: 'touch', willChange: 'scroll-position', contain: 'content' }}>
       <div className="p-4 space-y-4 pb-24">
 
         {/* Camera Controls now in overlay for all devices */}

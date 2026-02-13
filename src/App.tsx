@@ -1497,9 +1497,7 @@ function App() {
                           <SingleEnvironmentMesh tier={renderTier} />
 
                           {/* GLB Manager for unit highlighting and interaction */}
-                          <Suspense fallback={null}>
-                            <GLBManager />
-                          </Suspense>
+                          <GLBManager />
 
                           {/* Frustum Culling for performance - only render visible objects */}
                           <FrustumCuller />

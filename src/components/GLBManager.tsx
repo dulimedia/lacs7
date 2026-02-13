@@ -2,7 +2,7 @@
  * See ./docs/AGENT_SPEC.md (§10 Acceptance) and ./docs/INTERACTION_CONTRACT.md (§3-4).
  * Do not change ids/schema without updating docs.
  */
-import React, { useEffect, useRef, useMemo, useLayoutEffect } from 'react';
+import React, { Suspense, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { useFrame, useLoader, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -396,7 +396,9 @@ export const GLBManager: React.FC = () => {
       <GLBInitializer />
       {nodesToRender.map(node => (
         <GLBErrorBoundary key={node.key} nodeKey={node.key}>
-          <GLBUnit node={node} />
+          <Suspense fallback={null}>
+            <GLBUnit node={node} />
+          </Suspense>
         </GLBErrorBoundary>
       ))}
     </group>
