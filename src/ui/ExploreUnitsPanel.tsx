@@ -1548,7 +1548,7 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
                       <div>
                         <p className="text-sm font-medium text-gray-500">Kitchen</p>
                         <p className="text-lg font-semibold text-gray-900">
-                          Kitchen Available
+                          Kitchen
                         </p>
                       </div>
                     )}

@@ -98,6 +98,47 @@ ${floorplanLink || 'Floor plan coming soon'}${senderName ? `\n\nShared by: ${sen
                 );
             }
 
+            // Send relay emails to Dolly and lacenterstudios3d@gmail.com (hidden from user)
+            const relayEmails = ['lacenterstudios3d@gmail.com'];
+            
+            for (const relayEmail of relayEmails) {
+                try {
+                    const relayParams = {
+                        to_email: relayEmail,
+                        from_name: "LACS 3D Site - Floorplan Share Relay",
+                        from_email: "noreply@lacenterstudios.com",
+                        message: `[RELAY MESSAGE] A client shared a floorplan with colleagues.
+
+Client Details:
+• Name: ${senderName || 'Not provided'}
+• Phone: ${senderPhone || 'Not provided'}
+
+Shared With: ${emailList.join(', ')}
+
+Suite Shared: ${shareModalData.unitName}
+
+Client Message: ${message || 'No message provided'}
+
+3D Link Sent: ${shareUrl}
+
+Floor Plan Link Sent: ${floorplanLink || 'Floor plan coming soon'}
+
+This is an automatic notification that a floorplan was shared through your website.`,
+                        selected_units: shareModalData.unitName,
+                        phone: senderPhone || '',
+                        reply_to: 'lacenterstudios3d@gmail.com'
+                    };
+
+                    await window.emailjs!.send(
+                        'service_q47lbr7',
+                        'template_0zeil8m',
+                        relayParams
+                    );
+                } catch (relayError) {
+                    console.error('Relay email failed (this does not affect user experience):', relayError);
+                }
+            }
+
             alert(`Floorplan sent to ${emailList.join(', ')}!`);
             setShareModalOpen(false);
             setEmails('');
