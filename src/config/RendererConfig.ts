@@ -28,13 +28,13 @@ export const RendererConfig = {
         // Tier-specific overrides
         tiers: {
             mobileLow: {
-                castShadows: false, // PHASE 1 FIX: Disable shadows on low-end mobile to prevent black roofs at distance
-                mapSize: 1024,
+                castShadows: true, // FIXED: Enable shadows with shadow catcher solution
+                mapSize: 4096, // Match desktop quality
                 allowPointLights: false,
             },
             mobileHigh: {
                 castShadows: true, // Keep shadows on higher-end mobile but with conservative settings
-                mapSize: 1024, // PHASE 1 FIX: Reduced from 2048 to prevent shadow artifacts on roofs
+                mapSize: 4096, // Match desktop quality with shadow catcher
                 allowPointLights: false,
             },
             desktopHigh: {

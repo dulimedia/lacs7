@@ -82,11 +82,10 @@ export const createRendererForMobile = (canvas: HTMLCanvasElement) => {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   
-  if (useLowMemory) {
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Match desktop to prevent artifacts
-    console.log('📱 Mobile profile: PCFSoft shadows enabled to match desktop quality');
-  }
+  // ALWAYS enable shadows on mobile (not just low memory devices)
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Match desktop to prevent artifacts
+  console.log('📱 Mobile profile: PCFSoft shadows enabled for ALL mobile devices');
   
   renderer.domElement.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
