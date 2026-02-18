@@ -75,7 +75,7 @@ export const createRendererForMobile = (canvas: HTMLCanvasElement) => {
     depth: true,
     powerPreference: useLowMemory ? 'low-power' : 'high-performance',
     logarithmicDepthBuffer: false,
-    precision: useLowMemory ? 'mediump' : 'highp'
+    precision: 'highp' // Always use high precision to prevent shadow artifacts
   });
   
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -84,8 +84,8 @@ export const createRendererForMobile = (canvas: HTMLCanvasElement) => {
   
   if (useLowMemory) {
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
-    console.log('📱 Mobile profile: shadows minimal, no antialiasing, mediump precision');
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Match desktop to prevent artifacts
+    console.log('📱 Mobile profile: PCFSoft shadows enabled to match desktop quality');
   }
   
   renderer.domElement.addEventListener('webglcontextlost', (e) => {

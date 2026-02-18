@@ -93,7 +93,7 @@ export function Lighting({
   }, [scene, gl, shadowBias, shadowNormalBias, sunPosition, onLightCreated]);
 
   useFitDirectionalLightShadow(
-    isMobileRef.current ? null : sunRef.current,
+    sunRef.current, // Enable shadow fitting for ALL devices to prevent artifacts
     {
       maxExtent: shadowMaxExtent ?? PerfFlags.SHADOW_MAX_EXTENT,
       margin: shadowMargin ?? PerfFlags.SHADOW_MARGIN,
