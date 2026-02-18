@@ -54,6 +54,11 @@ export function Lighting({
 
       // New: Centralized configuration logic
       configureDirectionalShadows(sun, gl);
+      
+      // DEBUG: Log shadow configuration
+      console.log(`🔍 DEBUG: Sun light castShadow = ${sun.castShadow}, isMobile = ${isMobile}`);
+      console.log(`🔍 DEBUG: Shadow map size = ${sun.shadow?.mapSize?.width || 'undefined'}`);
+      console.log(`🔍 DEBUG: Renderer shadowMap.enabled = ${gl?.shadowMap?.enabled || 'undefined'}`);
 
       // Standard PCF Soft cleanup - no VSM radius
       if (!isMobile) {

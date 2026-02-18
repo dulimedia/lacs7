@@ -38,6 +38,9 @@ function EnvironmentFragment({ filename, tier }: { filename: string, tier: strin
   const isMobile = (tier === 'mobile-low');
   const glTF = useDracoGLTF(assetUrl(`models/environment/one/${filename}`));
   const shadowsEnabled = gl && (gl as any).shadowMap?.enabled !== false;
+  
+  // DEBUG: Log shadow state
+  console.log(`🔍 DEBUG Fragment ${filename}: gl.shadowMap.enabled = ${gl?.shadowMap?.enabled}, shadowsEnabled = ${shadowsEnabled}`);
 
   useEffect(() => {
     if (glTF.scene) {
@@ -112,6 +115,9 @@ function MobileEnvironmentMesh({ tier }: { tier: string }) {
   // SURGICAL FIX: Load specific mobile GLB
   const glTF = useDracoGLTF(assetUrl('models/environment/mobile/entirescenemobile.glb'));
   const shadowsEnabled = gl && (gl as any).shadowMap?.enabled !== false;
+  
+  // DEBUG: Log mobile shadow state  
+  console.log(`🔍 DEBUG Mobile: gl.shadowMap.enabled = ${gl?.shadowMap?.enabled}, shadowsEnabled = ${shadowsEnabled}`);
 
   useEffect(() => {
     if (glTF.scene) {
