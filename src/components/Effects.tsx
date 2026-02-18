@@ -24,21 +24,23 @@ export function Effects({ tier, enabled = true }: EffectsProps) {
     return null;
   }
 
-  if (isMobileLow) {
-    console.log('📱 Mobile-low: Post-processing effects DISABLED for performance');
-    return null;
-  }
-
-  if (isMobileHigh) {
-    console.log('📱 Mobile-high: Selective post-processing enabled (Bloom + ToneMapping)');
+  if (isMobileLow || isMobileHigh) {
+    console.log('📱 EXPERIMENT: Mobile using FULL desktop post-processing pipeline');
+    // EXPERIMENT: Give mobile the exact same post-processing as desktop
     return (
-      <EffectComposer multisampling={0} disableNormalPass={true} resolutionScale={0.5}>
+      <EffectComposer multisampling={0} disableNormalPass={false} resolutionScale={0.75}>
+        <N8AO
+          halfRes={aoPreset.halfRes}
+          aoRadius={aoPreset.radius}
+          intensity={aoPreset.intensity}
+          quality={aoPreset.quality}
+        />
         <Bloom
-          intensity={0.5}
-          luminanceThreshold={0.8}
+          intensity={0.8}
+          luminanceThreshold={0.7}
           luminanceSmoothing={0.9}
           mipmapBlur
-          height={Math.floor(window.innerHeight / 2)}
+          height={Math.floor(window.innerHeight * 0.75)}
         />
         <ToneMapping mode={THREE.ACESFilmicToneMapping} exposure={tmPreset.exposure} />
       </EffectComposer>

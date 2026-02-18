@@ -69,11 +69,11 @@ export const createRendererForMobile = (canvas: HTMLCanvasElement) => {
   
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: !useLowMemory,
+    antialias: true, // EXPERIMENT: Always enable antialiasing on mobile
     alpha: false,
     stencil: false,
     depth: true,
-    powerPreference: useLowMemory ? 'low-power' : 'high-performance',
+    powerPreference: 'high-performance', // EXPERIMENT: Force desktop-level performance
     logarithmicDepthBuffer: true, // Enable log depth buffer on mobile to match desktop and prevent shadow artifacts
     precision: 'highp' // Always use high precision to prevent shadow artifacts
   });
@@ -102,7 +102,8 @@ export const createRendererForMobile = (canvas: HTMLCanvasElement) => {
 };
 
 export const getMobileShadowMapSize = () => {
-  return isLowMemoryDevice() ? 1024 : 2048; // Increased for better shadow quality and artifact prevention
+  // EXPERIMENT: Force desktop shadow map size (4096) on mobile
+  return 4096; // Match desktop exactly
 };
 
 export const getMobileMaxTextureSize = () => {
