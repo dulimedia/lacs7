@@ -74,7 +74,7 @@ export const createRendererForMobile = (canvas: HTMLCanvasElement) => {
     stencil: false,
     depth: true,
     powerPreference: useLowMemory ? 'low-power' : 'high-performance',
-    logarithmicDepthBuffer: false,
+    logarithmicDepthBuffer: true, // Enable log depth buffer on mobile to match desktop and prevent shadow artifacts
     precision: 'highp' // Always use high precision to prevent shadow artifacts
   });
   
@@ -102,7 +102,7 @@ export const createRendererForMobile = (canvas: HTMLCanvasElement) => {
 };
 
 export const getMobileShadowMapSize = () => {
-  return isLowMemoryDevice() ? 512 : 1536;
+  return isLowMemoryDevice() ? 1024 : 2048; // Increased for better shadow quality and artifact prevention
 };
 
 export const getMobileMaxTextureSize = () => {

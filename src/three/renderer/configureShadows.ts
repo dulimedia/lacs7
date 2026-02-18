@@ -23,9 +23,16 @@ export function configureDirectionalShadows(
     const mapSize = shadowConfig.mapSize;
     light.shadow.mapSize.set(mapSize, mapSize);
 
-    // 3. Bias & Contact Hardening
-    light.shadow.bias = RendererConfig.shadows.bias;
-    light.shadow.normalBias = RendererConfig.shadows.normalBias;
+    // 3. Bias & Contact Hardening - Mobile needs higher bias values
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        // Higher bias values for mobile to prevent shadow acne
+        light.shadow.bias = -0.001; // More aggressive bias for mobile
+        light.shadow.normalBias = 0.04; // 2x higher normalBias for mobile GPUs
+    } else {
+        light.shadow.bias = RendererConfig.shadows.bias;
+        light.shadow.normalBias = RendererConfig.shadows.normalBias;
+    }
 
     // Radius - irrelevant for standard PCF, but good to reset
     light.shadow.radius = 1;
@@ -39,8 +46,14 @@ export function configureDirectionalShadows(
     cam.right = extent;
     cam.top = extent;
     cam.bottom = -extent;
-    cam.near = 1.0;
-    cam.far = 250; // Tightened for better shadow depth precision
+    // Tighter frustum for mobile to improve precision
+    if (isMobile) {
+        cam.near = 1.0;
+        cam.far = 150; // Much tighter for mobile precision
+    } else {
+        cam.near = 1.0;
+        cam.far = 250; // Desktop can handle larger frustum
+    }
 
     cam.updateProjectionMatrix();
 
