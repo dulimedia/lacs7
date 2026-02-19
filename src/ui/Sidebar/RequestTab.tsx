@@ -305,16 +305,40 @@ export function RequestTab() {
                                 type="checkbox"
                                 checked={selectedSuites.has(unitKey)}
                                 onChange={() => toggleSuite(unitKey)}
-                                className="rounded border-gray-400 w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                className="rounded border-gray-400 w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer flex-shrink-0"
                               />
-                              <span className="text-sm truncate" title={unit.unit_name}>{unit.unit_name}</span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-sm font-medium truncate" title={unit.unit_name}>{unit.unit_name}</span>
+                                <div className="flex flex-wrap items-center gap-1">
+                                  {unit.area_sqft ? (
+                                    <span className="text-[10px] text-gray-500">{unit.area_sqft.toLocaleString()} sf</span>
+                                  ) : null}
+                                  {unit.private_offices !== undefined && unit.private_offices > 0 && (
+                                    <span className="text-[10px] text-gray-400">· {unit.private_offices} Office{unit.private_offices !== 1 ? 's' : ''}</span>
+                                  )}
+                                  {unit.has_kitchen && (
+                                    <span className="text-[10px] text-gray-400">· Kitchen</span>
+                                  )}
+                                </div>
+                                <span className={`text-[10px] px-1 rounded w-fit ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                  {unit.status ? 'Available' : 'Occupied'}
+                                </span>
+                              </div>
                             </label>
                           );
                         })}
                       </div>
                     ) : (
-                      // Other buildings: show floor grouping
-                      Object.entries(floors).map(([floorName, unitKeys]) => {
+                      // Other buildings: show floor grouping (sorted by floor order)
+                      Object.entries(floors).sort(([a], [b]) => {
+                        const floorOrder = ['Ground Floor', 'First Floor', 'Second Floor', 'Third Floor'];
+                        const aIndex = floorOrder.findIndex(f => a.toLowerCase().includes(f.toLowerCase()));
+                        const bIndex = floorOrder.findIndex(f => b.toLowerCase().includes(f.toLowerCase()));
+                        if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+                        if (aIndex === -1) return 1;
+                        if (bIndex === -1) return -1;
+                        return aIndex - bIndex;
+                      }).map(([floorName, unitKeys]) => {
                         const floorKey = `${building}/${floorName}`;
                         const isFloorExpanded = expandedFloors.has(floorKey);
                         const uniqueUnits = Array.from(new Set(unitKeys));
@@ -368,9 +392,25 @@ export function RequestTab() {
                                         type="checkbox"
                                         checked={selectedSuites.has(unitKey)}
                                         onChange={() => toggleSuite(unitKey)}
-                                        className="rounded border-gray-400 w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                        className="rounded border-gray-400 w-4 h-4 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer flex-shrink-0"
                                       />
-                                      <span className="text-sm truncate" title={unit.unit_name}>{unit.unit_name}</span>
+                                      <div className="flex flex-col min-w-0">
+                                        <span className="text-sm font-medium truncate" title={unit.unit_name}>{unit.unit_name}</span>
+                                        <div className="flex flex-wrap items-center gap-1">
+                                          {unit.area_sqft ? (
+                                            <span className="text-[10px] text-gray-500">{unit.area_sqft.toLocaleString()} sf</span>
+                                          ) : null}
+                                          {unit.private_offices !== undefined && unit.private_offices > 0 && (
+                                            <span className="text-[10px] text-gray-400">· {unit.private_offices} Office{unit.private_offices !== 1 ? 's' : ''}</span>
+                                          )}
+                                          {unit.has_kitchen && (
+                                            <span className="text-[10px] text-gray-400">· Kitchen</span>
+                                          )}
+                                        </div>
+                                        <span className={`text-[10px] px-1 rounded w-fit ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                          {unit.status ? 'Available' : 'Occupied'}
+                                        </span>
+                                      </div>
                                     </label>
                                   );
                                 })}
