@@ -23,6 +23,7 @@ export const UNIT_BOX_GLB_FILES = [
   'boxes/Fifth Street Building/Ground Floor/F-40.glb',
   'boxes/Fifth Street Building/Ground Floor/F-50.glb',
   'boxes/Fifth Street Building/Ground Floor/F-60.glb',
+  'boxes/Fifth Street Building/Ground Floor/F - LOUNGE.glb',
   'boxes/Fifth Street Building/Ground Floor/F-70.glb',
   'boxes/Fifth Street Building/Ground Floor/FG - Library.glb',
   'boxes/Fifth Street Building/Ground Floor/FG - Restroom.glb',

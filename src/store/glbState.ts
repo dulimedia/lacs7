@@ -74,7 +74,7 @@ export interface GLBState {
 // GLB file structure mapping based on the actual file system (exact match)
 const GLB_STRUCTURE = {
   "Fifth Street Building": {
-    "Ground Floor": ["Club 76", "F-10", "F-15", "F-20", "F-25", "F-30", "F-35", "F-40", "F-50", "F-60", "F-70", "FG - Library", "FG - Restroom"],
+    "Ground Floor": ["Club 76", "F - LOUNGE", "F-10", "F-15", "F-20", "F-25", "F-30", "F-35", "F-40", "F-50", "F-60", "F-70", "FG - Library", "FG - Restroom"],
     "First Floor": ["F-100", "F-105", "F-110 CR", "F-115", "F-140", "F-150", "F-160", "F-170", "F-175", "F-180", "F-185", "F-187", "F-190", "F1 Restrooms"],
     "Second Floor": ["F-200", "F-240", "F-250", "F-280", "F-290", "F2 Restrooms"],
     "Third Floor": ["F-300", "F-330", "F-340", "F-350", "F-360", "F-363", "F-365", "F-380", "F3 Restrooms"]
