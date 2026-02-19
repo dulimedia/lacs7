@@ -20,6 +20,102 @@ import {
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
 import { CameraControls } from './CameraFooter';
 import { PerfFlags } from '../../perf/PerfFlags';
+import * as pdfjsLib from 'pdfjs-dist';
+import type { PDFDocumentProxy } from 'pdfjs-dist';
+
+// Configure pdf.js worker from CDN (avoids Vite worker bundling issues)
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+
+// Renders a single PDF page to a canvas — no scrolling, just one page at a time
+function PdfSinglePage({
+  url,
+  page,
+  onNumPages,
+}: {
+  url: string;
+  page: number;
+  onNumPages: (n: number) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pdfRef = useRef<PDFDocumentProxy | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  // Load PDF document once when URL changes
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(false);
+
+    pdfjsLib.getDocument(url).promise
+      .then(doc => {
+        if (cancelled) { doc.destroy(); return; }
+        pdfRef.current = doc;
+        onNumPages(doc.numPages);
+        return renderPage(doc, page);
+      })
+      .then(() => { if (!cancelled) setLoading(false); })
+      .catch(() => { if (!cancelled) { setError(true); setLoading(false); } });
+
+    return () => {
+      cancelled = true;
+      if (pdfRef.current) { pdfRef.current.destroy(); pdfRef.current = null; }
+    };
+  }, [url]);
+
+  // Re-render when page changes (PDF already loaded — near instant)
+  useEffect(() => {
+    if (pdfRef.current) {
+      renderPage(pdfRef.current, page);
+    }
+  }, [page]);
+
+  const renderPage = async (doc: PDFDocumentProxy, pageNum: number) => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const pdfPage = await doc.getPage(pageNum);
+    const ctx = canvas.getContext('2d')!;
+    const containerWidth = container.clientWidth || 280;
+    const baseViewport = pdfPage.getViewport({ scale: 1 });
+    const scale = containerWidth / baseViewport.width;
+    const viewport = pdfPage.getViewport({ scale });
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await pdfPage.render({ canvasContext: ctx, viewport }).promise;
+  };
+
+  if (error) {
+    return (
+      <div className="aspect-[4/3] flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+        <FileText size={32} className="mb-2 opacity-50" />
+        <span className="text-xs">PDF preview unavailable</span>
+        <a href={url} target="_blank" rel="noreferrer" className="mt-2 text-xs text-blue-600 hover:underline">
+          Open PDF directly
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef}>
+      {loading && (
+        <div className="aspect-[4/3] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-black animate-spin" />
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        className="w-full"
+        style={{ display: loading ? 'none' : 'block' }}
+      />
+    </div>
+  );
+}
+
 // EmailJS type declaration
 declare global {
   interface Window {
@@ -34,9 +130,8 @@ declare global {
 function FloorplanPreview({ url, title, label, onShare }: { url: string, title: string, label: string, onShare: () => void }) {
   const [isValid, setIsValid] = useState<boolean | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [totalPages, setTotalPages] = useState(3);
   const isPdf = url.toLowerCase().includes('.pdf');
-  const totalPages = 3; // Floorplan PDFs have 3 pages (suite plan, floor plan, building plan)
 
   // Reset page when switching units
   useEffect(() => {
@@ -94,19 +189,8 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
   if (isPdf) {
     return (
       <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3]" style={{ contain: 'strict' }}>
-          {/* key forces full remount so browser loads at the correct page */}
-          <iframe
-            key={currentPage}
-            src={`${url}#view=FitH&page=${currentPage}&toolbar=0&navpanes=0&scrollbar=0`}
-            title={title}
-            className="w-full h-full border-0"
-            style={{ pointerEvents: 'none' }}
-            loading="lazy"
-          />
-
-          {/* Invisible overlay blocks scroll/touch on the iframe */}
-          <div className="absolute inset-0 z-[5]" />
+        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50">
+          <PdfSinglePage url={url} page={currentPage} onNumPages={setTotalPages} />
 
           {/* Left arrow */}
           {currentPage > 1 && (
