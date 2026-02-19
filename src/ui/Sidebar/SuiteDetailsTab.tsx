@@ -18,11 +18,6 @@ import {
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
 import { CameraControls } from './CameraFooter';
 import { PerfFlags } from '../../perf/PerfFlags';
-import { Document, Page, pdfjs } from 'react-pdf';
-
-// Configure pdf.js worker via CDN (avoids Vite worker config)
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
 // EmailJS type declaration
 declare global {
   interface Window {
@@ -31,108 +26,6 @@ declare global {
       send: (serviceId: string, templateId: string, templateParams: any) => Promise<any>;
     };
   }
-}
-
-// Renders PDF pages as native DOM elements for smooth scrolling (replaces laggy iframe)
-function PdfFloorplanPages({ url, title, onShare }: { url: string, title: string, onShare: () => void }) {
-  const [numPages, setNumPages] = useState<number>(0);
-  const [pdfLoading, setPdfLoading] = useState(true);
-  const [pdfError, setPdfError] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(280);
-
-  // Measure container width so pages render at the right size
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const width = containerRef.current.clientWidth;
-    if (width > 0) setContainerWidth(width);
-
-    const observer = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect.width;
-      if (w && w > 0) setContainerWidth(w);
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={containerRef} className="space-y-2">
-      <div
-        className="rounded-lg overflow-hidden border border-black/10 bg-gray-50 max-h-[500px] overflow-y-auto"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        {pdfError ? (
-          <div className="aspect-[4/3] flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-            <FileText size={32} className="mb-2 opacity-50" />
-            <span className="text-xs">PDF preview unavailable</span>
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 text-xs text-blue-600 hover:underline"
-            >
-              Open PDF directly
-            </a>
-          </div>
-        ) : (
-          <Document
-            file={url}
-            onLoadSuccess={({ numPages: n }) => { setNumPages(n); setPdfLoading(false); }}
-            onLoadError={() => { setPdfError(true); setPdfLoading(false); }}
-            loading={
-              <div className="aspect-[4/3] flex items-center justify-center animate-pulse">
-                <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-black animate-spin" />
-              </div>
-            }
-          >
-            {numPages > 0 && Array.from({ length: numPages }, (_, i) => (
-              <div key={i} className="relative">
-                <Page
-                  pageNumber={i + 1}
-                  width={containerWidth}
-                  renderAnnotationLayer={false}
-                  renderTextLayer={false}
-                />
-                {numPages > 1 && (
-                  <div className="text-center text-[10px] text-gray-400 py-1 bg-gray-100 border-t border-b border-gray-200">
-                    Page {i + 1} of {numPages}
-                  </div>
-                )}
-              </div>
-            ))}
-          </Document>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <a
-          href={`${url}#view=FitH&page=1`}
-          target="_blank"
-          rel="noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0"
-        >
-          <Maximize2 size={14} />
-          View
-        </a>
-
-        <a
-          href={url}
-          download
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0"
-        >
-          <Download size={14} />
-          Download
-        </a>
-        <button
-          onClick={onShare}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700"
-        >
-          <Share size={14} />
-          Share
-        </button>
-      </div>
-    </div>
-  );
 }
 
 // Helper component to render PDF or Image floorplan
@@ -189,7 +82,36 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
   }
 
   if (isPdf) {
-    return <PdfFloorplanPages url={url} title={title} onShare={onShare} />;
+    return (
+      <div className="space-y-2">
+        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all" style={{ contain: 'strict' }}>
+          <iframe
+            src={`${url}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=0`}
+            title={title}
+            className="w-full h-full border-0"
+            style={{ willChange: 'transform' }}
+            loading="lazy"
+          />
+          <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10" title="Open Full PDF">
+            <div className="bg-white/90 backdrop-blur p-1.5 rounded-md text-xs font-medium shadow-sm hover:bg-white text-gray-700">
+              <Maximize2 size={16} />
+            </div>
+          </a>
+        </div>
+        <div className="flex items-center gap-2">
+          <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
+            <Maximize2 size={14} /> View
+          </a>
+          <a href={url} download className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
+            <Download size={14} /> Download
+          </a>
+          <button onClick={onShare} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700">
+            <Share size={14} /> Share
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Standard Image Rendering
