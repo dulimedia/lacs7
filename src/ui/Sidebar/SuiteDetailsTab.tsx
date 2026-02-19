@@ -95,14 +95,18 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
     return (
       <div className="space-y-2">
         <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3]" style={{ contain: 'strict' }}>
+          {/* key forces full remount so browser loads at the correct page */}
           <iframe
-            ref={iframeRef}
+            key={currentPage}
             src={`${url}#view=FitH&page=${currentPage}&toolbar=0&navpanes=0&scrollbar=0`}
             title={title}
             className="w-full h-full border-0"
-            style={{ willChange: 'transform' }}
+            style={{ pointerEvents: 'none' }}
             loading="lazy"
           />
+
+          {/* Invisible overlay blocks scroll/touch on the iframe */}
+          <div className="absolute inset-0 z-[5]" />
 
           {/* Left arrow */}
           {currentPage > 1 && (
