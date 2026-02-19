@@ -83,7 +83,7 @@ const GLBUnitInner: React.FC<GLBUnitProps> = React.memo(({ node }) => {
   const { isUnitActive } = useFilterStore();
 
   const isHovered = hoveredUnit === node.key && !selectedUnit;
-  const isSelected = selectedUnit === node.unitName &&
+  const isSelected = selectedUnit?.toUpperCase() === node.unitName?.toUpperCase() &&
     selectedBuilding === node.building &&
     selectedFloor === node.floor;
   const isFiltered = isUnitActive(node.key) && !isSelected && !isHovered;
@@ -261,7 +261,7 @@ const GLBUnit: React.FC<GLBUnitProps> = React.memo(({ node }) => {
   const { isUnitActive } = useFilterStore();
 
   const isHovered = hoveredUnit === node.key && !selectedUnit;
-  const isSelected = selectedUnit === node.unitName &&
+  const isSelected = selectedUnit?.toUpperCase() === node.unitName?.toUpperCase() &&
     selectedBuilding === node.building &&
     selectedFloor === node.floor;
   const isFiltered = isUnitActive(node.key) && !isSelected && !isHovered;

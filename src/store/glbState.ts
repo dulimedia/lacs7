@@ -194,7 +194,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
       // If this is the currently selected unit, trigger camera positioning now that object is loaded
       if (selectedUnit && selectedBuilding && selectedFloor !== null) {
-        if (node.unitName === selectedUnit && node.building === selectedBuilding && node.floor === selectedFloor) {
+        if (node.unitName?.toUpperCase() === selectedUnit?.toUpperCase() && node.building === selectedBuilding && node.floor === selectedFloor) {
           // Delay slightly to ensure the object is fully registered
           setTimeout(() => {
             get().centerCameraOnUnit(selectedBuilding, selectedFloor, selectedUnit);
