@@ -294,7 +294,7 @@ export function RequestTab() {
                           return getNumber(a) - getNumber(b);
                         }).map(unitKey => {
                           const unit = unitsData.get(unitKey);
-                          if (!unit) return null;
+                          if (!unit || !unit.status) return null;
 
                           return (
                             <label
@@ -320,9 +320,6 @@ export function RequestTab() {
                                     <span className="text-[10px] text-gray-400">· Kitchen</span>
                                   )}
                                 </div>
-                                <span className={`text-[10px] px-1 rounded w-fit ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                  {unit.status ? 'Available' : 'Occupied'}
-                                </span>
                               </div>
                             </label>
                           );
@@ -341,7 +338,11 @@ export function RequestTab() {
                       }).map(([floorName, unitKeys]) => {
                         const floorKey = `${building}/${floorName}`;
                         const isFloorExpanded = expandedFloors.has(floorKey);
-                        const uniqueUnits = Array.from(new Set(unitKeys));
+                        const uniqueUnits = Array.from(new Set(unitKeys)).filter(key => {
+                          const u = unitsData.get(key);
+                          return u && u.status;
+                        });
+                        if (uniqueUnits.length === 0) return null;
                         const allFloorSelected = uniqueUnits.length > 0 && uniqueUnits.every(key => selectedSuites.has(key));
 
                         return (
@@ -381,7 +382,7 @@ export function RequestTab() {
                               <div className="grid grid-cols-2 gap-1 px-2 py-1">
                                 {uniqueUnits.map(unitKey => {
                                   const unit = unitsData.get(unitKey);
-                                  if (!unit) return null;
+                                  if (!unit || !unit.status) return null;
 
                                   return (
                                     <label
@@ -407,9 +408,6 @@ export function RequestTab() {
                                             <span className="text-[10px] text-gray-400">· Kitchen</span>
                                           )}
                                         </div>
-                                        <span className={`text-[10px] px-1 rounded w-fit ${unit.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                          {unit.status ? 'Available' : 'Occupied'}
-                                        </span>
                                       </div>
                                     </label>
                                   );
