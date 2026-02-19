@@ -10,7 +10,9 @@ import {
   CheckCircle,
   Maximize2,
   ArrowUp,
-  Download
+  Download,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import {
   getFloorplanUrl as getIntelligentFloorplanUrl
@@ -31,7 +33,15 @@ declare global {
 // Helper component to render PDF or Image floorplan
 function FloorplanPreview({ url, title, label, onShare }: { url: string, title: string, label: string, onShare: () => void }) {
   const [isValid, setIsValid] = useState<boolean | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const isPdf = url.toLowerCase().includes('.pdf');
+  const totalPages = 3; // Floorplan PDFs have 3 pages (suite plan, floor plan, building plan)
+
+  // Reset page when switching units
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [url]);
 
   useEffect(() => {
     let active = true;
@@ -84,24 +94,46 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
   if (isPdf) {
     return (
       <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all" style={{ contain: 'strict' }}>
+        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3]" style={{ contain: 'strict' }}>
           <iframe
-            src={`${url}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=0`}
+            ref={iframeRef}
+            src={`${url}#view=FitH&page=${currentPage}&toolbar=0&navpanes=0&scrollbar=0`}
             title={title}
             className="w-full h-full border-0"
             style={{ willChange: 'transform' }}
             loading="lazy"
           />
-          <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10" title="Open Full PDF">
-            <div className="bg-white/90 backdrop-blur p-1.5 rounded-md text-xs font-medium shadow-sm hover:bg-white text-gray-700">
-              <Maximize2 size={16} />
-            </div>
-          </a>
+
+          {/* Left arrow */}
+          {currentPage > 1 && (
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur hover:bg-white rounded-full p-1 shadow-md transition-all text-gray-700 hover:text-black"
+              title="Previous page"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          )}
+
+          {/* Right arrow */}
+          {currentPage < totalPages && (
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur hover:bg-white rounded-full p-1 shadow-md transition-all text-gray-700 hover:text-black"
+              title="Next page"
+            >
+              <ChevronRight size={18} />
+            </button>
+          )}
+
+          {/* Page indicator */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full text-[10px] font-medium text-gray-600 shadow-sm">
+            {currentPage} / {totalPages}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
-            <Maximize2 size={14} /> View
+            <Maximize2 size={14} /> View PDF
           </a>
           <a href={url} download className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
             <Download size={14} /> Download
