@@ -99,31 +99,35 @@ ${floorplanLink || 'Floor plan coming soon'}${senderName ? `\n\nShared by: ${sen
             }
 
             // Send relay emails to Dolly and lacenterstudios3d@gmail.com (hidden from user)
-            const relayEmails = ['lacenterstudios3d@gmail.com'];
+            const relayEmails = ['lacenterstudios3d@gmail.com', 'dwyatt@lacenterstudios.com'];
             
             for (const relayEmail of relayEmails) {
                 try {
                     const relayParams = {
                         to_email: relayEmail,
-                        from_name: "LACS 3D Site - Floorplan Share Relay",
+                        from_name: "LACS 3D Site - Floorplan Shared (Auto-Notification)",
                         from_email: "noreply@lacenterstudios.com",
-                        message: `[RELAY MESSAGE] A client shared a floorplan with colleagues.
+                        message: `--- FLOORPLAN SHARE NOTIFICATION ---
 
-Client Details:
+Someone shared a floorplan through the LACS 3D website. Details below:
+
+WHO SHARED:
 • Name: ${senderName || 'Not provided'}
 • Phone: ${senderPhone || 'Not provided'}
 
-Shared With: ${emailList.join(', ')}
+SENT TO:
+${emailList.map(e => `• ${e}`).join('\n')}
 
-Suite Shared: ${shareModalData.unitName}
+SUITE: ${shareModalData.unitName}
 
-Client Message: ${message || 'No message provided'}
+THEIR MESSAGE:
+${message || '(No message included)'}
 
-3D Link Sent: ${shareUrl}
+LINKS SENT:
+• 3D Tour: ${shareUrl}
+• Floor Plan: ${floorplanLink || 'Floor plan coming soon'}
 
-Floor Plan Link Sent: ${floorplanLink || 'Floor plan coming soon'}
-
-This is an automatic notification that a floorplan was shared through your website.`,
+--- This is an automatic notification from the LACS 3D site. ---`,
                         selected_units: shareModalData.unitName,
                         phone: senderPhone || '',
                         reply_to: 'lacenterstudios3d@gmail.com'
