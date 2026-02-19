@@ -10,9 +10,7 @@ import {
   CheckCircle,
   Maximize2,
   ArrowUp,
-  Download,
-  ChevronLeft,
-  ChevronRight
+  Download
 } from 'lucide-react';
 import {
   getFloorplanUrl as getIntelligentFloorplanUrl
@@ -20,101 +18,6 @@ import {
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
 import { CameraControls } from './CameraFooter';
 import { PerfFlags } from '../../perf/PerfFlags';
-import * as pdfjsLib from 'pdfjs-dist';
-import type { PDFDocumentProxy } from 'pdfjs-dist';
-
-// Configure pdf.js worker from CDN (avoids Vite worker bundling issues)
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
-
-// Renders a single PDF page to a canvas — no scrolling, just one page at a time
-function PdfSinglePage({
-  url,
-  page,
-  onNumPages,
-}: {
-  url: string;
-  page: number;
-  onNumPages: (n: number) => void;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const pdfRef = useRef<PDFDocumentProxy | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  // Load PDF document once when URL changes
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(false);
-
-    pdfjsLib.getDocument(url).promise
-      .then(doc => {
-        if (cancelled) { doc.destroy(); return; }
-        pdfRef.current = doc;
-        onNumPages(doc.numPages);
-        return renderPage(doc, page);
-      })
-      .then(() => { if (!cancelled) setLoading(false); })
-      .catch(() => { if (!cancelled) { setError(true); setLoading(false); } });
-
-    return () => {
-      cancelled = true;
-      if (pdfRef.current) { pdfRef.current.destroy(); pdfRef.current = null; }
-    };
-  }, [url]);
-
-  // Re-render when page changes (PDF already loaded — near instant)
-  useEffect(() => {
-    if (pdfRef.current) {
-      renderPage(pdfRef.current, page);
-    }
-  }, [page]);
-
-  const renderPage = async (doc: PDFDocumentProxy, pageNum: number) => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    const pdfPage = await doc.getPage(pageNum);
-    const ctx = canvas.getContext('2d')!;
-    const containerWidth = container.clientWidth || 280;
-    const baseViewport = pdfPage.getViewport({ scale: 1 });
-    const scale = containerWidth / baseViewport.width;
-    const viewport = pdfPage.getViewport({ scale });
-
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    await pdfPage.render({ canvasContext: ctx, viewport }).promise;
-  };
-
-  if (error) {
-    return (
-      <div className="aspect-[4/3] flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-        <FileText size={32} className="mb-2 opacity-50" />
-        <span className="text-xs">PDF preview unavailable</span>
-        <a href={url} target="_blank" rel="noreferrer" className="mt-2 text-xs text-blue-600 hover:underline">
-          Open PDF directly
-        </a>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={containerRef}>
-      {loading && (
-        <div className="aspect-[4/3] flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-black animate-spin" />
-        </div>
-      )}
-      <canvas
-        ref={canvasRef}
-        className="w-full"
-        style={{ display: loading ? 'none' : 'block' }}
-      />
-    </div>
-  );
-}
 
 // EmailJS type declaration
 declare global {
@@ -129,14 +32,7 @@ declare global {
 // Helper component to render PDF or Image floorplan
 function FloorplanPreview({ url, title, label, onShare }: { url: string, title: string, label: string, onShare: () => void }) {
   const [isValid, setIsValid] = useState<boolean | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(3);
   const isPdf = url.toLowerCase().includes('.pdf');
-
-  // Reset page when switching units
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [url]);
 
   useEffect(() => {
     let active = true;
@@ -189,35 +85,20 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
   if (isPdf) {
     return (
       <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50">
-          <PdfSinglePage url={url} page={currentPage} onNumPages={setTotalPages} />
-
-          {/* Left arrow */}
-          {currentPage > 1 && (
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur hover:bg-white rounded-full p-1 shadow-md transition-all text-gray-700 hover:text-black"
-              title="Previous page"
-            >
-              <ChevronLeft size={18} />
-            </button>
-          )}
-
-          {/* Right arrow */}
-          {currentPage < totalPages && (
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur hover:bg-white rounded-full p-1 shadow-md transition-all text-gray-700 hover:text-black"
-              title="Next page"
-            >
-              <ChevronRight size={18} />
-            </button>
-          )}
-
-          {/* Page indicator */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full text-[10px] font-medium text-gray-600 shadow-sm">
-            {currentPage} / {totalPages}
-          </div>
+        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all" style={{ contain: 'strict' }}>
+          <iframe
+            src={`${url}#view=FitH&page=1&toolbar=0&navpanes=0&scrollbar=0`}
+            title={title}
+            className="w-full h-full border-0"
+            style={{ willChange: 'transform' }}
+            loading="lazy"
+          />
+          <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10" title="Open Full PDF">
+            <div className="bg-white/90 backdrop-blur p-1.5 rounded-md text-xs font-medium shadow-sm hover:bg-white text-gray-700">
+              <Maximize2 size={16} />
+            </div>
+          </a>
         </div>
         <div className="flex items-center gap-2">
           <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
