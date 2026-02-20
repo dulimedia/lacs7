@@ -499,31 +499,15 @@ export function ExploreTab() {
         </div>
 
         <div>
-          <div className="flex items-center space-x-2 mb-2">
-            <Home size={14} className="text-gray-500" />
-            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">Kitchen</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: 'any', label: 'Any' },
-              { value: 'yes', label: 'With Kitchen' },
-              { value: 'no', label: 'No Kitchen' },
-            ].map((option) => {
-              const isActive = kitchenFilter === option.value;
-              return (
-                <button
-                  key={option.value}
-                  onClick={() => setKitchenFilter(option.value)}
-                  className={`rounded-lg transition-colors ${isMobile ? 'text-sm px-2 py-2 min-h-[36px]' : 'text-xs px-3 py-2'} ${isActive
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
+          <button
+            onClick={() => setKitchenFilter(kitchenFilter === 'yes' ? 'any' : 'yes')}
+            className={`rounded-lg transition-all duration-200 ${isMobile ? 'text-sm px-4 py-2 min-h-[36px]' : 'text-xs px-4 py-2'} ${kitchenFilter === 'yes'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-300'
+              }`}
+          >
+            Kitchen
+          </button>
         </div>
 
         <div>
