@@ -144,12 +144,11 @@ const GLBUnitInner: React.FC<GLBUnitProps> = React.memo(({ node }) => {
   }, [node.key, updateGLBObject]);
 
   useEffect(() => {
-    // DISABLED: Double material fix - rely on UnitGlowHighlightFixed for selection glow
-    /* 
+    // Selected units stay 'none' — glow is handled by UnitGlowHighlightFixed overlay meshes.
+    // Keeping the underlying group invisible prevents the white flash on selection.
     if (isSelected) {
-      targetStateRef.current = 'selected';
-    } else */
-    if (isHovered) {
+      targetStateRef.current = 'none';
+    } else if (isHovered) {
       targetStateRef.current = 'hovered';
     } else if (isFiltered) {
       targetStateRef.current = 'filtered';
@@ -181,8 +180,13 @@ const GLBUnitInner: React.FC<GLBUnitProps> = React.memo(({ node }) => {
     const targetProgress = targetStateRef.current !== 'none' ? 1 : 0;
     const fadeSpeed = 1 / FADE_DURATION;
 
-    // ATOMIC FRAME SYNC: Set visibility before fade calculations to prevent flash gap
-    groupRef.current.visible = targetProgress > 0 || fadeProgressRef.current > 0;
+    // FLASH FIX: When selected, always keep underlying group invisible.
+    // UnitGlowHighlightFixed renders separate clone meshes for the glow effect.
+    if (isSelected) {
+      groupRef.current.visible = false;
+    } else {
+      groupRef.current.visible = targetProgress > 0 || fadeProgressRef.current > 0;
+    }
 
     if (fadeProgressRef.current !== targetProgress) {
       if (fadeProgressRef.current < targetProgress) {

@@ -222,15 +222,11 @@ export const useGLBState = create<GLBState>((set, get) => ({
       set({ glbNodes: newNodes });
 
 
-      // Apply the visual state to the Three.js object if loaded
+      // Always keep underlying GLB group hidden.
+      // Glow/hover/filter effects use separate overlay meshes (UnitGlowHighlightFixed),
+      // so the original geometry never needs to be visible.
       if (node.object) {
-        if (state === 'invisible') {
-          node.object.visible = false;
-        } else {
-          node.object.visible = true;
-          // Note: Material handling is now done by the SelectedUnitOverlay component
-          // No need to force material changes here
-        }
+        node.object.visible = false;
       }
     }
   },
