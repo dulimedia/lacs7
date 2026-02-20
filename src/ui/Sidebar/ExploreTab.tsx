@@ -501,9 +501,9 @@ export function ExploreTab() {
         <div>
           <button
             onClick={() => setKitchenFilter(kitchenFilter === 'yes' ? 'any' : 'yes')}
-            className={`rounded-lg transition-all duration-200 ${isMobile ? 'text-sm px-4 py-2 min-h-[36px]' : 'text-xs px-4 py-2'} ${kitchenFilter === 'yes'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-300'
+            className={`rounded-lg font-medium transition-all duration-200 ${isMobile ? 'text-sm px-5 py-2.5 min-h-[40px]' : 'text-xs px-5 py-2.5'} ${kitchenFilter === 'yes'
+              ? 'bg-blue-500 text-white border border-blue-600 shadow-inner'
+              : 'bg-gray-100 text-gray-500 border border-gray-200 shadow-sm'
               }`}
           >
             Kitchen
