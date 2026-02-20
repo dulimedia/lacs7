@@ -47,6 +47,7 @@ export function ExploreTab() {
 
   const [sizeFilter, setSizeFilter] = useState<string>('any');
   const [statusFilter, setStatusFilter] = useState<string>('any');
+  const [kitchenFilter, setKitchenFilter] = useState<string>('any');
   const [officesFilter, setOfficesFilter] = useState<string>('any');
   const [filtersVisible, setFiltersVisible] = useState<boolean>(true);
   const [expandedBuildings, setExpandedBuildings] = useState<Set<string>>(new Set());
@@ -75,7 +76,7 @@ export function ExploreTab() {
 
   const groupedByBuilding = useMemo(() => {
     // AGGRESSIVE DEBUG LOGGING
-    console.log('🔥 FILTER STATE:', { sizeFilter, statusFilter, officesFilter });
+    console.log('🔥 FILTER STATE:', { sizeFilter, statusFilter, kitchenFilter, officesFilter });
     console.log('🔥 UNITS DATA SIZE:', unitsData.size);
 
     // Sample first 10 units to see their office data
@@ -140,6 +141,14 @@ export function ExploreTab() {
                 if (!unit.is_production_office) {
                   passes = false;
                 }
+              }
+            }
+
+            if (kitchenFilter !== 'any') {
+              if (kitchenFilter === 'yes' && !unit.has_kitchen) {
+                passes = false;
+              } else if (kitchenFilter === 'no' && unit.has_kitchen) {
+                passes = false;
               }
             }
 
@@ -234,6 +243,14 @@ export function ExploreTab() {
               }
             }
 
+            if (kitchenFilter !== 'any') {
+              if (kitchenFilter === 'yes' && !unit.has_kitchen) {
+                passes = false;
+              } else if (kitchenFilter === 'no' && unit.has_kitchen) {
+                passes = false;
+              }
+            }
+
             if (officesFilter !== 'any') {
               const officeCount = unit.private_offices;
               // Treat undefined/null as 0 offices
@@ -278,7 +295,7 @@ export function ExploreTab() {
         floorGroups
       };
     }).filter(b => b.suiteCount > 0);
-  }, [unitsByBuilding, unitsData, showAvailableOnly, sizeFilter, statusFilter, officesFilter]);
+  }, [unitsByBuilding, unitsData, showAvailableOnly, sizeFilter, statusFilter, kitchenFilter, officesFilter]);
 
   useEffect(() => {
     if (groupedByBuilding.length === 0 || initialized) return;
@@ -300,7 +317,7 @@ export function ExploreTab() {
 
   // Auto-expand all buildings when filters are active
   useEffect(() => {
-    const hasActiveFilters = sizeFilter !== 'any' || statusFilter !== 'any' || officesFilter !== 'any';
+    const hasActiveFilters = sizeFilter !== 'any' || statusFilter !== 'any' || kitchenFilter !== 'any' || officesFilter !== 'any';
 
     if (hasActiveFilters && groupedByBuilding.length > 0) {
       // Expand all buildings to show filtered results
@@ -317,12 +334,12 @@ export function ExploreTab() {
       });
       setExpandedFloors(allFloors);
     }
-  }, [sizeFilter, statusFilter, officesFilter, groupedByBuilding]);
+  }, [sizeFilter, statusFilter, kitchenFilter, officesFilter, groupedByBuilding]);
 
   // Update visual highlighting when filters change
   useEffect(() => {
     // If all filters are set to 'any', clear the filter highlighting
-    if (sizeFilter === 'any' && statusFilter === 'any' && officesFilter === 'any') {
+    if (sizeFilter === 'any' && statusFilter === 'any' && kitchenFilter === 'any' && officesFilter === 'any') {
       clearFilter();
       return;
     }
@@ -356,6 +373,15 @@ export function ExploreTab() {
               if (!unit.build_to_suit) {
                 passes = false;
               }
+            }
+          }
+
+          // Kitchen filter
+          if (kitchenFilter !== 'any') {
+            if (kitchenFilter === 'yes' && !unit.has_kitchen) {
+              passes = false;
+            } else if (kitchenFilter === 'no' && unit.has_kitchen) {
+              passes = false;
             }
           }
 
@@ -399,7 +425,7 @@ export function ExploreTab() {
     } else {
       clearFilter();
     }
-  }, [sizeFilter, statusFilter, officesFilter, groupedByBuilding, setFilter, clearFilter]);
+  }, [sizeFilter, statusFilter, kitchenFilter, officesFilter, groupedByBuilding, setFilter, clearFilter]);
 
   // Calculate total unit count across all buildings after filtering
   const totalUnitCount = useMemo(() => {
@@ -460,6 +486,34 @@ export function ExploreTab() {
                 <button
                   key={option.value}
                   onClick={() => setStatusFilter(option.value)}
+                  className={`rounded-lg transition-colors ${isMobile ? 'text-sm px-2 py-2 min-h-[36px]' : 'text-xs px-3 py-2'} ${isActive
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center space-x-2 mb-2">
+            <Home size={14} className="text-gray-500" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-black/60">Kitchen</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'any', label: 'Any' },
+              { value: 'yes', label: 'With Kitchen' },
+              { value: 'no', label: 'No Kitchen' },
+            ].map((option) => {
+              const isActive = kitchenFilter === option.value;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => setKitchenFilter(option.value)}
                   className={`rounded-lg transition-colors ${isMobile ? 'text-sm px-2 py-2 min-h-[36px]' : 'text-xs px-3 py-2'} ${isActive
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
