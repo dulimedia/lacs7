@@ -109,24 +109,21 @@ export const getMobileOptimizedSettings = (device: DeviceCapabilities): MobileRe
     };
   }
 
-  // RESTORED: Mobile settings that were working at 7797c6f (before we broke them)
-  console.log('📱 RESTORED: Using mobile settings that worked at commit 7797c6f');
-  
   return {
     pixelRatio: 1, // Keep at 1 for mobile stability
     antialias: false, // Expensive on mobile
-    shadows: false, // Major GPU memory consumer
+    shadows: true, // Same shadow maps as desktop
     postProcessing: false, // Can cause context loss
-    maxLights: 1, // Single light only
+    maxLights: 8, // Same as desktop for adaptive lighting
     textureSize: 512, // Moderate size - not too small, not too big
     modelComplexity: 'low',
     preserveDrawingBuffer: false, // Can cause memory leaks on iOS
     powerPreference: 'low-power',
     failIfMajorPerformanceCaveat: false,
-    useSimpleLighting: true,
+    useSimpleLighting: false, // Use same adaptive lighting as desktop
     hdriResolution: 256, // Small but functional for non-Safari mobile
     disableFog: true,
-    disableBloom: true,
+    disableBloom: true, // Keep bloom disabled on mobile
     disableSSAO: true
   };
 };

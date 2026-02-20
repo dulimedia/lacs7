@@ -186,11 +186,7 @@ function MobileEnvironmentMesh({ tier }: { tier: string }) {
 }
 
 export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
-  // Use mobile-optimized single GLB on mobile devices, desktop fragments otherwise
-  if (PerfFlags.isMobile) {
-    return <MobileEnvironmentMesh tier={tier} />;
-  }
-
+  // Use the same 10 fragmented GLBs for both desktop and mobile
   return (
     <group>
       {FRAGMENTS.map((file) => (
