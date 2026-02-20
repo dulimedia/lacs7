@@ -186,7 +186,12 @@ function MobileEnvironmentMesh({ tier }: { tier: string }) {
 }
 
 export function SingleEnvironmentMesh({ tier }: SingleEnvironmentMeshProps) {
-  // Use the same 10 fragmented GLBs for both desktop and mobile
+  // Mobile uses optimized single GLB (baked materials, no transparency issues)
+  // Desktop uses 10 fragmented GLBs with full PBR materials
+  if (PerfFlags.isMobile) {
+    return <MobileEnvironmentMesh tier={tier} />;
+  }
+
   return (
     <group>
       {FRAGMENTS.map((file) => (
