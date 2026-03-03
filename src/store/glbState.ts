@@ -96,8 +96,29 @@ const normalizeFloorKey = (floor: string | null | undefined) =>
 const normalizeUnitKey = (unit: string | null | undefined) =>
   (unit ?? '').replace(/\s+/g, ' ').trim().toUpperCase();
 
+// Alias map: CSV unit names → GLB file names (for units where they differ)
+const UNIT_NAME_ALIASES: Record<string, string> = {
+  'LIBRARY': 'FG - LIBRARY',
+  'FG LIBRARY': 'FG - LIBRARY',
+  'LOUNGE': 'F - LOUNGE',
+  'F LOUNGE': 'F - LOUNGE',
+  'RESTROOM': 'FG - RESTROOM',
+  'FG RESTROOM': 'FG - RESTROOM',
+  'ET LAB': 'ET LAB',
+  'CLUB 76': 'CLUB 76',
+  'STUDIO O.M.': 'STUDIO O.M.',
+  'MG STAGE 7': 'MG - STAGE 7',
+  'MG - STAGE 7': 'MG - STAGE 7',
+  'STAGE 7': 'MG - STAGE 7',
+};
+
+const resolveUnitAlias = (unit: string): string => {
+  const normalized = normalizeUnitKey(unit);
+  return UNIT_NAME_ALIASES[normalized] || normalized;
+};
+
 const buildNodeKey = (building: string, floor: string | null | undefined, unit: string) => {
-  const normUnit = normalizeUnitKey(unit);
+  const normUnit = resolveUnitAlias(unit);
   if (building === "Tower Building" || (building === "Stages" && (!floor || floor === ""))) {
     return `${building}/${normUnit}`;
   }
@@ -308,17 +329,30 @@ export const useGLBState = create<GLBState>((set, get) => ({
         if (!skipCameraAnimation) {
           get().centerCameraOnUnit(building, floor, unit);
         }
+
+        // Store the GLB unit name (resolved from alias) so isSelected checks match
+        set({
+          selectedBuilding: building,
+          selectedFloor: floor,
+          selectedUnit: unitGLB.unitName
+        });
       } else {
         console.warn('⚠️ Unit GLB not found for:', buildNodeKey(building, floor, unit));
-      }
-    }
 
-    // Set state immediately (like LACSWORLD2)
-    set({
-      selectedBuilding: building,
-      selectedFloor: floor,
-      selectedUnit: unit
-    });
+        // Fallback: store raw name even if GLB not found
+        set({
+          selectedBuilding: building,
+          selectedFloor: floor,
+          selectedUnit: unit
+        });
+      }
+    } else {
+      set({
+        selectedBuilding: building,
+        selectedFloor: floor,
+        selectedUnit: unit
+      });
+    }
   },
 
   hoverUnit: (building: string | null, floor: string | null, unit: string | null) => {
@@ -728,7 +762,9 @@ export const useGLBState = create<GLBState>((set, get) => ({
     };
 
     // Check for unit-specific override and calculate camera position
-    const unitOverride = unitSpecificAngles[unit];
+    // Try both the raw unit name and the GLB unit name (resolved from alias)
+    const glbUnitName = unitGLB?.unitName || unit;
+    const unitOverride = unitSpecificAngles[unit] || unitSpecificAngles[glbUnitName];
     let cameraX: number;
     let cameraZ: number;
 
