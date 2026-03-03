@@ -13,7 +13,8 @@ import {
   Download
 } from 'lucide-react';
 import {
-  getFloorplanUrl as getIntelligentFloorplanUrl
+  getFloorplanUrl as getIntelligentFloorplanUrl,
+  getPngPreviewUrl
 } from '../../services/floorplanMappingService';
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
 import { CameraControls } from './CameraFooter';
@@ -29,59 +30,60 @@ declare global {
   }
 }
 
-// Helper component to render PDF or Image floorplan
-function FloorplanPreview({ url, title, label, onShare }: { url: string, title: string, label: string, onShare: () => void }) {
-  const [isValid, setIsValid] = useState<boolean | null>(null);
+// Helper component to render floorplan preview
+// Uses PNG images for fast sidebar display; PDF opened via buttons in new tab
+function FloorplanPreview({ url, title, label, onShare, unitName }: { url: string, title: string, label: string, onShare: () => void, unitName?: string }) {
   const isPdf = url.toLowerCase().includes('.pdf');
-
-  useEffect(() => {
-    let active = true;
-    setIsValid(null);
-
-    // Head request to verify content type and existence (prevents loading index.html/app recursively on 404)
-    fetch(url, { method: 'HEAD' })
-      .then(res => {
-        if (!active) return;
-        const type = res.headers.get('content-type');
-        if (res.ok && type && (type.includes('pdf') || type.includes('image'))) {
-          setIsValid(true);
-        } else {
-          console.warn(`Floorplan load failed or invalid type for ${url}: ${type}`);
-          setIsValid(false);
-        }
-      })
-      .catch(() => {
-        if (active) setIsValid(false);
-      });
-
-    return () => { active = false; };
-  }, [url]);
+  // Try to get a PNG preview for sidebar display (avoids heavy PDF iframes)
+  const pngUrl = unitName ? getPngPreviewUrl(unitName) : null;
+  const previewUrl = pngUrl || (!isPdf ? url : null);
 
   const handleOpen = () => {
     window.open(url, '_blank');
   };
 
-  if (isValid === false) {
+  // If we have a PNG preview (or it's already an image), show image + PDF buttons
+  if (previewUrl) {
     return (
       <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] flex flex-col items-center justify-center text-gray-400 p-4 text-center">
-          <FileText size={32} className="mb-2 opacity-50" />
-          <span className="text-xs">Preview unavailable</span>
+        <div
+          className="relative group cursor-pointer"
+          onClick={handleOpen}
+        >
+          <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all">
+            <img
+              src={previewUrl}
+              alt={title}
+              className="w-full h-full object-contain p-2"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
+              <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium shadow-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Maximize2 size={12} />
+                {isPdf ? 'View PDF' : 'Open in New Tab'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isPdf && (
+            <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
+              <Maximize2 size={14} /> View PDF
+            </a>
+          )}
+          <a href={url} download className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
+            <Download size={14} /> Download
+          </a>
+          <button onClick={onShare} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700">
+            <Share size={14} /> Share
+          </button>
         </div>
       </div>
     );
   }
 
-  if (isValid === null) {
-    return (
-      <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] flex items-center justify-center animate-pulse">
-          <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-black animate-spin" />
-        </div>
-      </div>
-    );
-  }
-
+  // Fallback: PDF with no PNG preview available - show iframe directly (no HEAD validation)
   if (isPdf) {
     return (
       <div className="space-y-2">
@@ -115,44 +117,12 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
     );
   }
 
-  // Standard Image Rendering
+  // Non-PDF, non-PNG fallback (shouldn't happen but just in case)
   return (
     <div className="space-y-2">
-      <div
-        className="relative group cursor-pointer"
-        onClick={handleOpen}
-      >
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-video group-hover:shadow-md transition-all">
-          <img
-            src={url}
-            alt={title}
-            className="w-full h-full object-contain p-2"
-          />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
-            <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium shadow-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Maximize2 size={12} />
-              Open in New Tab
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <a
-          href={url}
-          download={`${title.replace(/\s+/g, '_')}_Plan.png`}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0"
-        >
-          <Download size={14} />
-          Download
-        </a>
-        <button
-          onClick={onShare}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700"
-        >
-          <Share size={14} />
-          Share
-        </button>
+      <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] flex flex-col items-center justify-center text-gray-400 p-4 text-center">
+        <FileText size={32} className="mb-2 opacity-50" />
+        <span className="text-xs">Preview unavailable</span>
       </div>
     </div>
   );
@@ -470,6 +440,7 @@ export function SuiteDetailsTab() {
                 title={displayUnit.unit_name}
                 label="Floorplan"
                 onShare={handleShareClick}
+                unitName={displayUnit.unit_name}
               />
             </div>
           )}

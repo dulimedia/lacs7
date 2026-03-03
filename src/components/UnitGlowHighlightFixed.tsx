@@ -244,8 +244,8 @@ export const UnitGlowHighlightFixed = () => {
     if (currentGlowMeshesRef.current.length === 0) return;
     if (glowFadeRef.current >= 1) return;
 
-    // Ramp from 0 to 1 over ~0.3 seconds
-    glowFadeRef.current = Math.min(1, glowFadeRef.current + delta * 3.3);
+    // Ramp from 0 to 1 over ~0.6 seconds (slower to prevent Bloom blowout)
+    glowFadeRef.current = Math.min(1, glowFadeRef.current + delta * 1.7);
     const t = glowFadeRef.current;
 
     currentGlowMeshesRef.current.forEach(mesh => {

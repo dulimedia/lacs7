@@ -456,3 +456,65 @@ export function getFloorplanUrl(unitName: string, unitData?: any): string | null
 
   return null;
 }
+
+// PNG preview lookup for sidebar display (avoids heavy PDF iframes)
+// Maps unit names to existing PNG files in public/floorplans/converted/
+const PNG_BASE = 'floorplans/converted';
+
+const PNG_UNIT_MAP: Record<string, string> = {
+  // Fifth Street individual units
+  'f10': `${PNG_BASE}/f10.png`,
+  'f100': `${PNG_BASE}/f100.png`,
+  'f105': `${PNG_BASE}/f105.png`,
+  'f115': `${PNG_BASE}/f115.png`,
+  'f140': `${PNG_BASE}/f140.png`,
+  'f150': `${PNG_BASE}/f150.png`,
+  'f160': `${PNG_BASE}/f160.png`,
+  'f170': `${PNG_BASE}/f170.png`,
+  'f175': `${PNG_BASE}/f175.png`,
+  'f180': `${PNG_BASE}/f180.png`,
+  'f185': `${PNG_BASE}/f185.png`,
+  'f187': `${PNG_BASE}/f187.png`,
+  'f190': `${PNG_BASE}/f190.png`,
+  'f200': `${PNG_BASE}/f200.png`,
+  'f240': `${PNG_BASE}/f240.png`,
+  'f250': `${PNG_BASE}/f250.png`,
+  'f280': `${PNG_BASE}/f280.png`,
+  'f290': `${PNG_BASE}/f290.png`,
+  'f300': `${PNG_BASE}/f300.png`,
+  'f330': `${PNG_BASE}/f330.png`,
+  'f340': `${PNG_BASE}/f340.png`,
+  'f345': `${PNG_BASE}/f345.png`,
+  'f350': `${PNG_BASE}/f350.png`,
+  'f360': `${PNG_BASE}/f360.png`,
+  'f363': `${PNG_BASE}/f363.png`,
+  'f365': `${PNG_BASE}/f365.png`,
+  'f380': `${PNG_BASE}/f380.png`,
+  // Maryland individual units
+  'm120': `${PNG_BASE}/m120.png`,
+  'm130': `${PNG_BASE}/m130.png`,
+  'm140': `${PNG_BASE}/m140.png`,
+  'm145': `${PNG_BASE}/m145.png`,
+  'm150': `${PNG_BASE}/m150.png`,
+  'm160': `${PNG_BASE}/m160.png`,
+  'm170': `${PNG_BASE}/m170.png`,
+  'm180': `${PNG_BASE}/m180.png`,
+  'm210': `${PNG_BASE}/m210.png`,
+  'm220': `${PNG_BASE}/m220.png`,
+  'm230': `${PNG_BASE}/m230.png`,
+  'm240': `${PNG_BASE}/m240.png`,
+  'm250': `${PNG_BASE}/m250.png`,
+  'm260': `${PNG_BASE}/m260.png`,
+  'm270': `${PNG_BASE}/m270.png`,
+  'm300': `${PNG_BASE}/m300.png`,
+  'm320': `${PNG_BASE}/m320.png`,
+  'm340': `${PNG_BASE}/m340.png`,
+  'm345': `${PNG_BASE}/m345.png`,
+  'm350': `${PNG_BASE}/m350.png`,
+};
+
+export function getPngPreviewUrl(unitName: string): string | null {
+  if (!unitName) return null;
+  const cleanName = cleanUnitName(unitName);
+  return PNG_UNIT_MAP[cleanName] || null;
+}

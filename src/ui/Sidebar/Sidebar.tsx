@@ -115,12 +115,12 @@ export default function Sidebar() {
           ) : (
             <div className={cn(
               "rounded-xl bg-black/5 p-1 w-full",
-              isMobile ? "flex flex-col space-y-1" : "inline-flex"
+              isMobile ? "flex flex-row space-x-1" : "inline-flex"
             )}>
               <button
                 className={cn(
                   'flex-1 rounded-lg font-medium transition',
-                  isMobile ? 'px-4 py-2 text-sm min-h-[36px]' : 'px-3 py-1.5 text-sm',
+                  isMobile ? 'px-3 py-2 text-xs min-h-[36px]' : 'px-3 py-1.5 text-sm',
                   tab === 'explore' ? 'bg-white shadow' : 'opacity-70 hover:opacity-100'
                 )}
                 onClick={() => {
@@ -133,7 +133,7 @@ export default function Sidebar() {
               <button
                 className={cn(
                   'flex-1 rounded-lg font-medium transition',
-                  isMobile ? 'px-4 py-2 text-sm min-h-[36px]' : 'px-3 py-1.5 text-sm',
+                  isMobile ? 'px-3 py-2 text-xs min-h-[36px]' : 'px-3 py-1.5 text-sm',
                   tab === 'request' ? 'bg-white shadow' : 'opacity-70 hover:opacity-100'
                 )}
                 onClick={() => {

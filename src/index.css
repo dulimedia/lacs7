@@ -203,29 +203,61 @@ body {
   max-height: none !important;
 }
 
-/* Mobile: Vertical split layout - 3D scene top, sidebar bottom */
-@media (max-width: 768px) {
+/* Mobile Portrait: Vertical split layout - 3D scene top, sidebar bottom */
+@media (max-width: 768px) and (orientation: portrait) {
   body {
     background: transparent;
   }
-  
+
   .app-viewport {
     background: transparent;
     padding: 0;
   }
-  
+
   .app-layout {
     display: flex;
     flex-direction: column;
   }
-  
+
   .scene-shell {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    height: 50vh !important;
+    height: 40vh !important;
     bottom: auto !important;
+    z-index: 1;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0 !important;
+  }
+}
+
+/* Mobile Landscape: Side-by-side layout - sidebar left, 3D scene right */
+@media (max-width: 932px) and (orientation: landscape) {
+  body {
+    background: transparent;
+  }
+
+  .app-viewport {
+    background: transparent;
+    padding: 0;
+  }
+
+  .app-layout {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .scene-shell {
+    position: fixed !important;
+    top: 0 !important;
+    left: 45vw !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 55vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
     z-index: 1;
     border-radius: 0;
     box-shadow: none;
@@ -261,12 +293,24 @@ body {
   }
 }
 
-/* Mobile: Position camera controls above sidebar */
-@media (max-width: 768px) {
+/* Mobile Portrait: Position camera controls above sidebar */
+@media (max-width: 768px) and (orientation: portrait) {
   .camera-controls-overlay {
     position: fixed !important;
-    bottom: calc(50vh + 16px) !important;
+    bottom: calc(60vh + 16px) !important;
     left: 50% !important;
+    top: auto !important;
+    transform: translateX(-50%) !important;
+    z-index: 100 !important;
+  }
+}
+
+/* Mobile Landscape: Position camera controls in the scene area (right side) */
+@media (max-width: 932px) and (orientation: landscape) {
+  .camera-controls-overlay {
+    position: fixed !important;
+    bottom: 12px !important;
+    left: calc(45vw + 27.5vw) !important;
     top: auto !important;
     transform: translateX(-50%) !important;
     z-index: 100 !important;

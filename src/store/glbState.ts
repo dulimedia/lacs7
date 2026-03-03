@@ -676,6 +676,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
       // Fifth Street Building - Ground Floor amenities
       'F - LOUNGE': { side: 'east', distance: 8, heightMultiplier: 0.7 },
+      'FG - Library': { side: 'east', distance: 8, heightMultiplier: 0.7 },
 
       // Fifth Street Building - East side units (all others not specified above)
       'F-10': { side: 'east' },
