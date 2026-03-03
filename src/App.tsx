@@ -1450,9 +1450,6 @@ function App() {
                     >
                       {(tier) => (
                         <>
-                          {/* Scene background color to prevent white flash during transitions */}
-                          <color attach="background" args={['#d0e0f0']} />
-
                           {/* MOBILE-OPTIMIZED Environment - Prevents context loss on mobile */}
                           <MobileEnvironment
                             backgroundIntensity={deviceCapabilities.isMobile ? 1.0 : 1.6}

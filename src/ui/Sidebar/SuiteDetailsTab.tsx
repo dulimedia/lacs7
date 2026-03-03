@@ -13,7 +13,8 @@ import {
   Download
 } from 'lucide-react';
 import {
-  getFloorplanUrl as getIntelligentFloorplanUrl
+  getFloorplanUrl as getIntelligentFloorplanUrl,
+  getPngPreviewUrl
 } from '../../services/floorplanMappingService';
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
 import { CameraControls } from './CameraFooter';
@@ -30,14 +31,47 @@ declare global {
 }
 
 // Helper component to render floorplan preview
-// Shows PDF inline via iframe (no HEAD validation delay), or image for non-PDF files
-function FloorplanPreview({ url, title, label, onShare }: { url: string, title: string, label: string, onShare: () => void }) {
+// Uses PNG for instant sidebar display; "View Full PDF" opens all pages in new tab
+function FloorplanPreview({ url, title, label, onShare, unitName }: { url: string, title: string, label: string, onShare: () => void, unitName?: string }) {
   const isPdf = url.toLowerCase().includes('.pdf');
+  const pngUrl = unitName ? getPngPreviewUrl(unitName) : null;
 
-  const handleOpen = () => {
-    window.open(url, '_blank');
-  };
+  // If we have a PNG preview for this unit, show it instantly with PDF buttons
+  if (pngUrl) {
+    return (
+      <div className="space-y-2">
+        <div className="relative group cursor-pointer" onClick={() => window.open(url, '_blank')}>
+          <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all">
+            <img
+              src={pngUrl}
+              alt={title}
+              className="w-full h-full object-contain p-2"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
+              <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium shadow-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Maximize2 size={12} />
+                View Full Floorplan
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <a href={`${url}#view=FitH`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
+            <Maximize2 size={14} /> View Full PDF
+          </a>
+          <a href={url} download className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
+            <Download size={14} /> Download
+          </a>
+          <button onClick={onShare} className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700">
+            <Share size={14} /> Share
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  // No PNG available: for PDFs show iframe, for images show directly
   if (isPdf) {
     return (
       <div className="space-y-2">
@@ -46,18 +80,12 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
             src={`${url}#view=FitH&toolbar=0&navpanes=0`}
             title={title}
             className="w-full border-0"
-            style={{ height: '60vh', maxHeight: '500px', minHeight: '280px' }}
+            style={{ height: '50vh', maxHeight: '400px', minHeight: '250px' }}
             loading="lazy"
           />
-          <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10" title="Open Full PDF">
-            <div className="bg-white/90 backdrop-blur p-1.5 rounded-md text-xs font-medium shadow-sm hover:bg-white text-gray-700">
-              <Maximize2 size={16} />
-            </div>
-          </a>
         </div>
         <div className="flex items-center gap-2">
-          <a href={`${url}#view=FitH&page=1`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
+          <a href={`${url}#view=FitH`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
             <Maximize2 size={14} /> View PDF
           </a>
           <a href={url} download className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
@@ -71,17 +99,12 @@ function FloorplanPreview({ url, title, label, onShare }: { url: string, title: 
     );
   }
 
-  // Image rendering
+  // Image rendering (non-PDF, non-PNG-preview)
   return (
     <div className="space-y-2">
-      <div className="relative group cursor-pointer" onClick={handleOpen}>
+      <div className="relative group cursor-pointer" onClick={() => window.open(url, '_blank')}>
         <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-video group-hover:shadow-md transition-all">
           <img src={url} alt={title} className="w-full h-full object-contain p-2" />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
-            <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium shadow-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Maximize2 size={12} /> Open in New Tab
-            </div>
-          </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
@@ -409,6 +432,7 @@ export function SuiteDetailsTab() {
                 title={displayUnit.unit_name}
                 label="Floorplan"
                 onShare={handleShareClick}
+                unitName={displayUnit.unit_name}
               />
             </div>
           )}

@@ -300,47 +300,43 @@ export const useGLBState = create<GLBState>((set, get) => ({
   selectUnit: (building: string | null, floor: string | null, unit: string | null, skipCameraAnimation = false) => {
     const { glbNodes } = get();
 
-    console.group('🔍 selectUnit called');
-    console.log('Unit selection parameters:', { building, floor, unit, skipCameraAnimation });
-    console.log('⏰ Timestamp:', new Date().toISOString());
-    console.log('🎯 This should NOT trigger loading screen');
+    console.log('🔍 selectUnit:', { building, floor, unit, skipCameraAnimation });
 
-    // Trigger flash prevention for first unit selection
-    if (building && unit) {
-      console.log('📡 Unit selection changed');
-      // window.dispatchEvent(new CustomEvent('unit-selection-flash-prevention')); // DISABLED
-    }
-
-    console.groupEnd();
-
-    // Reset all GLBs to invisible first (like LACSWORLD2)
-    glbNodes.forEach((node, key) => {
-      get().setGLBState(key, 'invisible');
+    // BATCH all GLB state changes into a single map update to prevent
+    // intermediate re-renders that cause white flash
+    const updatedNodes = new Map(glbNodes);
+    updatedNodes.forEach((node, key) => {
+      if (node.state !== 'invisible') {
+        updatedNodes.set(key, { ...node, state: 'invisible' as const });
+      }
     });
 
+    let resolvedUnit = unit;
+
     if (building && unit && (floor !== null)) {
-      // Set only the specific unit GLB to glowing
       const unitGLB = get().getGLBByUnit(building, floor, unit);
 
       if (unitGLB) {
-        get().setGLBState(unitGLB.key, 'glowing');
+        // Set selected unit to glowing in the same batch
+        updatedNodes.set(unitGLB.key, { ...updatedNodes.get(unitGLB.key)!, state: 'glowing' as const });
+        resolvedUnit = unitGLB.unitName;
 
-        // Always animate camera - no blocking logic (like LACSWORLD2)
+        // Single atomic state update - all changes in one render
+        set({
+          glbNodes: updatedNodes,
+          selectedBuilding: building,
+          selectedFloor: floor,
+          selectedUnit: resolvedUnit
+        });
+
+        // Camera animation AFTER state is committed
         if (!skipCameraAnimation) {
           get().centerCameraOnUnit(building, floor, unit);
         }
-
-        // Store the GLB unit name (resolved from alias) so isSelected checks match
-        set({
-          selectedBuilding: building,
-          selectedFloor: floor,
-          selectedUnit: unitGLB.unitName
-        });
       } else {
         console.warn('⚠️ Unit GLB not found for:', buildNodeKey(building, floor, unit));
-
-        // Fallback: store raw name even if GLB not found
         set({
+          glbNodes: updatedNodes,
           selectedBuilding: building,
           selectedFloor: floor,
           selectedUnit: unit
@@ -348,6 +344,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
       }
     } else {
       set({
+        glbNodes: updatedNodes,
         selectedBuilding: building,
         selectedFloor: floor,
         selectedUnit: unit
