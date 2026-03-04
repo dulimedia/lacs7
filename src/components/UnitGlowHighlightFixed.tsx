@@ -9,8 +9,10 @@ export const UnitGlowHighlightFixed = () => {
   const currentGlowMeshesRef = useRef<THREE.Mesh[]>([]);
   const glowMaterialRef = useRef<THREE.Material | null>(null);
 
-  // Track previous selection to detect changes inside useFrame
-  const prevSelectionKeyRef = useRef<string>('');
+  // The selectionKey that the CURRENT glow meshes were successfully built for.
+  // This is only updated when glow meshes are actually created (or selection cleared).
+  // It differs from the live selectionKey when the GLB object hasn't loaded yet.
+  const resolvedKeyRef = useRef<string>('');
 
   // Create the blue glow material once
   useEffect(() => {
@@ -77,8 +79,6 @@ export const UnitGlowHighlightFixed = () => {
 
   // ALL glow logic in useFrame — reads DIRECTLY from Zustand store (not React
   // closure) so state changes are visible in the SAME frame, with zero delay.
-  // Previous approach used closure values which lagged 1-2 frames behind the
-  // actual store, causing the black flash.
   useFrame(() => {
     if (!glowGroupRef.current || !glowMaterialRef.current) return;
 
@@ -86,48 +86,49 @@ export const UnitGlowHighlightFixed = () => {
     const state = useGLBState.getState();
     const { selectedUnit, selectedBuilding, selectedFloor, hoveredUnit } = state;
 
-    // Build a key that changes when the selection/hover changes
+    // Build a key representing the desired glow target
     const selectionKey = `${selectedUnit}|${selectedBuilding}|${selectedFloor}|${hoveredUnit}`;
 
-    // Detect if we SHOULD have glow but don't. This handles the case where
-    // the selection changed before the unit's GLB object was loaded (async).
-    // The selectionKey won't change again, but we need to retry once the
-    // object becomes available.
-    const hasActiveSelection = !!(selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined)
-      || !!(hoveredUnit && !selectedUnit);
-    const needsRetry = hasActiveSelection && currentGlowMeshesRef.current.length === 0;
+    // Only act if the glow doesn't match the current selection yet.
+    // resolvedKeyRef tracks what we SUCCESSFULLY built glow for — it stays
+    // stale when the GLB object isn't loaded yet, so we keep retrying each
+    // frame. Meanwhile, old glow meshes remain visible to prevent flash.
+    if (selectionKey === resolvedKeyRef.current) return;
 
-    if (selectionKey !== prevSelectionKeyRef.current || needsRetry) {
-      prevSelectionKeyRef.current = selectionKey;
+    // Determine which unit needs glow
+    let newMeshes: THREE.Mesh[] = [];
 
-      const oldMeshes = [...currentGlowMeshesRef.current];
-
-      // Determine which unit needs glow
-      let newMeshes: THREE.Mesh[] = [];
-
-      if (selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined) {
-        const unitGLB = state.getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
-        if (unitGLB) {
-          newMeshes = createGlowMeshFromUnit(unitGLB);
-        }
-      } else if (hoveredUnit && !selectedUnit) {
-        const hoveredUnitGLB = state.glbNodes.get(hoveredUnit);
-        if (hoveredUnitGLB) {
-          newMeshes = createGlowMeshFromUnit(hoveredUnitGLB);
-        }
+    if (selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined) {
+      const unitGLB = state.getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
+      if (unitGLB) {
+        newMeshes = createGlowMeshFromUnit(unitGLB);
       }
-
-      // Add new meshes FIRST (already at full opacity from createGlowMeshFromUnit)
-      newMeshes.forEach(mesh => {
-        glowGroupRef.current?.add(mesh);
-      });
-
-      // Only dispose old meshes if we actually have new ones (or selection cleared)
-      if (newMeshes.length > 0 || !hasActiveSelection) {
-        currentGlowMeshesRef.current = newMeshes;
-        disposeMeshes(oldMeshes);
+    } else if (hoveredUnit && !selectedUnit) {
+      const hoveredUnitGLB = state.glbNodes.get(hoveredUnit);
+      if (hoveredUnitGLB) {
+        newMeshes = createGlowMeshFromUnit(hoveredUnitGLB);
       }
     }
+
+    const hasActiveSelection = !!(selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined)
+      || !!(hoveredUnit && !selectedUnit);
+
+    if (newMeshes.length > 0) {
+      // SUCCESS — swap glow meshes
+      const oldMeshes = [...currentGlowMeshesRef.current];
+      newMeshes.forEach(mesh => glowGroupRef.current?.add(mesh));
+      currentGlowMeshesRef.current = newMeshes;
+      resolvedKeyRef.current = selectionKey;
+      disposeMeshes(oldMeshes);
+    } else if (!hasActiveSelection) {
+      // Selection cleared — remove all glow
+      const oldMeshes = [...currentGlowMeshesRef.current];
+      currentGlowMeshesRef.current = [];
+      resolvedKeyRef.current = selectionKey;
+      disposeMeshes(oldMeshes);
+    }
+    // else: active selection but object not loaded yet — keep old glow visible,
+    // DON'T update resolvedKeyRef so we retry next frame
   });
 
   // Cleanup on unmount
