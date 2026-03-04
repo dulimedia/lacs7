@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import {
   getFloorplanUrl as getIntelligentFloorplanUrl,
-  getPngPreviewUrl
+  getPngPreviewUrls
 } from '../../services/floorplanMappingService';
 import { getFloorplanUrl as encodeFloorplanUrl } from '../../services/floorplanService';
 import { CameraControls } from './CameraFooter';
@@ -34,27 +34,30 @@ declare global {
 // Uses PNG for instant sidebar display; "View Full PDF" opens all pages in new tab
 function FloorplanPreview({ url, title, label, onShare, unitName }: { url: string, title: string, label: string, onShare: () => void, unitName?: string }) {
   const isPdf = url.toLowerCase().includes('.pdf');
-  const pngUrl = unitName ? getPngPreviewUrl(unitName) : null;
+  const pngUrls = unitName ? getPngPreviewUrls(unitName) : null;
 
-  // If we have a PNG preview for this unit, show it instantly with PDF buttons
-  if (pngUrl) {
+  // If we have PNG previews for this unit, show all pages stacked with PDF buttons
+  if (pngUrls && pngUrls.length > 0) {
     return (
       <div className="space-y-2">
-        <div className="relative group cursor-pointer" onClick={() => window.open(url, '_blank')}>
-          <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 aspect-[4/3] group-hover:shadow-md transition-all">
-            <img
-              src={pngUrl}
-              alt={title}
-              className="w-full h-full object-contain p-2"
-              loading="eager"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
-              <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-medium shadow-sm flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Maximize2 size={12} />
-                View Full Floorplan
+        <div className="space-y-3">
+          {pngUrls.map((pageUrl, i) => (
+            <div key={i} className="relative group cursor-pointer" onClick={() => window.open(url, '_blank')}>
+              <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 group-hover:shadow-md transition-all">
+                <img
+                  src={pageUrl}
+                  alt={`${title} - Page ${i + 1}`}
+                  className="w-full h-auto object-contain p-2"
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                />
+                {pngUrls.length > 1 && (
+                  <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
+                    {i + 1} / {pngUrls.length}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          ))}
         </div>
         <div className="flex items-center gap-2">
           <a href={`${url}#view=FitH`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">

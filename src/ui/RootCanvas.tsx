@@ -140,6 +140,14 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
   const [rendererType, setRendererType] = useState<RendererType | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Pause rendering when tab is hidden to free GPU/CPU for other tabs
+  const [tabVisible, setTabVisible] = useState(!document.hidden);
+  useEffect(() => {
+    const handler = () => setTabVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, []);
+
   useEffect(() => installErrorProbe(), []);
 
   // MOBILE DEBUG: WebGL error monitoring for iOS Safari
@@ -432,7 +440,7 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
           className="scene-canvas"
           gl={createRenderer}
           dpr={[1, PerfFlags.DPR_MAX]}
-          frameloop={SAFE || PerfFlags.isMobile ? 'demand' : canvasProps.frameloop || 'always'}
+          frameloop={SAFE || PerfFlags.isMobile ? 'demand' : !tabVisible ? 'never' : canvasProps.frameloop || 'always'}
           performance={PerfFlags.isMobile ? { min: 0.25, max: 0.75, debounce: 200 } : { min: 0.5, max: 1, debounce: 40 }}
           shadows={SAFE ? false : PerfFlags.SHADOWS_ENABLED}
           resize={{ scroll: true, debounce: { scroll: 50, resize: 0 } }}

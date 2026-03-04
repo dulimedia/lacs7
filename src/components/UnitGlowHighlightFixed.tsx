@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLBState } from '../store/glbState';
 import * as THREE from 'three';
@@ -9,7 +9,6 @@ export const UnitGlowHighlightFixed = () => {
   const glowGroupRef = useRef<THREE.Group>(null);
   const currentGlowMeshesRef = useRef<THREE.Mesh[]>([]);
   const glowMaterialRef = useRef<THREE.Material | null>(null);
-  const isProcessingRef = useRef<boolean>(false);
   const glowFadeRef = useRef<number>(0); // 0 = invisible, 1 = fully visible
 
   // Create the blue glow material once with proper depth settings
@@ -110,142 +109,55 @@ export const UnitGlowHighlightFixed = () => {
     return glowMeshes;
   };
 
-  // ENHANCED: Clear ALL glow meshes including orphaned ones
-  const clearGlowMeshes = () => {
-    console.log('🧹 ENHANCED GLOW CLEANUP START:', {
-      currentMeshCount: currentGlowMeshesRef.current.length,
-      processing: isProcessingRef.current,
-      hasGroup: !!glowGroupRef.current,
-      timestamp: Date.now()
-    });
-
-    if (glowGroupRef.current && !isProcessingRef.current) {
-      isProcessingRef.current = true;
-      console.log('🔒 GLOW CLEANUP LOCKED - starting enhanced disposal...');
-
-      try {
-        // CRITICAL FIX: Clear ALL children from glow group, not just tracked ones
-        const allGlowChildren = [...glowGroupRef.current.children];
-        console.log(`🗑️ Found ${allGlowChildren.length} total glow meshes in group`);
-
-        allGlowChildren.forEach((child, index) => {
-          try {
-            if (child instanceof THREE.Mesh) {
-              console.log(`🗑️ Disposing glow mesh ${index + 1}/${allGlowChildren.length}`);
-              glowGroupRef.current?.remove(child);
-
-              // Dispose geometry
-              if (child.geometry) {
-                child.geometry.dispose();
-              }
-
-              // Dispose material
-              if (child.material && Array.isArray(child.material)) {
-                child.material.forEach(mat => mat.dispose());
-              } else if (child.material) {
-                child.material.dispose();
-              }
-            }
-          } catch (meshError) {
-            console.error(`❌ ERROR disposing mesh ${index + 1}:`, meshError);
-          }
-        });
-
-        // Clear the reference array
-        currentGlowMeshesRef.current = [];
-        console.log('✅ ENHANCED GLOW CLEANUP COMPLETE - ALL meshes disposed');
-      } catch (error) {
-        console.error('❌ CRITICAL ERROR during enhanced glow cleanup:', error);
-      } finally {
-        isProcessingRef.current = false;
-        console.log('🔓 GLOW CLEANUP UNLOCKED');
+  // Dispose a list of glow meshes (remove from scene + free GPU memory)
+  const disposeMeshes = (meshes: THREE.Mesh[]) => {
+    meshes.forEach(mesh => {
+      glowGroupRef.current?.remove(mesh);
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (Array.isArray(mesh.material)) {
+        mesh.material.forEach(m => m.dispose());
+      } else if (mesh.material) {
+        mesh.material.dispose();
       }
-    } else {
-      console.log('⚠️ GLOW CLEANUP SKIPPED:', {
-        reason: !glowGroupRef.current ? 'no group' : 'already processing'
-      });
-    }
+    });
   };
 
-  // Separate function for the actual glow update logic - MOVED BEFORE useEffect
-  const performGlowUpdate = useCallback(() => {
-    if (!glowGroupRef.current || !glowMaterialRef.current || isProcessingRef.current) {
-      console.log('[SELECTIVE GLOW] ⚠️ Cannot perform glow update - missing refs or processing');
-      return;
-    }
+  // Update glow: CREATE new meshes first, THEN remove old ones (no black flash gap)
+  useEffect(() => {
+    if (!glowGroupRef.current || !glowMaterialRef.current) return;
 
-    // Create glow for selected unit only
+    // 1. Snapshot old meshes
+    const oldMeshes = [...currentGlowMeshesRef.current];
+
+    // 2. Create new glow meshes
+    let newMeshes: THREE.Mesh[] = [];
+
     if (selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined) {
       const unitGLB = getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
-      console.log('[SELECTIVE GLOW MATCH]', unitGLB ? 'Found GLB for' : 'No GLB found for', selectedUnit);
-
       if (unitGLB) {
-        try {
-          const glowMeshes = createGlowMeshFromUnit(unitGLB);
-
-          glowMeshes.forEach(mesh => {
-            glowGroupRef.current?.add(mesh);
-          });
-
-          currentGlowMeshesRef.current = glowMeshes;
-
-          if (glowMeshes.length > 0) {
-            console.log(`🔵 Applied selective blue glow to ${selectedUnit} (${glowMeshes.length} meshes)`);
-          }
-        } catch (error) {
-          console.error(`❌ Error creating selective glow for ${selectedUnit}:`, error);
-        }
+        newMeshes = createGlowMeshFromUnit(unitGLB);
       }
-    }
-
-    // Also handle hover when no selection (optional)
-    else if (hoveredUnit && !selectedUnit) {
+    } else if (hoveredUnit && !selectedUnit) {
       const hoveredUnitGLB = glbNodes.get(hoveredUnit);
       if (hoveredUnitGLB) {
-        try {
-          const glowMeshes = createGlowMeshFromUnit(hoveredUnitGLB);
-
-          glowMeshes.forEach(mesh => {
-            glowGroupRef.current?.add(mesh);
-          });
-
-          currentGlowMeshesRef.current = glowMeshes;
-
-          if (glowMeshes.length > 0) {
-            console.log(`🔵 Applied selective blue glow to hovered ${hoveredUnit}`);
-          }
-        } catch (error) {
-          console.error(`❌ Error creating selective glow for hovered ${hoveredUnit}:`, error);
-        }
+        newMeshes = createGlowMeshFromUnit(hoveredUnitGLB);
       }
     }
-  }, [selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, getGLBByUnit, glbNodes]);
 
-  // Update glow for selected unit ONLY - MOVED AFTER function definition
-  useEffect(() => {
-    if (!glowGroupRef.current || !glowMaterialRef.current || isProcessingRef.current) return;
-
-    console.log('[SELECTIVE GLOW] selectedUnit =', selectedUnit, 'selectedBuilding =', selectedBuilding, 'selectedFloor =', selectedFloor);
-
-    // RACE CONDITION PROTECTION: Prevent overlapping glow operations
-    if (isProcessingRef.current) {
-      console.log('[SELECTIVE GLOW] ⚡ Skipping glow update - processing in progress');
-      return;
-    }
-
-    // Clear old glow and apply new one in a single step to prevent black flash
-    clearGlowMeshes();
-    performGlowUpdate();
-    glowFadeRef.current = 0.85; // Start near-full opacity — bloom is disabled so no blowout risk
-
-    // Apply initial opacity immediately so first frame renders visible (not 0)
-    currentGlowMeshesRef.current.forEach(mesh => {
+    // 3. Add new meshes with initial opacity BEFORE removing old ones
+    newMeshes.forEach(mesh => {
+      const target = mesh.userData.targetOpacity ?? 1.0;
       if (mesh.material && 'opacity' in mesh.material) {
-        const target = mesh.userData.targetOpacity ?? 1.0;
         (mesh.material as THREE.MeshBasicMaterial).opacity = 0.85 * target;
       }
+      glowGroupRef.current?.add(mesh);
     });
-  }, [selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, performGlowUpdate]);
+    currentGlowMeshesRef.current = newMeshes;
+    glowFadeRef.current = 0.85;
+
+    // 4. NOW remove old meshes (new ones are already visible)
+    disposeMeshes(oldMeshes);
+  }, [selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, getGLBByUnit, glbNodes]);
 
   // Fade in glow meshes gradually to prevent Bloom blowout / white flash
   useFrame((_, delta) => {
@@ -267,7 +179,8 @@ export const UnitGlowHighlightFixed = () => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      clearGlowMeshes();
+      disposeMeshes(currentGlowMeshesRef.current);
+      currentGlowMeshesRef.current = [];
       if (glowMaterialRef.current) {
         glowMaterialRef.current.dispose();
       }

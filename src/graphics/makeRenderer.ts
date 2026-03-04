@@ -139,11 +139,8 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
     location.reload();
   }, false);
 
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      renderer.setAnimationLoop(null);
-    }
-  }, { passive: true });
+  // Tab visibility is managed by RootCanvas frameloop='never'/'always' toggle.
+  // No manual setAnimationLoop needed here — R3F handles it.
 
   return renderer;
 }

@@ -61,6 +61,7 @@
     "gltf-pipeline": "^4.3.0",
     "js-yaml": "^4.1.0",
     "jsdom": "^27.1.0",
+    "pdf-to-png-converter": "^3.14.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
