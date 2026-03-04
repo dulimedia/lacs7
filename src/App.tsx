@@ -1429,7 +1429,7 @@ function App() {
                     {console.log('🎬 Rendering RootCanvas - canvasReady:', canvasReady, 'sceneEnabled:', sceneEnabled)}
                     <RootCanvas
                       shadows={mobileSettings.shadows}
-                      camera={{ position: [-10, 10, -14], fov: 45, near: 1.0, far: 1000 }}
+                      camera={{ position: [-10, 10, -14], fov: 45, near: 0.1, far: 1000 }}
                       style={{
                         width: '100%',
                         height: '100%',

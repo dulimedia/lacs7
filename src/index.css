@@ -151,7 +151,7 @@ body {
   height: 100% !important;
   overflow: hidden !important;  /* Prevent right overflow */
   z-index: 0;
-  background-color: #0b0f14;  /* Match renderer clear color to prevent white flash */
+  background-color: #d0e0f0;  /* Match renderer CLEAR_COLOR to prevent dark flash */
   /* CRITICAL FIX: No transforms or transitions */
   transform: none !important;
   transition: none !important;

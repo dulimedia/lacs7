@@ -192,24 +192,6 @@ export const useGLBState = create<GLBState>((set, get) => ({
       // Ensure the object is hidden immediately when stored
       object.visible = false;
 
-      // Apply invisible material to prevent any rendering
-      const invisibleMaterial = new THREE.MeshBasicMaterial({
-        visible: false,
-        transparent: true,
-        opacity: 0.0,
-        colorWrite: false,
-        depthWrite: false,
-        depthTest: false
-      });
-
-      object.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.visible = false;
-          // Apply invisible material to prevent any rendering
-          child.material = invisibleMaterial;
-        }
-      });
-
       const updatedNode = { ...node, object, gltfScene: gltfScene || node.gltfScene, isLoaded: true };
       const newNodes = new Map(glbNodes);
       newNodes.set(key, updatedNode);

@@ -30,6 +30,9 @@ export function FrustumCuller() {
     
     // Check all meshes in scene
     scene.traverse((object) => {
+      // Never cull glow overlay meshes — they must stay visible during camera animation
+      if (object.userData?.isGlowMesh) return;
+
       if (object instanceof THREE.Mesh && object.geometry) {
         // Compute bounding sphere if not already computed
         if (!object.geometry.boundingSphere) {
