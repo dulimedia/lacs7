@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useGLBState } from '../store/glbState';
+import { useGLBState, getCameraAnimating } from '../store/glbState';
 import * as THREE from 'three';
 import { createGlowMaterial } from '../materials/glowMaterial';
 
@@ -125,7 +125,7 @@ export const UnitGlowHighlightFixed = () => {
       newMeshes.forEach(mesh => glowGroupRef.current?.add(mesh));
       currentGlowMeshesRef.current = newMeshes;
       resolvedKeyRef.current = selectionKey;
-      if (state.isCameraAnimating) {
+      if (getCameraAnimating()) {
         pendingDisposalRef.current.push(...oldMeshes);
       } else {
         disposeMeshes(oldMeshes);
@@ -144,7 +144,7 @@ export const UnitGlowHighlightFixed = () => {
     // DON'T update resolvedKeyRef so we retry next frame
 
     // Dispose old glow meshes once camera animation finishes
-    if (!state.isCameraAnimating && pendingDisposalRef.current.length > 0) {
+    if (!getCameraAnimating() && pendingDisposalRef.current.length > 0) {
       disposeMeshes(pendingDisposalRef.current);
       pendingDisposalRef.current = [];
     }

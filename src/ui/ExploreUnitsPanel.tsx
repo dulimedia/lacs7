@@ -19,7 +19,7 @@ import {
   Send
 } from 'lucide-react';
 import { useExploreState, type UnitRecord } from '../store/exploreState';
-import { useGLBState } from '../store/glbState';
+import { useGLBState, getCameraAnimating } from '../store/glbState';
 import { useUnitStore } from '../stores/useUnitStore';
 import { UnitHoverPreview } from '../components/UnitHoverPreview';
 import { FloorplanViewer } from '../components/FloorplanViewer';
@@ -192,9 +192,7 @@ const FloorNode: React.FC<FloorNodeProps> = ({
       setSelected(unitKey);
 
       // Update GLB state for 3D visualization (check if camera is not already animating)
-      const { isCameraAnimating } = useGLBState.getState();
-
-      if (!isCameraAnimating) {
+      if (!getCameraAnimating()) {
         let glbUnitName = unitData.unit_name;
 
         // Convert CSV unit name to GLB structure format
@@ -984,11 +982,10 @@ export const ExploreUnitsPanel: React.FC<ExploreUnitsPanelProps> = ({
               setSelected(actualUnitKey);
 
               // Update GLB state for 3D visualization
-              const { selectUnit, isCameraAnimating } = useGLBState.getState();
-
+              const { selectUnit } = useGLBState.getState();
 
               // Only proceed if camera is not already animating (prevent duplicate calls)
-              if (!isCameraAnimating) {
+              if (!getCameraAnimating()) {
                 // Special cases for buildings with undefined/empty floors
                 let effectiveFloor = floor;
                 if (building === "Tower Building" && !floor) {

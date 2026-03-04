@@ -2,7 +2,7 @@ import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { Tier } from '../../lib/graphics/tier';
-import { useGLBState } from '../../store/glbState';
+import { getCameraAnimating } from '../../store/glbState';
 
 interface AdaptiveEffectsProps {
   tier: Tier;
@@ -17,7 +17,7 @@ function AnimatedBloom({ baseIntensity, height }: { baseIntensity: number; heigh
 
   useFrame((_, delta) => {
     if (!bloomRef.current) return;
-    const isCameraAnimating = useGLBState.getState().isCameraAnimating;
+    const isCameraAnimating = getCameraAnimating();
     const target = isCameraAnimating ? 0 : baseIntensity;
     // Ease toward target: fast suppress (0.1s), slow restore (0.5s)
     const speed = isCameraAnimating ? 10 : 2;

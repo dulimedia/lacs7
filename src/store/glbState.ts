@@ -9,6 +9,15 @@ import { logger } from '../utils/logger';
 
 export type GLBVisibilityState = 'invisible' | 'glowing';
 
+// Non-reactive camera animation tracking.
+// Stored outside Zustand state to avoid triggering re-renders in every
+// component that subscribes to useGLBState() when the flag toggles.
+// All consumers read this via getState() or getCameraAnimating().
+let _isCameraAnimating = false;
+let _cameraAnimationGen = 0;
+export function getCameraAnimating() { return _isCameraAnimating; }
+export function getCameraAnimationGen() { return _cameraAnimationGen; }
+
 export interface GLBNodeInfo {
   key: string;        // e.g., "Maryland Building/First Floor/M-140"
   building: string;   // e.g., "Maryland Building"
@@ -33,9 +42,7 @@ export interface GLBState {
   // Camera controls reference for smooth centering
   cameraControlsRef: React.MutableRefObject<CameraControls> | null;
 
-  // Camera animation state
-  isCameraAnimating: boolean;
-  _cameraAnimationGen: number; // Generation counter to prevent stale callbacks
+  // Camera animation state (isCameraAnimating is module-level, not reactive)
   lastCameraTarget: string | null;
 
 
@@ -140,8 +147,6 @@ export const useGLBState = create<GLBState>((set, get) => ({
   loadedCount: 0,
   totalCount: 0,
   cameraControlsRef: null,
-  isCameraAnimating: false,
-  _cameraAnimationGen: 0,
   lastCameraTarget: null,
 
   // Actions
@@ -429,8 +434,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
       selectedUnit: null,
       hoveredUnit: null,
       hoveredFloor: null,
-      isCameraAnimating: false
     });
+    _isCameraAnimating = false;
   },
 
   clearUnitSelection: () => {
@@ -560,11 +565,11 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   // Reset camera animation state (useful if it gets stuck)
   resetCameraAnimation: () => {
-    set({ isCameraAnimating: false });
+    _isCameraAnimating = false;
   },
 
   centerCameraOnUnit: (building: string, floor: string, unit: string) => {
-    const { cameraControlsRef, getGLBByUnit, isCameraAnimating } = get();
+    const { cameraControlsRef, getGLBByUnit } = get();
 
     logger.log('CAMERA', '📷', 'centerCameraOnUnit called:', { building, floor, unit });
 
@@ -575,7 +580,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
     // ANIMATION PROTECTION: Cancel any existing animation to prevent conflicts
     const controls = cameraControlsRef.current;
-    if (isCameraAnimating) {
+    if (_isCameraAnimating) {
       try {
         controls.stop?.(); // Stop current animation if method exists
         logger.log('CAMERA', '⚡', 'Stopped existing camera animation');
@@ -585,8 +590,8 @@ export const useGLBState = create<GLBState>((set, get) => ({
     }
 
     // Set animation state with generation counter to prevent stale callbacks
-    const gen = get()._cameraAnimationGen + 1;
-    set({ isCameraAnimating: true, _cameraAnimationGen: gen });
+    const gen = ++_cameraAnimationGen;
+    _isCameraAnimating = true;
 
     // MOBILE OPTIMIZATION: Use instant positioning instead of animation to prevent GPU pressure
     const isMobile = window.innerWidth < 768;
@@ -844,7 +849,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
         // Force immediate update and render to fix timing glitch
         controls.update(0); // Force synchronous update
-        set({ isCameraAnimating: false }); // Trigger state change to force re-render
+        _isCameraAnimating = false;
       } else {
         // DESKTOP: Smooth animation with completion tracking
         const animationPromise = controls.setLookAt(
@@ -854,33 +859,32 @@ export const useGLBState = create<GLBState>((set, get) => ({
         );
 
         // Clear animation state when completed — only if this is still the active animation
-        // (prevents a cancelled animation's callback from clobbering a newer animation)
+        // Uses module-level variables (no set()) to avoid triggering re-render storm
         if (animationPromise && typeof animationPromise.then === 'function') {
           animationPromise.then(() => {
-            if (get()._cameraAnimationGen === gen) {
-              set({ isCameraAnimating: false });
+            if (_cameraAnimationGen === gen) {
+              _isCameraAnimating = false;
               logger.log('CAMERA', '✅', 'Camera animation completed');
             }
           }).catch((error) => {
-            if (get()._cameraAnimationGen === gen) {
-              set({ isCameraAnimating: false });
+            if (_cameraAnimationGen === gen) {
+              _isCameraAnimating = false;
               logger.warn('CAMERA', '⚠️', 'Camera animation error:', error);
             }
           });
         } else {
-          // Fallback for non-promise setLookAt
           setTimeout(() => {
-            if (get()._cameraAnimationGen === gen) {
-              set({ isCameraAnimating: false });
+            if (_cameraAnimationGen === gen) {
+              _isCameraAnimating = false;
             }
           }, 1000);
         }
 
         // Additional fallback to ensure animation state ALWAYS resets
         setTimeout(() => {
-          if (get()._cameraAnimationGen === gen && get().isCameraAnimating) {
+          if (_cameraAnimationGen === gen && _isCameraAnimating) {
             console.warn('🔧 Force-resetting stuck camera animation state');
-            set({ isCameraAnimating: false });
+            _isCameraAnimating = false;
           }
         }, 2000);
       }
