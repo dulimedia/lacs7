@@ -138,10 +138,13 @@ const GLBUnitInner: React.FC<GLBUnitProps> = React.memo(({ node }) => {
 
   useEffect(() => {
     if (groupRef.current) {
-      updateGLBObject(node.key, groupRef.current);
+      // Pass both the R3F group AND the GLTF scene. The scene persists in
+      // useLoader cache across unmount/remount, so the glow overlay can always
+      // access mesh geometry even when this component is unmounted.
+      updateGLBObject(node.key, groupRef.current, scene);
       MobileDiagnostics.log('glb', 'Registered GLB group', { node: node.key });
     }
-  }, [node.key, updateGLBObject]);
+  }, [node.key, scene, updateGLBObject]);
 
   useEffect(() => {
     // Selected units stay 'none' — glow is handled by UnitGlowHighlightFixed overlay meshes.

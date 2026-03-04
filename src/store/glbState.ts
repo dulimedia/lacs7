@@ -12,10 +12,11 @@ export type GLBVisibilityState = 'invisible' | 'glowing';
 export interface GLBNodeInfo {
   key: string;        // e.g., "Maryland Building/First Floor/M-140"
   building: string;   // e.g., "Maryland Building"
-  floor: string;      // e.g., "First Floor"  
+  floor: string;      // e.g., "First Floor"
   unitName: string;   // e.g., "M-140"
   path: string;       // full file path to GLB
-  object?: THREE.Group; // loaded GLB object
+  object?: THREE.Group; // loaded GLB object (R3F wrapper group — may lose children on unmount)
+  gltfScene?: THREE.Object3D; // GLTF scene from useLoader cache — persists across unmounts
   state: GLBVisibilityState;
   isLoaded: boolean;
 }
@@ -48,7 +49,7 @@ export interface GLBState {
 
   // Actions
   initializeGLBNodes: () => void;
-  updateGLBObject: (key: string, object: THREE.Group) => void;
+  updateGLBObject: (key: string, object: THREE.Group, gltfScene?: THREE.Object3D) => void;
   setGLBState: (key: string, state: GLBVisibilityState) => void;
   selectBuilding: (building: string | null) => void;
   selectFloor: (building: string | null, floor: string | null) => void;
@@ -183,7 +184,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
     set({ glbNodes: nodes, totalCount: total, loadedCount: 0 });
   },
 
-  updateGLBObject: (key: string, object: THREE.Group) => {
+  updateGLBObject: (key: string, object: THREE.Group, gltfScene?: THREE.Object3D) => {
     const { glbNodes, loadedCount, selectedUnit, selectedBuilding, selectedFloor } = get();
     const node = glbNodes.get(key);
 
@@ -209,7 +210,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
         }
       });
 
-      const updatedNode = { ...node, object, isLoaded: true };
+      const updatedNode = { ...node, object, gltfScene: gltfScene || node.gltfScene, isLoaded: true };
       const newNodes = new Map(glbNodes);
       newNodes.set(key, updatedNode);
 
@@ -434,7 +435,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
         });
       }
 
-      updatedNodes.set(key, { ...node, state: 'invisible' as const, object: undefined });
+      updatedNodes.set(key, { ...node, state: 'invisible' as const, object: undefined, gltfScene: undefined });
     });
 
     set({

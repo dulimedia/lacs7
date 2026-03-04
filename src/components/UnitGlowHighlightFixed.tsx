@@ -24,9 +24,12 @@ export const UnitGlowHighlightFixed = () => {
   // Helper: create glow meshes from a unit's GLB
   const createGlowMeshFromUnit = (unitGLB: any): THREE.Mesh[] => {
     const glowMeshes: THREE.Mesh[] = [];
-    if (!unitGLB?.object || !glowMaterialRef.current) return glowMeshes;
+    // Prefer gltfScene (persists across component unmounts via useLoader cache)
+    // over object (R3F group that loses children when GLBUnitInner unmounts)
+    const traverseTarget = unitGLB?.gltfScene || unitGLB?.object;
+    if (!traverseTarget || !glowMaterialRef.current) return glowMeshes;
 
-    unitGLB.object.traverse((child: THREE.Object3D) => {
+    traverseTarget.traverse((child: THREE.Object3D) => {
       if (child instanceof THREE.Mesh && child.geometry) {
         try {
           const vertexCount = child.geometry.attributes.position?.count || 0;
