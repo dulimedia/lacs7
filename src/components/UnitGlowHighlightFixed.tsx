@@ -83,17 +83,21 @@ export const UnitGlowHighlightFixed = () => {
     if (!glowGroupRef.current || !glowMaterialRef.current) return;
 
     // Read DIRECTLY from the Zustand store — bypasses React render cycle.
-    // This is the critical fix: useGLBState.getState() returns the current
-    // store snapshot synchronously, so we see state changes in the same
-    // frame they happen (no waiting for React to re-render).
     const state = useGLBState.getState();
     const { selectedUnit, selectedBuilding, selectedFloor, hoveredUnit } = state;
 
     // Build a key that changes when the selection/hover changes
     const selectionKey = `${selectedUnit}|${selectedBuilding}|${selectedFloor}|${hoveredUnit}`;
 
-    if (selectionKey !== prevSelectionKeyRef.current) {
-      // Selection changed — swap glow meshes synchronously in this frame
+    // Detect if we SHOULD have glow but don't. This handles the case where
+    // the selection changed before the unit's GLB object was loaded (async).
+    // The selectionKey won't change again, but we need to retry once the
+    // object becomes available.
+    const hasActiveSelection = !!(selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined)
+      || !!(hoveredUnit && !selectedUnit);
+    const needsRetry = hasActiveSelection && currentGlowMeshesRef.current.length === 0;
+
+    if (selectionKey !== prevSelectionKeyRef.current || needsRetry) {
       prevSelectionKeyRef.current = selectionKey;
 
       const oldMeshes = [...currentGlowMeshesRef.current];
@@ -117,10 +121,12 @@ export const UnitGlowHighlightFixed = () => {
       newMeshes.forEach(mesh => {
         glowGroupRef.current?.add(mesh);
       });
-      currentGlowMeshesRef.current = newMeshes;
 
-      // THEN dispose old meshes
-      disposeMeshes(oldMeshes);
+      // Only dispose old meshes if we actually have new ones (or selection cleared)
+      if (newMeshes.length > 0 || !hasActiveSelection) {
+        currentGlowMeshesRef.current = newMeshes;
+        disposeMeshes(oldMeshes);
+      }
     }
   });
 
