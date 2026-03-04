@@ -5,11 +5,9 @@ import * as THREE from 'three';
 import { createGlowMaterial } from '../materials/glowMaterial';
 
 export const UnitGlowHighlightFixed = () => {
-  const { selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, getGLBByUnit, glbNodes } = useGLBState();
   const glowGroupRef = useRef<THREE.Group>(null);
   const currentGlowMeshesRef = useRef<THREE.Mesh[]>([]);
   const glowMaterialRef = useRef<THREE.Material | null>(null);
-  const glowFadeRef = useRef<number>(0); // 0 = invisible, 1 = fully visible
 
   // Track previous selection to detect changes inside useFrame
   const prevSelectionKeyRef = useRef<string>('');
@@ -77,11 +75,19 @@ export const UnitGlowHighlightFixed = () => {
     });
   };
 
-  // ALL glow logic in useFrame — runs in the SAME frame as GLBManager and other
-  // visibility changes. This eliminates the useEffect timing gap that caused
-  // the black flash (useEffect runs AFTER render, useFrame runs DURING).
-  useFrame((_, delta) => {
+  // ALL glow logic in useFrame — reads DIRECTLY from Zustand store (not React
+  // closure) so state changes are visible in the SAME frame, with zero delay.
+  // Previous approach used closure values which lagged 1-2 frames behind the
+  // actual store, causing the black flash.
+  useFrame(() => {
     if (!glowGroupRef.current || !glowMaterialRef.current) return;
+
+    // Read DIRECTLY from the Zustand store — bypasses React render cycle.
+    // This is the critical fix: useGLBState.getState() returns the current
+    // store snapshot synchronously, so we see state changes in the same
+    // frame they happen (no waiting for React to re-render).
+    const state = useGLBState.getState();
+    const { selectedUnit, selectedBuilding, selectedFloor, hoveredUnit } = state;
 
     // Build a key that changes when the selection/hover changes
     const selectionKey = `${selectedUnit}|${selectedBuilding}|${selectedFloor}|${hoveredUnit}`;
@@ -96,12 +102,12 @@ export const UnitGlowHighlightFixed = () => {
       let newMeshes: THREE.Mesh[] = [];
 
       if (selectedUnit && selectedBuilding && selectedFloor !== null && selectedFloor !== undefined) {
-        const unitGLB = getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
+        const unitGLB = state.getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
         if (unitGLB) {
           newMeshes = createGlowMeshFromUnit(unitGLB);
         }
       } else if (hoveredUnit && !selectedUnit) {
-        const hoveredUnitGLB = glbNodes.get(hoveredUnit);
+        const hoveredUnitGLB = state.glbNodes.get(hoveredUnit);
         if (hoveredUnitGLB) {
           newMeshes = createGlowMeshFromUnit(hoveredUnitGLB);
         }
@@ -112,22 +118,9 @@ export const UnitGlowHighlightFixed = () => {
         glowGroupRef.current?.add(mesh);
       });
       currentGlowMeshesRef.current = newMeshes;
-      glowFadeRef.current = 1; // Already at full opacity
 
       // THEN dispose old meshes
       disposeMeshes(oldMeshes);
-    }
-
-    // Fade logic (only needed if we ever start below 1)
-    if (currentGlowMeshesRef.current.length > 0 && glowFadeRef.current < 1) {
-      glowFadeRef.current = Math.min(1, glowFadeRef.current + delta * 10);
-      const t = glowFadeRef.current;
-      currentGlowMeshesRef.current.forEach(mesh => {
-        if (mesh.material && 'opacity' in mesh.material) {
-          const target = mesh.userData.targetOpacity ?? 1.0;
-          (mesh.material as THREE.MeshBasicMaterial).opacity = t * target;
-        }
-      });
     }
   });
 
