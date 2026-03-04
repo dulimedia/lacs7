@@ -35,6 +35,7 @@ export interface GLBState {
 
   // Camera animation state
   isCameraAnimating: boolean;
+  _cameraAnimationGen: number; // Generation counter to prevent stale callbacks
   lastCameraTarget: string | null;
 
 
@@ -140,6 +141,7 @@ export const useGLBState = create<GLBState>((set, get) => ({
   totalCount: 0,
   cameraControlsRef: null,
   isCameraAnimating: false,
+  _cameraAnimationGen: 0,
   lastCameraTarget: null,
 
   // Actions
@@ -582,8 +584,9 @@ export const useGLBState = create<GLBState>((set, get) => ({
       }
     }
 
-    // Set animation state
-    set({ isCameraAnimating: true });
+    // Set animation state with generation counter to prevent stale callbacks
+    const gen = get()._cameraAnimationGen + 1;
+    set({ isCameraAnimating: true, _cameraAnimationGen: gen });
 
     // MOBILE OPTIMIZATION: Use instant positioning instead of animation to prevent GPU pressure
     const isMobile = window.innerWidth < 768;
@@ -850,30 +853,36 @@ export const useGLBState = create<GLBState>((set, get) => ({
           true // Enable smooth animation
         );
 
-        // Clear animation state when completed
+        // Clear animation state when completed — only if this is still the active animation
+        // (prevents a cancelled animation's callback from clobbering a newer animation)
         if (animationPromise && typeof animationPromise.then === 'function') {
           animationPromise.then(() => {
-            set({ isCameraAnimating: false });
-            logger.log('CAMERA', '✅', 'Camera animation completed');
+            if (get()._cameraAnimationGen === gen) {
+              set({ isCameraAnimating: false });
+              logger.log('CAMERA', '✅', 'Camera animation completed');
+            }
           }).catch((error) => {
-            set({ isCameraAnimating: false });
-            logger.warn('CAMERA', '⚠️', 'Camera animation error:', error);
+            if (get()._cameraAnimationGen === gen) {
+              set({ isCameraAnimating: false });
+              logger.warn('CAMERA', '⚠️', 'Camera animation error:', error);
+            }
           });
         } else {
           // Fallback for non-promise setLookAt
           setTimeout(() => {
-            set({ isCameraAnimating: false });
-          }, 1000); // Assume 1 second max animation time
+            if (get()._cameraAnimationGen === gen) {
+              set({ isCameraAnimating: false });
+            }
+          }, 1000);
         }
 
         // Additional fallback to ensure animation state ALWAYS resets
         setTimeout(() => {
-          const currentState = get();
-          if (currentState.isCameraAnimating) {
+          if (get()._cameraAnimationGen === gen && get().isCameraAnimating) {
             console.warn('🔧 Force-resetting stuck camera animation state');
             set({ isCameraAnimating: false });
           }
-        }, 2000); // Force reset after 2 seconds maximum
+        }, 2000);
       }
 
       logger.log('CAMERA', '📷', `Positioned camera for ${building}:`, {

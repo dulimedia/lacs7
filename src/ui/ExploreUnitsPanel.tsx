@@ -208,9 +208,6 @@ const FloorNode: React.FC<FloorNodeProps> = ({
           unit: glbUnitName
         });
         selectUnit(unitData.building, unitData.floor, glbUnitName);
-
-        const { centerCameraOnUnit } = useGLBState.getState();
-        centerCameraOnUnit(unitData.building, unitData.floor, glbUnitName);
       }
 
       // Navigate to details view if we have the handler
