@@ -443,7 +443,7 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
           frameloop={SAFE || PerfFlags.isMobile ? 'demand' : !tabVisible ? 'never' : canvasProps.frameloop || 'always'}
           performance={PerfFlags.isMobile ? { min: 0.25, max: 0.75, debounce: 200 } : { min: 0.5, max: 1, debounce: 40 }}
           shadows={SAFE ? false : PerfFlags.SHADOWS_ENABLED}
-          resize={{ scroll: true, debounce: { scroll: 50, resize: 0 } }}
+          resize={{ scroll: true, debounce: { scroll: 50, resize: PerfFlags.isMobile ? 300 : 50 } }}
           style={{ width: '100%', height: '100%' }}
         >
           <MobilePerfScope />

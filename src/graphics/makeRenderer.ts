@@ -111,6 +111,12 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
 
   renderer.setPixelRatio(DPR);
 
+  // Debounced resize — prevents rapid setSize() calls during orientation changes
+  // that can cause WebGL context loss on mobile. CanvasResizeHandler also handles
+  // resize with its own debounce; this is a safety net for the renderer buffer.
+  let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+  const isMobile = tier.startsWith('mobile');
+
   function resize() {
     const sceneContainer = document.querySelector('.scene-shell') as HTMLElement;
 
@@ -126,11 +132,16 @@ function configureRenderer(renderer: THREE.WebGLRenderer, canvas: HTMLCanvasElem
 
     if (w > 0 && h > 0) {
       renderer.setSize(w, h, false);  // Only set renderer buffer
-      // Let CSS/R3F handle DOM size (width/height: 100%)
     }
   }
-  window.addEventListener('resize', () => requestAnimationFrame(resize));
-  resize();
+
+  function debouncedResize() {
+    if (resizeTimeout) clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resize, isMobile ? 300 : 50);
+  }
+
+  window.addEventListener('resize', debouncedResize);
+  resize(); // Initial size
 
   // Context loss handling
   canvas.addEventListener('webglcontextlost', (e) => {
