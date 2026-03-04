@@ -254,21 +254,18 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   selectBuilding: (building: string | null) => {
     const { glbNodes } = get();
+    const updatedNodes = new Map(glbNodes);
 
-    // Reset all GLBs to invisible first
-    glbNodes.forEach((node, key) => {
-      get().setGLBState(key, 'invisible');
+    updatedNodes.forEach((node, key) => {
+      const shouldGlow = building && node.building === building;
+      const newState = shouldGlow ? 'glowing' : 'invisible';
+      if (node.state !== newState) {
+        updatedNodes.set(key, { ...node, state: newState as GLBVisibilityState });
+      }
     });
 
-    if (building) {
-      // Set building GLBs to glowing
-      const buildingUnits = get().getGLBsByBuilding(building);
-      buildingUnits.forEach(node => {
-        get().setGLBState(node.key, 'glowing');
-      });
-    }
-
     set({
+      glbNodes: updatedNodes,
       selectedBuilding: building,
       selectedFloor: null,
       selectedUnit: null
@@ -277,20 +274,25 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   selectFloor: (building: string | null, floor: string | null) => {
     const { glbNodes } = get();
+    const updatedNodes = new Map(glbNodes);
 
-    // Reset all GLBs to invisible first
-    glbNodes.forEach((node, key) => {
-      get().setGLBState(key, 'invisible');
-    });
-
+    // Build set of floor unit keys for O(1) lookup
+    const floorKeys = new Set<string>();
     if (building && floor) {
-      // Set floor GLBs to glowing
       get().getGLBsByFloor(building, floor).forEach(node => {
-        get().setGLBState(node.key, 'glowing');
+        floorKeys.add(node.key);
       });
     }
 
+    updatedNodes.forEach((node, key) => {
+      const newState = floorKeys.has(key) ? 'glowing' : 'invisible';
+      if (node.state !== newState) {
+        updatedNodes.set(key, { ...node, state: newState as GLBVisibilityState });
+      }
+    });
+
     set({
+      glbNodes: updatedNodes,
       selectedBuilding: building,
       selectedFloor: floor,
       selectedUnit: null
@@ -353,53 +355,51 @@ export const useGLBState = create<GLBState>((set, get) => ({
   },
 
   hoverUnit: (building: string | null, floor: string | null, unit: string | null) => {
-    const { selectedUnit, selectedBuilding, selectedFloor } = get();
-    const { glbNodes } = get();
+    const { selectedUnit, selectedBuilding, selectedFloor, glbNodes } = get();
 
     if (building && unit) {
       const key = buildNodeKey(building, floor ?? null, unit);
       const hoveredNode = glbNodes.get(key);
-      if (!hoveredNode) {
-        return;
-      }
+      if (!hoveredNode) return;
 
-      set({ hoveredUnit: key });
-
-      glbNodes.forEach((node, nodeKey) => {
-        get().setGLBState(nodeKey, 'invisible');
+      // Single Map pass: only hovered unit glows, rest invisible
+      const updatedNodes = new Map(glbNodes);
+      updatedNodes.forEach((node, nodeKey) => {
+        const newState = nodeKey === key ? 'glowing' : 'invisible';
+        if (node.state !== newState) {
+          updatedNodes.set(nodeKey, { ...node, state: newState as GLBVisibilityState });
+        }
       });
 
-      get().setGLBState(key, 'glowing');
+      set({ glbNodes: updatedNodes, hoveredUnit: key });
     } else {
-      // Clear hover
-      set({ hoveredUnit: null });
+      // Clear hover — restore previous selection state in a single batch
+      const updatedNodes = new Map(glbNodes);
 
-      // Restore previous selection state when hover is cleared
-      // IMPORTANT: Don't call selectUnit as it might trigger camera movement
-      // Just restore the visual highlighting state directly
+      // Determine which keys should glow based on current selection
+      const glowKeys = new Set<string>();
+
       if (selectedUnit) {
-        // Hide all units first
-        glbNodes.forEach((node, nodeKey) => {
-          get().setGLBState(nodeKey, 'invisible');
-        });
-
-        // Then show only the selected unit (no camera movement)
         const unitGLB = get().getGLBByUnit(selectedBuilding, selectedFloor, selectedUnit);
-        if (unitGLB) {
-          get().setGLBState(unitGLB.key, 'glowing');
-        }
-      } else if (selectedFloor) {
-        // Restore floor selection
-        get().selectFloor(selectedBuilding, selectedFloor);
+        if (unitGLB) glowKeys.add(unitGLB.key);
+      } else if (selectedFloor && selectedBuilding) {
+        get().getGLBsByFloor(selectedBuilding, selectedFloor).forEach(node => {
+          glowKeys.add(node.key);
+        });
       } else if (selectedBuilding) {
-        // Restore building selection
-        get().selectBuilding(selectedBuilding);
-      } else {
-        // No selections, hide all
-        glbNodes.forEach((node, key) => {
-          get().setGLBState(key, 'invisible');
+        get().getGLBsByBuilding(selectedBuilding).forEach(node => {
+          glowKeys.add(node.key);
         });
       }
+
+      updatedNodes.forEach((node, nodeKey) => {
+        const newState = glowKeys.has(nodeKey) ? 'glowing' : 'invisible';
+        if (node.state !== newState) {
+          updatedNodes.set(nodeKey, { ...node, state: newState as GLBVisibilityState });
+        }
+      });
+
+      set({ glbNodes: updatedNodes, hoveredUnit: null });
     }
   },
 
@@ -416,14 +416,12 @@ export const useGLBState = create<GLBState>((set, get) => ({
 
   clearSelection: () => {
     const { glbNodes } = get();
+    const updatedNodes = new Map(glbNodes);
 
     // Reset all GLBs to invisible and dispose of object references to free memory
-    glbNodes.forEach((node, key) => {
-      get().setGLBState(key, 'invisible');
-
+    updatedNodes.forEach((node, key) => {
       // Dispose of the loaded GLB object to free memory if it exists
       if (node.object) {
-        // Traverse and dispose of materials and geometries
         node.object.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             if (child.geometry) child.geometry.dispose();
@@ -434,18 +432,19 @@ export const useGLBState = create<GLBState>((set, get) => ({
             }
           }
         });
-        // Clear the object reference
-        node.object = undefined;
       }
+
+      updatedNodes.set(key, { ...node, state: 'invisible' as const, object: undefined });
     });
 
     set({
+      glbNodes: updatedNodes,
       selectedBuilding: null,
       selectedFloor: null,
       selectedUnit: null,
       hoveredUnit: null,
       hoveredFloor: null,
-      isCameraAnimating: false // Reset animation state to allow fresh selections
+      isCameraAnimating: false
     });
   },
 

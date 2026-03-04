@@ -71,22 +71,13 @@ function FloorplanPreview({ url, title, label, onShare, unitName }: { url: strin
     );
   }
 
-  // No PNG available: for PDFs show iframe, for images show directly
+  // No PNG available: show buttons only (no PDF iframe — too slow/laggy in sidebar)
   if (isPdf) {
     return (
       <div className="space-y-2">
-        <div className="relative rounded-lg overflow-hidden border border-black/10 bg-gray-50 group" style={{ contain: 'layout style paint' }}>
-          <iframe
-            src={`${url}#view=FitH&toolbar=0&navpanes=0`}
-            title={title}
-            className="w-full border-0"
-            style={{ height: '50vh', maxHeight: '400px', minHeight: '250px' }}
-            loading="lazy"
-          />
-        </div>
         <div className="flex items-center gap-2">
           <a href={`${url}#view=FitH`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
-            <Maximize2 size={14} /> View PDF
+            <Maximize2 size={14} /> View Full PDF
           </a>
           <a href={url} download className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-xs font-medium transition-colors text-gray-700 decoration-0">
             <Download size={14} /> Download

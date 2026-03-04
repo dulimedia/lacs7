@@ -462,7 +462,7 @@ export function getFloorplanUrl(unitName: string, unitData?: any): string | null
 const PNG_BASE = 'floorplans/converted';
 
 const PNG_UNIT_MAP: Record<string, string> = {
-  // Fifth Street individual units
+  // Fifth Street individual units (have dedicated PNGs)
   'f10': `${PNG_BASE}/f10.png`,
   'f100': `${PNG_BASE}/f100.png`,
   'f105': `${PNG_BASE}/f105.png`,
@@ -490,7 +490,25 @@ const PNG_UNIT_MAP: Record<string, string> = {
   'f363': `${PNG_BASE}/f363.png`,
   'f365': `${PNG_BASE}/f365.png`,
   'f380': `${PNG_BASE}/f380.png`,
-  // Maryland individual units
+
+  // Fifth Street Ground Floor units (no individual PNG — use floor-level PNG)
+  'f15': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f20': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f25': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f30': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f35': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f40': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f50': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f60': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'f70': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+
+  // Fifth Street Ground Floor amenities
+  'club76': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'flounge': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'fglibrary': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+  'fgrestroom': `${PNG_BASE}/FGFloor_LACS_page_1.png`,
+
+  // Maryland individual units (have dedicated PNGs)
   'm120': `${PNG_BASE}/m120.png`,
   'm130': `${PNG_BASE}/m130.png`,
   'm140': `${PNG_BASE}/m140.png`,
@@ -511,6 +529,45 @@ const PNG_UNIT_MAP: Record<string, string> = {
   'm340': `${PNG_BASE}/m340.png`,
   'm345': `${PNG_BASE}/m345.png`,
   'm350': `${PNG_BASE}/m350.png`,
+
+  // Maryland Ground Floor units (no individual PNG — use floor-level PNG)
+  'm20': `${PNG_BASE}/MG_Full.png`,
+  'm40': `${PNG_BASE}/MG_Full.png`,
+  'm45': `${PNG_BASE}/MG_Full.png`,
+  'm50': `${PNG_BASE}/MG_Full.png`,
+  'etlab': `${PNG_BASE}/MG_Full.png`,
+  'studioom': `${PNG_BASE}/MG_Full.png`,
+  'mgstage7': `${PNG_BASE}/MG_Full.png`,
+
+  // Tower units with individual PNGs
+  't200': `${PNG_BASE}/LACS_T-200_M1_Color_page_1.png`,
+  't210': `${PNG_BASE}/LACS_T-210_M1_Color_page_1.png`,
+  't220': `${PNG_BASE}/LACS_T-220_M1_Color_page_1.png`,
+  't230': `${PNG_BASE}/LACS_T-230_M1_Color_page_1.png`,
+  't310': `${PNG_BASE}/LACS_T-310_M1_Color_Compressed_page_1.png`,
+  't340': `${PNG_BASE}/LACS_T-340_M1_Color_Compressed_page_1.png`,
+  't400': `${PNG_BASE}/LACS_T-400_M1_Color_Compressed_page_1.png`,
+  't410': `${PNG_BASE}/LACS_T-410_M1_Color_Compressed_page_1.png`,
+  't420': `${PNG_BASE}/LACS_T-420_M1_Color_Compressed_page_1.png`,
+  't430': `${PNG_BASE}/LACS_T-430_M1_Color_Compressed_page_1.png`,
+  't450': `${PNG_BASE}/LACS_T-450_M1_Color_Compressed_page_1.png`,
+
+  // Tower units without individual PNGs — use floor-level PNG
+  't100': `${PNG_BASE}/LACS_Floor 1_M1_Color_page_1.png`,
+  't110': `${PNG_BASE}/LACS_Floor 1_M1_Color_page_1.png`,
+  't300': `${PNG_BASE}/LACS_Floor 3_Color_page_1.png`,
+  't320': `${PNG_BASE}/LACS_Floor 3_Color_page_1.png`,
+  't500': `${PNG_BASE}/LACS_Floor 5_M1_Color_page_1.png`,
+  't530': `${PNG_BASE}/LACS_Floor 5_M1_Color_page_1.png`,
+  't550': `${PNG_BASE}/LACS_Floor 5_M1_Color_page_1.png`,
+  't600': `${PNG_BASE}/LACS_Floor 6_M1_Color_page_1.png`,
+  't700': `${PNG_BASE}/LACS_Floor 7_M1_Color_page_1.png`,
+  't800': `${PNG_BASE}/LACS_Floor 8_M1_Color_page_1.png`,
+  't900': `${PNG_BASE}/LACS_Floor 9_M1_Color_page_1.png`,
+  't950': `${PNG_BASE}/LACS_Floor 9_M1_Color_page_1.png`,
+  't1000': `${PNG_BASE}/LACS_Floor 10_M1_Color_page_1.png`,
+  't1100': `${PNG_BASE}/LACS_Floor 11_M1_Color_page_1.png`,
+  't1200': `${PNG_BASE}/LACS_Floor 12_M1_Color_page_1.png`,
 };
 
 export function getPngPreviewUrl(unitName: string): string | null {

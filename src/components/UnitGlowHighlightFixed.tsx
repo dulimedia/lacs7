@@ -233,10 +233,18 @@ export const UnitGlowHighlightFixed = () => {
       return;
     }
 
-    // Clear old glow and apply new one in a single step to prevent white flash
+    // Clear old glow and apply new one in a single step to prevent black flash
     clearGlowMeshes();
-    glowFadeRef.current = 0; // Reset fade so new meshes fade in from 0
     performGlowUpdate();
+    glowFadeRef.current = 0.85; // Start near-full opacity — bloom is disabled so no blowout risk
+
+    // Apply initial opacity immediately so first frame renders visible (not 0)
+    currentGlowMeshesRef.current.forEach(mesh => {
+      if (mesh.material && 'opacity' in mesh.material) {
+        const target = mesh.userData.targetOpacity ?? 1.0;
+        (mesh.material as THREE.MeshBasicMaterial).opacity = 0.85 * target;
+      }
+    });
   }, [selectedUnit, selectedBuilding, selectedFloor, hoveredUnit, performGlowUpdate]);
 
   // Fade in glow meshes gradually to prevent Bloom blowout / white flash
@@ -244,8 +252,8 @@ export const UnitGlowHighlightFixed = () => {
     if (currentGlowMeshesRef.current.length === 0) return;
     if (glowFadeRef.current >= 1) return;
 
-    // Ramp from 0 to 1 over ~0.6 seconds (slower to prevent Bloom blowout)
-    glowFadeRef.current = Math.min(1, glowFadeRef.current + delta * 1.7);
+    // Ramp to 1 quickly (~100ms) — bloom is disabled so no blowout risk
+    glowFadeRef.current = Math.min(1, glowFadeRef.current + delta * 10);
     const t = glowFadeRef.current;
 
     currentGlowMeshesRef.current.forEach(mesh => {
