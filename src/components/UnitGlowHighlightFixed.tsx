@@ -8,6 +8,8 @@ export const UnitGlowHighlightFixed = () => {
   const glowGroupRef = useRef<THREE.Group>(null);
   const currentGlowMeshesRef = useRef<THREE.Mesh[]>([]);
   const glowMaterialRef = useRef<THREE.Material | null>(null);
+  // Old glow meshes kept alive during camera animation to prevent flash
+  const pendingDisposalRef = useRef<THREE.Mesh[]>([]);
 
   // The selectionKey that the CURRENT glow meshes were successfully built for.
   // This is only updated when glow meshes are actually created (or selection cleared).
@@ -117,28 +119,44 @@ export const UnitGlowHighlightFixed = () => {
       || !!(hoveredUnit && !selectedUnit);
 
     if (newMeshes.length > 0) {
-      // SUCCESS — swap glow meshes
+      // SUCCESS — swap glow meshes. Keep old meshes alive during camera animation
+      // to prevent flash (old glow stays visible while camera pans to new unit).
       const oldMeshes = [...currentGlowMeshesRef.current];
       newMeshes.forEach(mesh => glowGroupRef.current?.add(mesh));
       currentGlowMeshesRef.current = newMeshes;
       resolvedKeyRef.current = selectionKey;
-      disposeMeshes(oldMeshes);
+      if (state.isCameraAnimating) {
+        pendingDisposalRef.current.push(...oldMeshes);
+      } else {
+        disposeMeshes(oldMeshes);
+      }
     } else if (!hasActiveSelection) {
       // Selection cleared — remove all glow
       const oldMeshes = [...currentGlowMeshesRef.current];
       currentGlowMeshesRef.current = [];
       resolvedKeyRef.current = selectionKey;
       disposeMeshes(oldMeshes);
+      // Also clean up any pending disposal
+      disposeMeshes(pendingDisposalRef.current);
+      pendingDisposalRef.current = [];
     }
     // else: active selection but object not loaded yet — keep old glow visible,
     // DON'T update resolvedKeyRef so we retry next frame
+
+    // Dispose old glow meshes once camera animation finishes
+    if (!state.isCameraAnimating && pendingDisposalRef.current.length > 0) {
+      disposeMeshes(pendingDisposalRef.current);
+      pendingDisposalRef.current = [];
+    }
   });
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       disposeMeshes(currentGlowMeshesRef.current);
+      disposeMeshes(pendingDisposalRef.current);
       currentGlowMeshesRef.current = [];
+      pendingDisposalRef.current = [];
       if (glowMaterialRef.current) {
         glowMaterialRef.current.dispose();
       }
