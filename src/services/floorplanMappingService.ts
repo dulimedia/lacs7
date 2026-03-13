@@ -242,7 +242,15 @@ export const FIFTH_STREET_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan
     floorFloorplan: fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf'),
     combinedFloorplan: fifthStreetPath('ground-floor', 'LACS_FG_Lounge_Suite and Floor Plan.pdf')
   },
+  'lounge': {
+    floorFloorplan: fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf'),
+    combinedFloorplan: fifthStreetPath('ground-floor', 'LACS_FG_Lounge_Suite and Floor Plan.pdf')
+  },
   'fglibrary': {
+    floorFloorplan: fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf'),
+    combinedFloorplan: fifthStreetPath('ground-floor', 'LACS_FG_Library_Suite and Floor Plan.pdf')
+  },
+  'library': {
     floorFloorplan: fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf'),
     combinedFloorplan: fifthStreetPath('ground-floor', 'LACS_FG_Library_Suite and Floor Plan.pdf')
   },
@@ -338,7 +346,9 @@ const SPECIAL_MAPPINGS: { [key: string]: string } = {
   'm45': marylandPath('ground-floor', 'MG Floorplan.pdf'),
   // Fifth Ground -> FG (which we know is LACS_FG...)
   'flounge': fifthStreetPath('ground-floor', 'LACS_FG_Lounge_Suite and Floor Plan.pdf'),
+  'lounge': fifthStreetPath('ground-floor', 'LACS_FG_Lounge_Suite and Floor Plan.pdf'),
   'fglibrary': fifthStreetPath('ground-floor', 'LACS_FG_Library_Suite and Floor Plan.pdf'),
+  'library': fifthStreetPath('ground-floor', 'LACS_FG_Library_Suite and Floor Plan.pdf'),
   'fgrestroom': fifthStreetPath('ground-floor', 'LACS_FG Floor Plan_M1_Color_Compressed.pdf'),
 };
 
@@ -346,7 +356,7 @@ const SPECIAL_MAPPINGS: { [key: string]: string } = {
 export function isFifthStreetGroundFloorUnit(unitName: string): boolean {
   if (!unitName) return false;
   const cleanName = cleanUnitName(unitName);
-  const groundFloorUnits = ['f10', 'f15', 'f20', 'f25', 'f30', 'f35', 'f40', 'f50', 'f60', 'f70', 'club76', 'flounge', 'fglibrary', 'fgrestroom'];
+  const groundFloorUnits = ['f10', 'f15', 'f20', 'f25', 'f30', 'f35', 'f40', 'f50', 'f60', 'f70', 'club76', 'flounge', 'lounge', 'fglibrary', 'library', 'fgrestroom'];
   return groundFloorUnits.includes(cleanName) || cleanName.includes('club76');
 }
 
@@ -516,7 +526,9 @@ const PNG_UNIT_MAP: Record<string, string[]> = {
   // Fifth Street Ground Floor amenities
   'club76': [`${PNG_BASE}/FGFloor_LACS_page_1.png`],
   'flounge': [`${PNG_BASE}/flounge_page_1.png`, `${PNG_BASE}/flounge_page_2.png`, `${PNG_BASE}/flounge_page_3.png`],
+  'lounge': [`${PNG_BASE}/flounge_page_1.png`, `${PNG_BASE}/flounge_page_2.png`, `${PNG_BASE}/flounge_page_3.png`],
   'fglibrary': [`${PNG_BASE}/fglibrary_page_1.png`, `${PNG_BASE}/fglibrary_page_2.png`, `${PNG_BASE}/fglibrary_page_3.png`],
+  'library': [`${PNG_BASE}/fglibrary_page_1.png`, `${PNG_BASE}/fglibrary_page_2.png`, `${PNG_BASE}/fglibrary_page_3.png`],
   'fgrestroom': [`${PNG_BASE}/FGFloor_LACS_page_1.png`],
 
   // Maryland — units with combined "Suite and Floor Plan" PDFs (3 pages)
