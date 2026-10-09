@@ -12,7 +12,6 @@ import { installDegradePolicy } from '../perf/FrameGovernor';
 import { log, SAFE } from '../lib/debug';
 import { MobileDiagnostics } from '../debug/mobileDiagnostics';
 import { PerfFlags } from '../perf/PerfFlags';
-import { MemoryProfiler } from '../debug/MemoryProfiler';
 
 export type RootCanvasProps = Omit<CanvasProps, 'children' | 'gl' | 'dpr'> & {
   children: ReactNode | ((tier: Tier) => ReactNode);
@@ -449,8 +448,6 @@ export function RootCanvas({ children, gl: glProp, onTierChange, ...canvasProps 
           <MobilePerfScope />
           <AdaptivePerf tier={tier} />
           <RendererInfo />
-          {/* MemoryProfiler disabled after successful optimization */}
-          {/* <MemoryProfiler /> */}
           {resolvedChildren}
         </Canvas>
       </CanvasWatchdog>

@@ -2,52 +2,34 @@ import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import ReactDOM from 'react-dom';
 import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { CameraControls, Environment, useGLTF } from '@react-three/drei';
+import { CameraControls } from '@react-three/drei';
 import { detectDevice, getMobileOptimizedSettings } from './utils/deviceDetection';
 import { MobileMemoryManager } from './utils/memoryManager';
 import { PerfFlags } from './perf/PerfFlags';
-import { UNIT_BOX_GLB_FILES } from './data/unitBoxGlbFiles';
 import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Home } from 'lucide-react';
 import { assetUrl } from './lib/assets';
 import { SingleEnvironmentMesh } from './components/SingleEnvironmentMesh';
-import UnitDetailPopup from './components/UnitDetailPopup';
-import { ExploreUnitsPanel } from './ui/ExploreUnitsPanel';
 import Sidebar from './ui/Sidebar/Sidebar';
 import { GLBManager } from './components/GLBManager';
 import { FrustumCuller } from './components/FrustumCuller';
-import { UnitDetailsPopup } from './components/UnitDetailsPopup';
-import { Unit3DPopup } from './components/Unit3DPopup';
-import { Unit3DPopupOverlay } from './components/Unit3DPopupOverlay';
 import { UnitRequestSidebar } from './components/UnitRequestSidebar';
 import { ShareFloorplanModal } from './components/ShareFloorplanModal';
 import { FloorplanPopup } from './components/FloorplanPopup';
-import { UnitRequestForm } from './components/UnitRequestForm';
-// import { SelectedUnitOverlay } from './components/SelectedUnitOverlay';
 import { UnitGlowHighlightFixed } from './components/UnitGlowHighlightFixed';
-import { CanvasClickHandler } from './components/CanvasClickHandler';
 import { CanvasResizeHandler } from './components/CanvasResizeHandler';
 import { HoverToast } from './ui/HoverToast';
-import { UnitHoverPreview } from './components/UnitHoverPreview';
 import { SafariErrorBoundary } from './components/SafariErrorBoundary';
 import { MobileErrorBoundary } from './components/MobileErrorBoundary';
 import { SafariDebugBanner } from './components/SafariDebugBanner';
 import { FloorplanContext } from './contexts/FloorplanContext';
-import { FlashKiller } from './components/FlashKiller';
-import { Lighting } from './scene/Lighting';
-import { ShadowHelper } from './components/ShadowHelper';
-import { Effects } from './components/Effects';
 // Performance-based lighting and effects
 import { AdaptiveLighting } from './components/lighting/AdaptiveLighting';
 import { SoftShadowsController } from './components/lighting/SoftShadowsController';
-{/* <AtmosphericFog /> - Disabled per user request ("eliminate god rays") */ }
 import { AdaptiveEffects } from './components/postprocessing/AdaptiveEffects';
 import { MobileEnvironment } from './components/MobileEnvironment';
-import { lazy, Suspense } from 'react';
-const PathTracer = lazy(() => import('./components/pathtracer/PathTracer').then(m => ({ default: m.PathTracer })));
 import { useFaceDebugHotkey } from './hooks/useFaceDebugHotkey';
 import { useUnitStore } from './stores/useUnitStore';
 import { useSidebarState } from './ui/Sidebar/useSidebarState';
-import { useFlashPrevention } from './hooks/useFlashPrevention';
 import { useExploreState, buildUnitsIndex, type UnitRecord } from './store/exploreState';
 import { useGLBState } from './store/glbState';
 import { useCsvUnitData } from './hooks/useCsvUnitData';
@@ -58,14 +40,9 @@ import { RootCanvas } from './ui/RootCanvas';
 import type { Tier } from './lib/graphics/tier';
 import { ErrorLogDisplay } from './components/ErrorLogDisplay';
 import { PerformanceGovernorComponent } from './components/PerformanceGovernorComponent';
-import { WebGLRecovery } from './components/WebGLRecovery';
 import { WebGLContextRecovery } from './components/WebGLContextRecovery';
 import { log as debugLog, SAFE, Q } from './lib/debug';
-import { UNIT_CAMERA_CONFIG } from './config/cameraConfig';
 import { MobileDiagnostics } from './debug/mobileDiagnostics';
-import { LayoutDebugger } from './debug/LayoutDebugger';
-import { CanvasSizeProbe } from './components/CanvasSizeProbe';
-import { loadUnitData, UnitDataItem } from './data/UnitDataLoader';
 
 
 // Component to capture scene and gl refs + setup safety
@@ -101,195 +78,9 @@ const SceneCapture = ({ sceneRef, glRef }: { sceneRef: React.RefObject<THREE.Sce
   return null;
 };
 
-// Material setup removed - materials handled by UnitWarehouse component
-
-// Adaptive pixel ratio component for performance optimization
-function AdaptivePixelRatio() {
-  const current = useThree((state) => state.performance.current);
-  const setPixelRatio = useThree((state) => state.setDpr);
-  useEffect(() => {
-    setPixelRatio(window.devicePixelRatio * current);
-  }, [current, setPixelRatio]);
-  return null;
-}
 
 // Google Sheets CSV export URL - live data source
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSeevbF2MkJT1nwQWjtv69cGMSELhP8kO61aTI1BHT29rKNImpQXIqJ3NjdIfewPwYW1JKmZ1TKdVkU/pub?output=csv';
-
-// Legacy HDRI Environment component - kept for fallback but not used by default
-const LegacyHDRIEnvironment = React.memo(() => {
-  return (
-    <Environment
-      files={assetUrl("textures/qwantani_noon_puresky_2k.hdr")}
-      background={false} // Sky component handles background
-      backgroundIntensity={0.8}
-      environmentIntensity={0.35} // Reduced for realism
-      backgroundBlurriness={0.0}
-      backgroundRotation={[0, 0, 0]}
-      resolution={1024}
-    />
-  );
-});
-
-// Simple Error Boundary for HDRI loading
-class HDRIErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: any, errorInfo: any) {
-  }
-
-  render() {
-    if (this.state.hasError) {
-      // Fallback to simple gradient background
-      return <color attach="background" args={['#87CEEB']} />;
-    }
-
-    return this.props.children;
-  }
-}
-
-// Comprehensive unit data based on actual GLB files in boxes folder
-export const FALLBACK_UNIT_DATA = {
-  // F-Series (Floor Units)  
-  'f-10': { name: 'f-10', size: '1,200 sq ft', availability: 'Available', amenities: 'Ground floor unit with loading dock access', glb: 'boxes/Fifth Street Building/Ground Floor/F-10.glb' },
-  'f-15': { name: 'f-15', size: '1,500 sq ft', availability: 'Available', amenities: 'Large ground floor space', glb: 'boxes/Fifth Street Building/Ground Floor/F-15.glb' },
-  'f-20': { name: 'f-20', size: '1,800 sq ft', availability: 'Occupied', amenities: 'Premium floor unit', glb: 'boxes/Fifth Street Building/Ground Floor/F-20.glb' },
-  'f-25': { name: 'f-25', size: '1,400 sq ft', availability: 'Available', amenities: 'Standard floor unit', glb: 'boxes/Fifth Street Building/Ground Floor/F-25.glb' },
-  'f-30': { name: 'f-30', size: '2,000 sq ft', availability: 'Available', amenities: 'Large floor unit', glb: 'boxes/Fifth Street Building/Ground Floor/F-30.glb' },
-  'f-35': { name: 'f-35', size: '1,600 sq ft', availability: 'Occupied', amenities: 'Corner floor unit', glb: 'boxes/Fifth Street Building/Ground Floor/F-35.glb' },
-  'f-40': { name: 'f-40', size: '1,300 sq ft', availability: 'Available', amenities: 'Standard floor space', glb: 'boxes/Fifth Street Building/Ground Floor/F-40.glb' },
-  'f-50': { name: 'f-50', size: '1,700 sq ft', availability: 'Available', amenities: 'Large floor space', glb: 'boxes/Fifth Street Building/Ground Floor/F-50.glb' },
-  'f-60': { name: 'f-60', size: '1,400 sq ft', availability: 'Occupied', amenities: 'Mid-size floor unit', glb: 'boxes/Fifth Street Building/Ground Floor/F-60.glb' },
-  'f-70': { name: 'f-70', size: '1,900 sq ft', availability: 'Available', amenities: 'Premium floor space', glb: 'boxes/Fifth Street Building/Ground Floor/F-70.glb' },
-  'f-100': { name: 'f-100', size: '2,200 sq ft', availability: 'Available', amenities: 'Large floor unit with high ceilings', glb: 'boxes/Fifth Street Building/First Floor/F-100.glb', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/f100.png' },
-  'f-105': { name: 'f-105', size: '1,800 sq ft', availability: 'Available', amenities: 'Floor unit with office space', glb: 'boxes/Fifth Street Building/First Floor/F-105.glb', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/f105.png' },
-  'f-110 cr': { name: 'f-110 cr', size: '1,500 sq ft', availability: 'Occupied', amenities: 'Conference room unit', glb: 'boxes/Fifth Street Building/First Floor/F-110 CR.glb' },
-  'f-115': { name: 'f-115', size: '1,600 sq ft', availability: 'Available', amenities: 'Standard floor unit', glb: 'boxes/Fifth Street Building/First Floor/F-115.glb', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/f115.png' },
-  'f-140': { name: 'f-140', size: '2,400 sq ft', availability: 'Available', amenities: 'Extra large floor space', glb: 'boxes/Fifth Street Building/First Floor/F-140.glb', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/f140.png' },
-  'f-150': { name: 'f-150', size: '2,000 sq ft', availability: 'Occupied', amenities: 'Premium floor unit', glb: 'boxes/Fifth Street Building/First Floor/F-150.glb', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/f150.png' },
-  'f-160': { name: 'f-160', size: '1,700 sq ft', availability: 'Available', amenities: 'Large floor space', glb: 'boxes/Fifth Street Building/First Floor/F-160.glb' },
-  'f-170': { name: 'f-170', size: '1,900 sq ft', availability: 'Available', amenities: 'Floor unit with loading access', glb: 'boxes/Fifth Street Building/First Floor/F-170.glb', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/f170.png' },
-  'f-175': { name: 'f-175', size: '1,600 sq ft', availability: 'Available', amenities: 'Mid-size floor unit', glb: 'boxes/Fifth Street Building/First Floor/F-175.glb' },
-  'f-180': { name: 'f-180', size: '2,100 sq ft', availability: 'Occupied', amenities: 'Large premium floor space', glb: 'boxes/Fifth Street Building/First Floor/F-180 .glb' },
-  'f-185': { name: 'f-185', size: '1,800 sq ft', availability: 'Available', amenities: 'Floor unit with office' },
-  'f-187': { name: 'f-187', size: '1,500 sq ft', availability: 'Available', amenities: 'Compact floor unit' },
-  'f-190': { name: 'f-190', size: '2,000 sq ft', availability: 'Available', amenities: 'Large floor space' },
-  'f-200': { name: 'f-200', size: '2,300 sq ft', availability: 'Occupied', amenities: 'Premium large floor unit' },
-  'f-240': { name: 'f-240', size: '2,600 sq ft', availability: 'Available', amenities: 'Extra large floor space' },
-  'f-250': { name: 'f-250', size: '2,400 sq ft', availability: 'Available', amenities: 'Large floor unit' },
-  'f-280': { name: 'f-280', size: '2,800 sq ft', availability: 'Available', amenities: 'Extra large premium floor space', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/f280.png' },
-  'f-290': { name: 'f-290', size: '2,500 sq ft', availability: 'Occupied', amenities: 'Large floor unit' },
-  'f-300': { name: 'f-300', size: '3,000 sq ft', availability: 'Available', amenities: 'Extra large floor space' },
-  'f-330': { name: 'f-330', size: '3,200 sq ft', availability: 'Available', amenities: 'Premium extra large unit' },
-  'f-340': { name: 'f-340', size: '3,400 sq ft', availability: 'Available', amenities: 'Maximum floor space' },
-  'f-350': { name: 'f-350', size: '3,500 sq ft', availability: 'Occupied', amenities: 'Premium maximum floor unit' },
-  'f-360': { name: 'f-360', size: '3,600 sq ft', availability: 'Available', amenities: 'Largest floor space available' },
-  'f-363': { name: 'f-363', size: '3,630 sq ft', availability: 'Available', amenities: 'Custom large floor unit' },
-  'f-365': { name: 'f-365', size: '3,650 sq ft', availability: 'Available', amenities: 'Premium large space' },
-  'f-380': { name: 'f-380', size: '3,800 sq ft', availability: 'Occupied', amenities: 'Maximum premium floor space' },
-
-  // M-Series (Mezzanine Units)
-  'm-20': { name: 'm-20', size: '800 sq ft', availability: 'Available', amenities: 'Elevated mezzanine space' },
-  'm-40': { name: 'm-40', size: '1,200 sq ft', availability: 'Available', amenities: 'Large mezzanine unit' },
-  'm-45': { name: 'm-45', size: '1,000 sq ft', availability: 'Occupied', amenities: 'Mid-size mezzanine' },
-  'm-50': { name: 'm-50', size: '1,400 sq ft', availability: 'Available', amenities: 'Large mezzanine space' },
-  'm-120': { name: 'm-120', size: '1,600 sq ft', availability: 'Available', amenities: 'Premium mezzanine unit', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/m120.png' },
-  'm-130': { name: 'm-130', size: '1,800 sq ft', availability: 'Occupied', amenities: 'Large mezzanine space' },
-  'm-140': { name: 'm-140', size: '1,700 sq ft', availability: 'Available', amenities: 'Mezzanine with office space', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/m140.png' },
-  'm-145': { name: 'm-145', size: '1,500 sq ft', availability: 'Available', amenities: 'Mid-size mezzanine' },
-  'm-150': { name: 'm-150', size: '2,000 sq ft', availability: 'Available', amenities: 'Large mezzanine unit', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/converted/m150.png' },
-  'm-160': { name: 'm-160', size: '1,900 sq ft', availability: 'Occupied', amenities: 'Premium mezzanine space' },
-  'm-170': { name: 'm-170', size: '2,100 sq ft', availability: 'Available', amenities: 'Large elevated space' },
-  'm-180': { name: 'm-180', size: '2,200 sq ft', availability: 'Available', amenities: 'Extra large mezzanine' },
-  'm-210': { name: 'm-210', size: '2,400 sq ft', availability: 'Available', amenities: 'Premium large mezzanine' },
-  'm-220': { name: 'm-220', size: '2,300 sq ft', availability: 'Occupied', amenities: 'Large mezzanine unit' },
-  'm-230': { name: 'm-230', size: '2,500 sq ft', availability: 'Available', amenities: 'Extra large mezzanine space' },
-  'm-240': { name: 'm-240', size: '2,600 sq ft', availability: 'Available', amenities: 'Maximum mezzanine unit' },
-  'm-250': { name: 'm-250', size: '2,700 sq ft', availability: 'Available', amenities: 'Premium large mezzanine' },
-  'm-260': { name: 'm-260', size: '2,800 sq ft', availability: 'Occupied', amenities: 'Extra large elevated space' },
-  'm-270': { name: 'm-270', size: '2,900 sq ft', availability: 'Available', amenities: 'Maximum mezzanine space' },
-  'm-300': { name: 'm-300', size: '3,200 sq ft', availability: 'Available', amenities: 'Premium maximum mezzanine' },
-  'm-320': { name: 'm-320', size: '3,400 sq ft', availability: 'Available', amenities: 'Largest mezzanine available' },
-  'm-340': { name: 'm-340', size: '3,600 sq ft', availability: 'Occupied', amenities: 'Premium maximum mezzanine unit' },
-  'm-345': { name: 'm-345', size: '3,650 sq ft', availability: 'Available', amenities: 'Custom large mezzanine' },
-  'm-350': { name: 'm-350', size: '3,800 sq ft', availability: 'Available', amenities: 'Maximum premium mezzanine space' },
-
-  // T-Series (Tower Units) - Updated to match GLB file naming
-  'T-100': { name: 'T-100', size: '1,000 sq ft', availability: 'Available', amenities: 'Tower level with city views' },
-  'T-110': { name: 'T-110', size: '1,200 sq ft', availability: 'Available', amenities: 'Mid-level tower unit' },
-  'T-200': { name: 'T-200', size: '1,800 sq ft', availability: 'Occupied', amenities: 'Large tower space' },
-  'T-210': { name: 'T-210', size: '1,600 sq ft', availability: 'Available', amenities: 'Tower unit with windows' },
-  'T-220': { name: 'T-220', size: '1,700 sq ft', availability: 'Available', amenities: 'Premium tower space' },
-  'T-230': { name: 'T-230', size: '1,900 sq ft', availability: 'Available', amenities: 'Large tower unit' },
-  'T-300': { name: 'T-300', size: '2,200 sq ft', availability: 'Occupied', amenities: 'Premium tower space' },
-  'T-320': { name: 'T-320', size: '2,400 sq ft', availability: 'Available', amenities: 'Large tower unit' },
-  'T-400': { name: 'T-400', size: '2,800 sq ft', availability: 'Available', amenities: 'Extra large tower space' },
-  'T-410': { name: 'T-410', size: '2,600 sq ft', availability: 'Available', amenities: 'Large tower unit' },
-  'T-420': { name: 'T-420', size: '2,700 sq ft', availability: 'Occupied', amenities: 'Premium tower space' },
-  'T-430': { name: 'T-430', size: '2,900 sq ft', availability: 'Available', amenities: 'Extra large tower unit' },
-  'T-450': { name: 'T-450', size: '3,000 sq ft', availability: 'Available', amenities: 'Maximum tower space' },
-  'T-500': { name: 'T-500', size: '3,200 sq ft', availability: 'Available', amenities: 'Premium large tower unit' },
-  'T-530': { name: 'T-530', size: '3,400 sq ft', availability: 'Occupied', amenities: 'Extra large tower space' },
-  'T-550': { name: 'T-550', size: '3,600 sq ft', availability: 'Available', amenities: 'Maximum tower unit' },
-  'T-600': { name: 'T-600', size: '3,800 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
-  'T-700': { name: 'T-700', size: '4,200 sq ft', availability: 'Available', amenities: 'Largest tower unit available' },
-  'T-800': { name: 'T-800', size: '4,600 sq ft', availability: 'Occupied', amenities: 'Premium maximum tower space' },
-  'T-900': { name: 'T-900', size: '5,000 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
-  'T-950': { name: 'T-950', size: '5,200 sq ft', availability: 'Available', amenities: 'Largest tower unit' },
-  'T-1000': { name: 'T-1000', size: '5,500 sq ft', availability: 'Available', amenities: 'Premium maximum tower space' },
-  'T-1100': { name: 'T-1100', size: '6,000 sq ft', availability: 'Available', amenities: 'Largest premium tower unit' },
-  'T-1200': { name: 'T-1200', size: '6,500 sq ft', availability: 'Available', amenities: 'Maximum tower space available' },
-
-  // Production Stages
-  'stage a': { name: 'stage a', size: '8,000 sq ft', availability: 'Available', amenities: 'Full production stage with lighting grid' },
-  'stage b': { name: 'stage b', size: '7,500 sq ft', availability: 'Occupied', amenities: 'Large production stage' },
-  'stage c': { name: 'stage c', size: '8,500 sq ft', availability: 'Available', amenities: 'Premium production stage' },
-  'stage d': { name: 'stage d', size: '7,200 sq ft', availability: 'Available', amenities: 'Standard production stage' },
-  'stage e': { name: 'stage e', size: '9,000 sq ft', availability: 'Available', amenities: 'Large premium production stage' },
-  'stage f': { name: 'stage f', size: '8,200 sq ft', availability: 'Occupied', amenities: 'Full service production stage' },
-  'stage 7': { name: 'stage 7', size: '7,800 sq ft', availability: 'Available', amenities: 'Professional production stage' },
-  'stage 8': { name: 'stage 8', size: '8,400 sq ft', availability: 'Available', amenities: 'Large production facility' },
-  'mg - stage 7': { name: 'mg - stage 7', size: '6,500 sq ft', availability: 'Available', amenities: 'Mezzanine stage area', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/site-map/LACS_Site Map_M1_Color_page_1.png' },
-  'studio o.m.': { name: 'studio o.m.', size: '5,000 sq ft', availability: 'Occupied', amenities: 'Private studio space', floorPlanUrl: import.meta.env.BASE_URL + 'floorplans/site-map/LACS_Site Map_M1_Color_page_1.png' },
-  'mill 2': { name: 'mill 2', size: '4,500 sq ft', availability: 'Available', amenities: 'Mill building workspace' },
-  'mill 3': { name: 'mill 3', size: '4,800 sq ft', availability: 'Available', amenities: 'Large mill workspace' },
-  'mill 3 office': { name: 'mill 3 office', size: '1,200 sq ft', availability: 'Available', amenities: 'Office space in mill building' },
-  'mill 4': { name: 'mill 4', size: '5,200 sq ft', availability: 'Occupied', amenities: 'Premium mill workspace' },
-  'production support - a': { name: 'production support - a', size: '2,000 sq ft', availability: 'Available', amenities: 'Production support facilities' },
-  'production support - b': { name: 'production support - b', size: '2,200 sq ft', availability: 'Available', amenities: 'Large production support area' },
-  'production support c': { name: 'production support c', size: '2,400 sq ft', availability: 'Available', amenities: 'Premium production support' },
-  'production support - d': { name: 'production support - d', size: '2,600 sq ft', availability: 'Occupied', amenities: 'Large production support facility' },
-
-  // Commercial Spaces
-  'club 76 fifth street': { name: 'club 76 fifth street', size: '3,500 sq ft', availability: 'Available', amenities: 'Restaurant and entertainment venue' },
-  'flix cafe': { name: 'flix cafe', size: '1,800 sq ft', availability: 'Available', amenities: 'Cafe and dining space' },
-  'et lab': { name: 'et lab', size: '2,200 sq ft', availability: 'Occupied', amenities: 'Technology laboratory space' },
-  'event area 1': { name: 'event area 1', size: '4,000 sq ft', availability: 'Available', amenities: 'Large event and conference space' },
-  'kiosk': { name: 'kiosk', size: '200 sq ft', availability: 'Available', amenities: 'Small retail kiosk space' },
-  'fg - library': { name: 'fg - library', size: '3,200 sq ft', availability: 'Available', amenities: 'Library and research facility' },
-  'theater': { name: 'theater', size: '5,500 sq ft', availability: 'Occupied', amenities: 'Full theater and screening facility' },
-
-  // Facilities & Services
-  'f1 restrooms': { name: 'f1 restrooms', size: '400 sq ft', availability: 'Available', amenities: 'Floor 1 restroom facilities' },
-  'f2 restrooms': { name: 'f2 restrooms', size: '450 sq ft', availability: 'Available', amenities: 'Floor 2 restroom facilities' },
-  'f3 restrooms': { name: 'f3 restrooms', size: '420 sq ft', availability: 'Available', amenities: 'Floor 3 restroom facilities' },
-  'fg - restroom': { name: 'fg - restroom', size: '380 sq ft', availability: 'Available', amenities: 'Ground floor restroom facilities' },
-  'm1 restrooms': { name: 'm1 restrooms', size: '400 sq ft', availability: 'Available', amenities: 'Mezzanine 1 restroom facilities' },
-  'm1 resstroom 2': { name: 'm1 resstroom 2', size: '420 sq ft', availability: 'Available', amenities: 'Additional mezzanine 1 restrooms' },
-  'm2 restroom': { name: 'm2 restroom', size: '450 sq ft', availability: 'Available', amenities: 'Mezzanine 2 restroom facilities' },
-  'm3 restroom': { name: 'm3 restroom', size: '430 sq ft', availability: 'Available', amenities: 'Mezzanine 3 restroom facilities' },
-  'surface parking': { name: 'surface parking', size: '15,000 sq ft', availability: 'Available', amenities: 'Outdoor parking area' },
-  'surface parking 2': { name: 'surface parking 2', size: '12,000 sq ft', availability: 'Available', amenities: 'Additional outdoor parking' },
-  'park': { name: 'park', size: '8,000 sq ft', availability: 'Available', amenities: 'Green space and recreational area' },
-  'lobby - 2': { name: 'lobby - 2', size: '1,200 sq ft', availability: 'Available', amenities: 'Building lobby and reception area' },
-};
 
 // Enhanced Camera controller with CameraControls for smooth navigation
 const CameraController: React.FC<{
@@ -351,57 +142,6 @@ const CameraController: React.FC<{
   );
 };
 
-// Details sidebar component with fixed positioning in lower right
-const DetailsSidebar: React.FC<{
-  selectedUnit: string | null;
-  unitData: any;
-  onDetailsClick: () => void;
-  onClose: () => void;
-}> = ({ selectedUnit, unitData, onDetailsClick, onClose }) => {
-  if (!selectedUnit) return null;
-
-  const data = unitData[selectedUnit];
-  // Fix: Ensure availability is a string before calling toLowerCase
-  const availabilityStr = String(data?.availability || '').toLowerCase();
-  const isAvailable = availabilityStr.includes('available') || availabilityStr === 'true';
-
-  return (
-    <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-lg p-4 w-64 border-2 border-slate-600 z-50">
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold text-gray-800">
-          Unit {selectedUnit.toUpperCase()}
-        </h3>
-        <button
-          onClick={onClose}
-          className="text-gray-500 hover:text-gray-700 text-xl"
-        >
-          ×
-        </button>
-      </div>
-
-      <div className={`mb-3 p-2 rounded flex items-center ${isAvailable ? 'bg-sage-50 text-sage-800' : 'bg-red-50 text-red-800'
-        }`}>
-        <div className={`w-3 h-3 rounded-full mr-2 ${isAvailable ? 'bg-sage-500' : 'bg-red-700'
-          }`}></div>
-        {isAvailable ? 'Available' : 'Occupied'}
-      </div>
-
-      <div className="mb-4">
-        <p className="text-sm text-gray-600 mb-1">Size</p>
-        <p className="font-medium">{data?.size || 'N/A'}</p>
-      </div>
-
-      <button
-        onClick={onDetailsClick}
-        className="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium py-2 px-4 rounded transition-colors"
-      >
-        View Details
-      </button>
-    </div>
-  );
-};
-
-// RendererSetup removed - EnvHDRI handles all renderer configuration
 
 function App() {
   const [canvasReady, setCanvasReady] = useState(false);
@@ -417,111 +157,36 @@ function App() {
   // Deep link handling for unit selection
   const [deepLinkHandled, setDeepLinkHandled] = useState(false);
   const { enabled: sceneEnabled, reason: sceneDisableReason, param: sceneParam } = scenePolicy;
-  const { selectedUnit, hoveredUnit, setSelectedUnit, setHoveredUnit } = useUnitStore();
+  const { selectedUnit } = useUnitStore();
 
   useEffect(() => {
     debugLog.info('App mounted', { SAFE, isMobile: PerfFlags.isMobile, tier: PerfFlags.tier });
   }, []);
   const {
-    drawerOpen, setDrawerOpen, selectedUnitKey, getUnitData,
-    unitDetailsOpen, setUnitDetailsOpen, show3DPopup, setShow3DPopup,
-    hoveredUnitKey, singleUnitRequestOpen, setSingleUnitRequestOpen, requestUnitData
+    drawerOpen, setDrawerOpen
   } = useExploreState();
   const { setCameraControlsRef } = useGLBState();
   const { floorPlanExpanded, setFloorPlanExpanded } = useSidebarState();
 
-  // Flash prevention system - triggers freeze-frame on unit selection
-  // const { preventFlash } = useFlashPrevention();
-
-  // Global hover preview state
-  const [globalHoverPreview, setGlobalHoverPreview] = useState<{
-    unitName: string;
-    unitData: any;
-    position: { x: number; y: number };
-  } | null>(null);
-
-  // Listen for hover preview updates from ExploreUnitsPanel
-  useEffect(() => {
-    const handleHoverUpdate = (event: CustomEvent) => {
-      setGlobalHoverPreview(event.detail);
-    };
-
-    const handleHoverClear = () => {
-      setGlobalHoverPreview(null);
-    };
-
-    window.addEventListener('unit-hover-update' as any, handleHoverUpdate);
-    window.addEventListener('unit-hover-clear' as any, handleHoverClear);
-    return () => {
-      window.removeEventListener('unit-hover-update' as any, handleHoverUpdate);
-      window.removeEventListener('unit-hover-clear' as any, handleHoverClear);
-    };
-  }, []);
-
 
   // Debug logging for state changes
 
-  const [showFullDetails, setShowFullDetails] = useState(false);
   const [modelsLoading, setModelsLoading] = useState(true);
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
-  const [showRequestForm, setShowRequestForm] = useState(false);
 
-  // FlashKiller removed - no longer needed
-
-  // AGGRESSIVE FLASH DETECTION - Monitor setModelsLoading calls
-  const originalSetModelsLoading = useRef(setModelsLoading);
-  const aggressiveFlashDetection = (loading: boolean) => {
-    const stack = new Error().stack;
-    const currentTime = new Date().toISOString();
-    const previousState = modelsLoading;
-
-    console.group(`🔍 LOADING STATE CHANGE: ${loading ? 'SHOW' : 'HIDE'} loading screen`);
-    console.log(`⏰ Timestamp: ${currentTime}`);
-    console.log(`🎯 Previous state: modelsLoading was ${previousState}`);
-    console.log(`🎯 New state: modelsLoading will be ${loading}`);
-    console.log(`🔒 Initial load completed: ${initialLoadCompleted}`);
-    console.log('📍 Call stack (top 10 lines):');
-    stack?.split('\n').slice(0, 10).forEach((line, i) => {
-      console.log(`  ${i}: ${line.trim()}`);
-    });
-    console.groupEnd();
-
-    // PREVENT RE-ENABLING LOADING SCREEN AFTER INITIAL LOAD
-    if (loading && initialLoadCompleted) {
-      console.error('🚨 BLOCKED: Attempt to re-enable loading screen after initial load! This would cause white flash.');
-      console.log('🛡️ Loading screen re-enable blocked to prevent flash');
-      return; // Don't actually set loading to true
-    }
-
-    if (loading && !previousState) {
-      console.warn('⚠️ WARNING: Loading screen being re-enabled after it was previously disabled!');
-    }
-
-    originalSetModelsLoading.current(loading);
-  };
-
-  // Replace setModelsLoading with detection version
-  // Replace setModelsLoading with detection version
-  useEffect(() => {
-    originalSetModelsLoading.current = setModelsLoading;
-  }, [setModelsLoading]);
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingPhase, setLoadingPhase] = useState('initializing'); // Track loading phase
   const [effectsReady, setEffectsReady] = useState(false); // Delay post-processing effects
   const [renderTier, setRenderTier] = useState<Tier>(PerfFlags.tier === 'mobileLow' ? 'mobile-low' : 'desktop-high');
-  const sunPosition = useMemo(() => [165, 188, -40] as [number, number, number], []);
   const debugState = {
     tier: renderTier,
     ao: true,
     ssr: true,
     ssgi: false,
-    pathtracer: false,
-    ptBounces: 5,
     composerScale: 1.0,
     shadowBias: -0.0005,
     shadowNormalBias: 0.05,
-    showShadowHelper: false,
     polygonOffsetEnabled: true,
     polygonOffsetFactor: -1,
     polygonOffsetUnits: -2,
@@ -737,14 +402,6 @@ function App() {
   // Use new CSV-based data fetching
   const { data: csvUnitData, loading: isUnitDataLoading, error } = useCsvUnitData(CSV_URL);
 
-  // Enhanced unit data with Google Sheets square footage
-  const [enhancedUnitData, setEnhancedUnitData] = useState<Record<string, UnitDataItem>>({});
-
-  useEffect(() => {
-    loadUnitData().then(setEnhancedUnitData).catch(err =>
-      console.error('Failed to load enhanced unit data:', err)
-    );
-  }, []);
 
   // ENHANCED: Deep link handling for both ?unit= and ?sel= parameters
   useEffect(() => {
@@ -786,7 +443,7 @@ function App() {
         setDeepLinkHandled(true);
       }
     }
-  }, [csvUnitData, isUnitDataLoading, deepLinkHandled, setDrawerOpen, setUnitDetailsOpen]);
+  }, [csvUnitData, isUnitDataLoading, deepLinkHandled, setDrawerOpen]);
 
   // Initialize viewer and emit ready event when models are loaded
   useEffect(() => {
@@ -1061,102 +718,10 @@ function App() {
 
   // Log sphere data when it changes
 
-  const handleUnitSelect = useCallback((unitName: string) => {
-    setSelectedUnit(unitName);
-    setShowFullDetails(false); // Reset full details when selecting a new unit
-
-    // Apply camera config if exists
-    if (unitName && orbitControlsRef.current) {
-      const config = UNIT_CAMERA_CONFIG[unitName.toLowerCase()];
-      if (config) {
-        orbitControlsRef.current.setLookAt(
-          ...config.position,
-          ...config.target,
-          true // Enable transition
-        );
-      }
-    }
-  }, []);
-
-  const handleDetailsClick = () => {
-    setShowFullDetails(true);
-  };
-
-  const handleCloseDetails = () => {
-    setShowFullDetails(false);
-  };
-
-  const handleCloseSidebar = () => {
-    setSelectedUnit(null);
-    setShowFullDetails(false);
-  };
 
 
-  // Handle explore drawer toggle
-  const handleToggleExploreDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
 
-  // Handle close drawer
-  const handleCloseDrawer = () => {
-    setDrawerOpen(false);
-  };
 
-  // Animation state for smooth camera movements
-  const animationState = useRef<{
-    isAnimating: boolean;
-    startTime: number;
-    duration: number;
-    startAzimuth?: number;
-    targetAzimuth?: number;
-    startDistance?: number;
-    targetDistance?: number;
-    startPolar?: number;
-    targetPolar?: number;
-  }>({
-    isAnimating: false,
-    startTime: 0,
-    duration: 1000
-  });
-
-  // Smooth easing function
-  const easeInOutCubic = (t: number): number => {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  };
-
-  // CameraControls-compatible animation function
-  const animateCamera = useCallback((
-    targetAzimuth?: number,
-    targetDistance?: number,
-    targetPolar?: number,
-    resetToDefault?: boolean,
-    duration: number = 1200
-  ) => {
-    if (!orbitControlsRef.current || animationState.current.isAnimating) return;
-
-    const controls = orbitControlsRef.current;
-
-    if (resetToDefault) {
-      // Reset to initial position using CameraControls
-      controls.reset(true);
-      return;
-    }
-
-    // Use CameraControls methods for smooth animations
-    if (targetAzimuth !== undefined) {
-      controls.rotateAzimuthTo(targetAzimuth, true);
-    }
-
-    if (targetPolar !== undefined) {
-      controls.rotatePolarTo(targetPolar, true);
-    }
-
-    if (targetDistance !== undefined) {
-      const currentDistance = controls.distance;
-      const dollyAmount = targetDistance / currentDistance;
-      controls.dolly(dollyAmount, true);
-    }
-  }, []);
 
   // Navigation control functions with CameraControls
   const handleRotateLeft = useCallback(() => {
@@ -1176,26 +741,14 @@ function App() {
   const handleZoomIn = useCallback(() => {
     if (orbitControlsRef.current) {
       const controls = orbitControlsRef.current;
-      const distanceBefore = controls.distance;
       controls.dolly(0.85, true); // Zoom in (less than 1.0 to move camera closer)
-      // Log distance after a brief delay to capture the change
-      setTimeout(() => {
-        const distanceAfter = controls.distance;
-      }, 100);
-    } else {
     }
   }, []);
 
   const handleZoomOut = useCallback(() => {
     if (orbitControlsRef.current) {
       const controls = orbitControlsRef.current;
-      const distanceBefore = controls.distance;
       controls.dolly(-0.35, true); // Zoom out (negative value to move camera away)
-      // Log distance after a brief delay to capture the change
-      setTimeout(() => {
-        const distanceAfter = controls.distance;
-      }, 100);
-    } else {
     }
   }, []);
 
@@ -1204,10 +757,6 @@ function App() {
       const controls = orbitControlsRef.current;
       controls.reset(true); // Reset to initial position
     }
-  }, []);
-
-  const handleRequestClick = useCallback(() => {
-    setShowRequestForm(true);
   }, []);
 
   const handleExpandFloorplan = useCallback((floorplanUrl: string, unitName: string, unitData?: any) => {
@@ -1311,26 +860,6 @@ function App() {
       clearTimeout(failsafeTimeout);
     };
   }, [deviceCapabilities.isMobile, loadingPhase]);
-
-  const handleModelsLoadingProgress = useCallback((loaded: number, total: number) => {
-    // Map model loading to 15-70% of progress bar
-    const modelProgress = Math.round((loaded / total) * 55) + 15;
-    setLoadingProgress(modelProgress);
-    setLoadingPhase('loading-models');
-
-    if (loaded >= total) {
-      setLoadingProgress(100);
-      setLoadingPhase('complete');
-      setEffectsReady(true);
-
-      // Hide loading screen immediately
-      setTimeout(() => {
-        setModelsLoading(false);
-        setInitialLoadCompleted(true);
-        console.log('✅ Initial load completed (100ms timeout) - loading screen disabled permanently');
-      }, 100);
-    }
-  }, []);
 
   const floorplanContextValue = {
     openFloorplan: handleExpandFloorplan
@@ -1480,8 +1009,6 @@ function App() {
                             </>
                           )}
 
-                          {/* Shadow Debug Helper */}
-                          <ShadowHelper enabled={debugState.showShadowHelper} />
 
                           {/* Fog - Lightweight Volumetric Fog (replaces God Rays) */}
                           {!mobileSettings.disableFog && (
@@ -1506,17 +1033,10 @@ function App() {
                           <UnitGlowHighlightFixed />
                           {/* OLD BROKEN VERSION: <UnitGlowHighlight /> */}
 
-                          {/* Canvas Click Handler for clearing selection */}
-                          <CanvasClickHandler />
 
                           {/* Canvas Resize Handler for smooth sidebar transitions */}
                           <CanvasResizeHandler />
 
-                          {/* DEBUG: Layout Diagnosis */}
-                          <LayoutDebugger />
-
-                          {/* Canvas Size Probe for debugging aspect lock issues */}
-                          <CanvasSizeProbe />
 
                           {/* God Rays Effect - REMOVED per user request (bandwidth/performance) */}
                           {/* {effectsReady && <GodRays />} */}
@@ -1529,46 +1049,16 @@ function App() {
                           {/* Performance Governor - mobile FPS enforcement */}
                           <PerformanceGovernorComponent />
 
-                          {/* WebGL Context Recovery */}
-                          <WebGLRecovery />
 
                           {/* Enhanced Context Recovery for Mobile */}
                           <WebGLContextRecovery />
 
                           {/* Post-processing - Disabled on mobile per safe-mode preset */}
-                          {!mobileSettings.postProcessing && !SAFE && effectsReady && debugState.ao && !debugState.pathtracer && (
+                          {!mobileSettings.postProcessing && !SAFE && effectsReady && debugState.ao && (
                             <AdaptiveEffects tier={tier} />
                           )}
                           {mobileSettings.postProcessing && console.log('⚠️ Post-processing DISABLED (mobile safe-mode)')}
 
-                          {/* GPU Path Tracer - DISABLED for production to prevent Suspense fallbacks */}
-                          {false && effectsReady && debugState.pathtracer && (
-                            <Suspense fallback={null}>
-                              <PathTracer
-                                enabled={debugState.pathtracer}
-                                tier={renderTier}
-                                bounces={debugState.ptBounces}
-                                renderScale={0.5}
-                                tiles={{ x: 2, y: 2 }}
-                              />
-                            </Suspense>
-                          )}
-
-                          {/* 3D Scene Popup */}
-                          <Unit3DPopupOverlay
-                            onExpand={() => {
-                              setShow3DPopup(false);
-                              setUnitDetailsOpen(true);
-                            }}
-                            onRequest={(unitKey) => {
-                              const unitData = getUnitData(unitKey);
-                              setSingleUnitRequestOpen(true, {
-                                unitKey,
-                                unitName: unitData?.unit_name || unitKey
-                              });
-                            }}
-                            onClose={() => setShow3DPopup(false)}
-                          />
                         </>
                       )}
                     </RootCanvas>
@@ -1653,49 +1143,12 @@ function App() {
 
 
 
-            {/* Dynamic Details Sidebar - DISABLED: Causes mini popup conflicts with deep links */}
-            {/* Use full sidebar instead of this mini floating popup */}
-            {/* <DetailsSidebar
-              selectedUnit={selectedUnit}
-              unitData={effectiveUnitData}
-              onDetailsClick={handleDetailsClick}
-              onClose={handleCloseSidebar}
-            /> */}
 
 
 
             {/* Hover Toast - using new component */}
             <HoverToast />
 
-            {/* Full Unit Detail Popup */}
-            {showFullDetails && (
-              <UnitDetailPopup
-                selectedUnit={selectedUnit}
-                unitData={effectiveUnitData}
-                onClose={handleCloseDetails}
-              />
-            )}
-
-            {/* Explore Suites Details Popup - Center of Scene (Desktop Only) */}
-            {!deviceCapabilities.isMobile && !PerfFlags.isMobile && (
-              <UnitDetailsPopup
-                unit={selectedUnitKey ? getUnitData(selectedUnitKey) || {
-                  unit_key: selectedUnitKey,
-                  unit_name: selectedUnitKey.toUpperCase(),
-                  status: 'Unknown',
-                  recipients: [],
-                  area_sqft: undefined,
-                  price_per_sqft: undefined,
-                  lease_term: undefined,
-                  notes: 'Unit data not available in CSV',
-                  floorplan_url: undefined
-                } as any : null}
-                isOpen={unitDetailsOpen}
-                onClose={() => {
-                  setUnitDetailsOpen(false);
-                }}
-              />
-            )}
 
             {/* Shadow Debug UI - DISABLED (using RealisticSun instead) */}
 
@@ -1713,15 +1166,6 @@ function App() {
 
             {/* Debug info removed */}
 
-            {/* Global Hover Preview - Rendered at App level for true global positioning */}
-            {globalHoverPreview && (
-              <UnitHoverPreview
-                unitName={globalHoverPreview.unitName}
-                unitData={globalHoverPreview.unitData}
-                position={globalHoverPreview.position}
-                isVisible={true}
-              />
-            )}
 
             {/* Sun Position Controls - Removed, values hard-coded */}
 
