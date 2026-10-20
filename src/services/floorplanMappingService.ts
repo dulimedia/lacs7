@@ -86,15 +86,15 @@ export const TOWER_UNIT_FLOOR_MAPPINGS: { [key: string]: { floorFloorplan: strin
 
   // 5th Floor (Fixed filenames)
   't500': {
-    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf'),
+    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M2_Color.pdf'),
     combinedFloorplan: towerPath('5th-floor', 'LACS_T-500_Suite and Floor Plan.pdf')
   },
   't530': {
-    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf'),
+    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M2_Color.pdf'),
     combinedFloorplan: towerPath('5th-floor', 'LACS_T-530_Suite and Floor Plan.pdf')
   },
   't550': {
-    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M1_Color.pdf'),
+    floorFloorplan: towerPath('5th-floor', 'LACS_Floor 5_M2_Color.pdf'),
     combinedFloorplan: towerPath('5th-floor', 'LACS_T-550_Suite and Floor Plan.pdf')
   },
 
